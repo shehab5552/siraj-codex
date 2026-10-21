@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_routes.dart';
 
-/// Debug-only preview; it is not a signed-in application home screen.
+/// Debug preview when [onOpenChat] is null; otherwise entered only after
+/// validating the encrypted marker and its matching SQLite nonce.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, this.onOpenChat});
+
+  final VoidCallback? onOpenChat;
 
   @override
   Widget build(BuildContext context) {
+    final authenticated = onOpenChat != null;
     return Scaffold(
       appBar: AppBar(title: const Text('سراج')),
       body: SafeArea(
@@ -22,21 +26,26 @@ class HomePage extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            const Card(
+            Card(
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'معاينة هندسية — B-02',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      authenticated
+                          ? 'جلسة محلية موثّقة — B-06'
+                          : 'معاينة هندسية — Debug',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
-                      'هذه الواجهة متاحة في وضع Debug فقط. '
-                      'لم تُنفذ المصادقة أو SQLite أو Local AI/RAG بعد. '
-                      'ولا تمثل النسخة الإنتاجية من سراج.',
+                      authenticated
+                          ? 'تم التحقق من الجلسة المشفّرة وقاعدة الحساب. '
+                                'حفظ السؤال الأول مدعوم؛ توليد إجابات Local AI/RAG غير مفعّل بعد.'
+                          : 'واجهة معاينة فقط. SQLite والمصادقة بُنيت أجزاء منهما، '
+                                'لكن لا توجد جلسة موثّقة في هذه المعاينة، '
+                                'ولذلك إرسال المحادثة معطّل.',
                     ),
                   ],
                 ),
@@ -45,14 +54,17 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 20),
             FilledButton.icon(
               key: const Key('open-chat'),
-              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.chat),
+              onPressed:
+                  onOpenChat ??
+                  () => Navigator.of(context).pushNamed(AppRoutes.chat),
               icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text('فتح معاينة المحادثة'),
+              label: Text(
+                authenticated ? 'فتح المحادثة' : 'فتح معاينة المحادثة',
+              ),
             ),
             const SizedBox(height: 12),
             const Text(
-              'سيُربط زر الإرسال بحفظ الرسائل وخدمة Tutor '
-              'بعد تنفيذ B-05 وB-08 وB-09.',
+              'الإجابات عبر Tutor وRAG تتطلب تكامل المكونات المحلية لاحقًا.',
               textAlign: TextAlign.center,
             ),
           ],

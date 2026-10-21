@@ -1,10 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app_bootstrap.dart';
 import 'app_routes.dart';
 
 class SirajApp extends StatelessWidget {
-  const SirajApp({super.key});
+  const SirajApp({super.key, this.debugPreview = false});
+
+  /// Only explicitly used in debug widget tests; never in release/profile.
+  final bool debugPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -12,17 +16,14 @@ class SirajApp extends StatelessWidget {
       title: 'سراج',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF254A65),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF254A65)),
         useMaterial3: true,
       ),
-      // RTL direction for the B-02 UI. Full localization comes separately.
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: const AppBootstrap(),
+      home: AppBootstrap(debugPreview: debugPreview && kDebugMode),
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
