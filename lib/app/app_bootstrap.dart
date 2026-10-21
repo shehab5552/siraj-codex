@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import '../data/conversation_repository.dart';
 import '../data/database_runtime.dart';
 import '../data/user_repository.dart';
+import '../features/auth/login_page.dart';
 import '../features/auth/session_guard.dart';
+import '../features/auth/signup_page.dart';
 import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
@@ -102,17 +104,11 @@ class _AppBootstrapState extends State<AppBootstrap> {
               },
             );
           case StartupStatus.accountRequired:
-            return _statusScreen(
-              context,
-              'لا يوجد حساب محلي بعد. واجهة إنشاء الحساب قيد الربط، '
-              'ولن نفعّل كلمة مرور بإعداد KDF اختباري.',
-            );
+            // Fail-closed UI: no KDF approved means no account write handler.
+            return const SignupPage();
           case StartupStatus.loginRequired:
-            return _statusScreen(
-              context,
-              'يوجد حساب محلي، لكن لا توجد جلسة صالحة. '
-              'تسجيل الدخول متوقف لحين اعتماد حماية كلمة المرور الإنتاجية.',
-            );
+            // Fail-closed UI: no KDF approved means no password verify handler.
+            return const LoginPage();
           case StartupStatus.databaseUnavailable:
             return _statusScreen(
               context,
