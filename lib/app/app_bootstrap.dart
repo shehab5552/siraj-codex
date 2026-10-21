@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../data/conversation_repository.dart';
 import '../data/database_runtime.dart';
+import '../data/resource_repository.dart';
 import '../data/user_repository.dart';
+import '../features/auth/auth_models.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/session_guard.dart';
 import '../features/auth/signup_page.dart';
@@ -13,6 +15,8 @@ import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
 import '../features/home/home_page.dart';
+import '../features/resources/resource_status_page.dart';
+import '../features/resources/resource_status_reader.dart';
 import 'app_routes.dart';
 
 /// B-06 Step 1: fail-closed startup. No test-only/weak KDF is connected.
@@ -56,6 +60,57 @@ class _AppBootstrapState extends State<AppBootstrap> {
     ).resolve();
   }
 
+  bool _openingResources = false;
+
+  /// B-07: the resource registry is device-scoped, but entry from the app
+  /// must still be protected by the active account/session gate. Re-resolve
+  /// the encrypted session and its SQLite nonce before navigation.
+  Future<void> _openResourceStatus(
+    AuthSession expected,
+    DatabaseRuntime runtime,
+  ) async {
+    if (_openingResources) return;
+    _openingResources = true;
+    try {
+      final decision = await StartupSessionResolver(
+        users: UserRepository(runtime.database),
+        markerStore: const KeystoreSessionMarkerStore(),
+      ).resolve();
+      if (!mounted) return;
+      final current = decision.session;
+      if (decision.status != StartupStatus.authenticated ||
+          current == null ||
+          current.userId != expected.userId ||
+          current.accountEpoch != expected.accountEpoch ||
+          current.sessionNonce != expected.sessionNonce) {
+        // Do not keep a stale authenticated home in the widget tree.
+        setState(() => _startup = _resolve());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('انتهت صلاحية الجلسة. يلزم تسجيل الدخول.'),
+          ),
+        );
+        return;
+      }
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => ResourceStatusPage(
+            reader: ResourceStatusReader(ResourceRepository(runtime.database)),
+          ),
+        ),
+      );
+    } catch (_) {
+      // Fail closed: do not open the registry on a database/Keystore error.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تعذّر التحقق من الجلسة.')),
+        );
+      }
+    } finally {
+      _openingResources = false;
+    }
+  }
+
   @override
   void dispose() {
     final runtime = _runtime;
@@ -89,6 +144,8 @@ class _AppBootstrapState extends State<AppBootstrap> {
               return _statusScreen(context, 'تعذّر استعادة الجلسة بأمان.');
             }
             return HomePage(
+              onOpenResources: () =>
+                  unawaited(_openResourceStatus(session, runtime)),
               onOpenChat: () {
                 final users = UserRepository(runtime.database);
                 Navigator.of(context).pushNamed(

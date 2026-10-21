@@ -5,9 +5,12 @@ import '../../app/app_routes.dart';
 /// Debug preview when [onOpenChat] is null; otherwise entered only after
 /// validating the encrypted marker and its matching SQLite nonce.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, this.onOpenChat});
+  const HomePage({super.key, this.onOpenChat, this.onOpenResources});
 
   final VoidCallback? onOpenChat;
+
+  /// Supplied only from an authenticated bootstrap. Never use it in preview.
+  final VoidCallback? onOpenResources;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +65,15 @@ class HomePage extends StatelessWidget {
                 authenticated ? 'فتح المحادثة' : 'فتح معاينة المحادثة',
               ),
             ),
+            if (authenticated && onOpenResources != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('open-resource-status'),
+                onPressed: onOpenResources,
+                icon: const Icon(Icons.inventory_2_outlined),
+                label: const Text('حالة الموارد'),
+              ),
+            ],
             const SizedBox(height: 12),
             const Text(
               'الإجابات عبر Tutor وRAG تتطلب تكامل المكونات المحلية لاحقًا.',
