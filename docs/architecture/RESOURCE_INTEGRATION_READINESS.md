@@ -1,0 +1,90 @@
+# SIRAJ P0 — جاهزية دمج الموارد
+
+تاريخ التحقق: 2026-10-22. مرجع القرارات: المواصفة الرسمية P0 v1.0.1 المصححة، DD-01/02/03، FR-12/21/22، §6.4–6.6 و§9–10، وخطة B المعدّلة. هذه الوثيقة تصف عقد الدمج والعمل المتبقي؛ لا تشهد بجاهزية الموارد أو الإنتاج.
+
+## 1. الحالة الفعلية
+
+المستودع المستهدف هو `shehab5552/siraj-codex` فقط. التنفيذ مستقل من قاعدة Codex الحالية؛ لا يتطلب نقل كود المشروع الأصلي. لا توجد في هذه الشريحة موارد إنتاجية أو نتائج Android مثبتة، ولا اختيار معتمد لمحرك LLM أو Query Embedding أو النموذج أو ABI أو عتباته.
+
+| المكوّن | الموجود في الكود | الحالة المتبقية |
+|---|---|---|
+| سجل الموارد وشاشة حالته | قراءة الحالة، وكتابة الحالات غير الموثقة فقط | لا يفعّل موردًا؛ READY المخزنة تحتاج تحققًا جديدًا |
+| عقود التحقق والمرشح | قائمة متطلبات؛ اتساق تصريح خمس مواد وEmbedder واحد | التصريح ليس فحصًا للملفات |
+| `ArtifactIntegrityValidator` | قراءة ملف فعلي، SHA-256، حجم اختياري، رفض مسارات وروابط غير آمنة، prefix محدود | يحتاج Catalog موثوقًا وStaging خاصًا بالتطبيق دون كتابات متزامنة |
+| `ResourceFormatPreflight` | تعرف محدود على ترويسة GGUF/PDF من البايتات المقروءة نفسها | لا يثبت صحة الملف كاملة أو قابلية تشغيله/قراءته |
+| التنزيل، فك الأرشيف، Validators المتخصصة، النشر والمؤشر | غير منفذة في هذه الشريحة | `UNIMPLEMENTED`؛ لا تُستنتج من نجاح الاختبارات الجديدة |
+| LLM وEmbedder وبيانات الأحياء الحقيقية | لا دليل دمج أو جهاز في هذه الشريحة | `PENDING_RESOURCE` / `PENDING_TEST` بحسب المورد؛ ليست سببًا لتعطيل العمل المستقل |
+
+## 2. حدود الموارد والمسؤوليات
+
+- **LLM:** تنزيل مستقل إلى `models/`؛ ملف GGUF منفرد إذا كان Artifact بهذه الصيغة. التفعيل يحتاج Hash وصيغة ودعم Runtime/Device وModel Load حقيقيًا. لا يفترض فحص الترويسة نوع Quantization أو Tokenizer أو Context Length.
+- **Dataset:** موافقة واحدة بعد Login، وخمس Subject Packs ونموذج Query Embedding مشترك واحد. Embedder مورد داخلي من Dataset، دون زر تنزيل مستقل. لا يدمج PDF ولا يشتق Embeddings منه.
+- **PDF:** اختيار وتنزيل كتاب مستقل إلى `books/`؛ فتح محلي عبر PDF Reader دون اعتماد على LLM/Dataset. يلزم اكتمال التنزيل وقابلية القراءة، وHash عندما يعلنه Catalog.
+- **الشبكة:** `DownloadService` وحده ينفذ HTTP(S) في التطبيق. Validators وAuth وSQLite وChat وQuiz وSourceMapper وQueryEmbedder لا ترسل محتوى الطالب للخارج. جلب حزم التطوير ليس دليلًا على سلوك التطبيق دون شبكة.
+- **الطبقات:** UI تعرض تقدمًا وأخطاء محددة؛ خدمات الموارد تنسق التنزيل والتحقق؛ Validators تفحص؛ Repositories تحفظ Metadata فقط؛ Runtime/Reader يثبتان القابلية الفعلية. لا يُربط نجاح Header أو قائمة أسماء فحوص مباشرة بكتابة READY.
+
+## 3. المدخلات المطلوبة عند توفر الموارد
+
+| المورد/الجهة | البيانات المطلوبة | ما لا يجوز استنتاجه |
+|---|---|---|
+| Catalog موثوق | ID، Kind، رابط HTTPS، Revision، SHA-256 المعلن، الحجم إن توفر، Destination Key محلي | لا يُحسب Hash المتوقع من الملف المنزل نفسه؛ لا تُخترع روابط أو معرفات إنتاج |
+| A: LLM/Runtime | Artifact وHash/Revision، ترخيص، صيغة، Runtime وABI، ModelConfig، Tokenizer/Prompt Profile، حدود مقاسة | لا اختيار إنتاجي أو أرقام أداء افتراضية |
+| C: Subject Packs | المواد الخمس المعتمدة، Manifest/Schema، Chunks/Metadata/References، Index Type/Version، Hashes داخلية وخارجية | معرفات المواد في الاختبارات ليست Catalog إنتاجيًا |
+| A+C: Shared Embedder | Model ID وArtifact Revision/Hash، Tokenizer، Pooling، Normalization، Dimension، توافق كل Index | تطابق الأبعاد وحده لا يثبت توافق المتجهات |
+| PDF Catalog/Reader | Book ID، رابط، حجم/Hash إن توفرا، ملف صالح، Adapter يفتح/يحلل الملف | `%PDF-` وحدها لا تثبت قابلية القراءة |
+| G2/G3 | Biology fixture مراجعة، Runtime وEmbedder فعليان، جهاز Android مناسب وأدلة القياس | لا تُستبدل هذه الأدلة باختبارات Linux أو إجابات Tutor مصطنعة |
+
+تعريفات الحقول أعلاه مقتبسة من العقود المعتمدة وليست Schema إنتاجية جديدة. تبقى الحقول والقيم غير المستلمة صريحةً كمدخلات مطلوبة؛ لا توجد روابط تنزيل تجريبية في إعدادات المنتج.
+
+## 4. عقد سلامة البايتات المنفذ الآن
+
+`ArtifactIntegrityValidator.validate` يستقبل `stagingRoot` و`relativePath` و`kind` و`expectedSizeBytes?` و`expectedSha256?`. المصدر الموثوق يوفر التوقعات. Hash إلزامي لـLLM وRAG_PACK وRAG_EMBEDDING، واختياري لـPDF فقط إذا لم يعلنه Catalog. Hash معطوب أو حجم سالب ينتج خطأ توقعات، ولا يُعامل كمرجع غائب.
+
+القارئ يستخدم دفعات 64 KiB وSHA-256 streaming من التبعية الحالية `cryptography`، ويحتفظ بأول 24 بايت فقط. يفحص الحجم المعلن قبل القراءة، ويقارن الحجم ومعلومات الملف بعد القراءة. النتيجة المحددة هي `ArtifactIntegrityFailure` برمز السبب أو `ArtifactIntegrityMatch` غير قابلة لتعديل بياناتها. `sha256Matched=false` يعني أن PDF لم يملك مرجع Hash؛ البصمة المحسوبة وحدها ليست إثبات أصالة.
+
+قيود المسار: Relative Path واضح بفاصل `/`، دون أجزاء فارغة أو `.` أو `..` أو `\` أو `:` أو NUL. تُرفض الروابط الرمزية في الجذر المقدم ومكونات المسار والملف. لا تعديل أو حذف أو إعادة تسمية لملفات الموارد، ولا SQLite أو شبكة داخل الفاحص.
+
+**شرط استخدام أمني:** يجب أن يكون Staging خاصًا بالتطبيق، وأن يوقف المنسق الكتابة/Resume/Replacement أثناء الفحص والنشر. فحوص المسار وStat في Dart لا توفر `openat/O_NOFOLLOW` أو قفلًا على مستوى النظام؛ رصد التغييرات العادية ليس ضمانًا ضد كاتب خصم يغير المسارات بين الفحوص. لا تستخدم النتائج كتصريح لفتح مسار قابل للتعديل لاحقًا؛ النشر/الاستخدام المستقبليان يحتاجان ملكية وHandle مناسبين وإعادة التحقق عند Startup.
+
+## 5. حدود فحص الصيغة الحالي
+
+المدخل `ArtifactIntegrityMatch`، وprefix مأخوذ من المرور نفسه الذي حُسبت بصمته؛ لا يفتح Preflight الملف مرة ثانية. GGUF: يتعرف على magic ونسختي الترويسة 2/3 بترتيب Little Endian وطول الرأس الثابت الأدنى 24 بايت. لا يحلل Counts/Metadata/Tensors أو يثبت صلاحيتها؛ Unsupported Version يحتاج Adapter مناسبًا، وليس حكمًا باعتماد Runtime إنتاجي. مرجع البنية العام: [GGUF specification](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md).
+
+PDF: يتعرف على `%PDF-1.0` إلى `1.7` و`2.0` متبوعة بـCR/LF في بداية الملف. هذه عينة فحص محدودة؛ لا يقرأ Pages/Xref/Trailer ولا يثبت `pdfReadable`. تظل أخطاء/قيود التعرف منفصلة عن فحص Reader الكامل. RAG Pack وEmbedder يعيدان `specializedValidatorRequired` دون افتراض صيغة لهما.
+
+`remainingChecks` يزيل فقط `sha256Matched` عند مطابقته لمرجع معلن؛ يحتفظ بمتطلبات اكتمال النقل وصلاحية الصيغة وRuntime/Device/Load أو PDF Readability وغيرها. **`recognizedHeader` ليست READY أو ACTIVE أو RAG_READY، ولا نجاحًا لفحص الصيغة المتخصص.**
+
+## 6. Dataset: ما يلزم قبل أي تفعيل
+
+1. تنزيل الملفات إلى `rag/staging/<candidate_id>/` غير قابل للبحث، بموافقة Dataset واحدة. لا مساس بمجموعة Active أثناء إعداد البديل.
+2. SHA-256 خارجي للأرشيف، ثم استخراج آمن يمنع Absolute Paths وTraversal والروابط والملفات غير المكتملة. هذا المستخرج غير منفذ هنا.
+3. فحص Manifest وChecksums الداخلية، بما فيها Manifest باستثناء ملف Checksums ذاته، ورفض UTF-8 غير الصالح كخطأ محدد دون نجاح كاذب. فحص Schema وChunk References وIndex Type/Version.
+4. تطابق Revision والخمس وEmbedder واحد وTokenizer/Pooling/Normalization/Dimension واختبار Query حقيقي على Android.
+5. ترقية Directory مكتملة على FileSystem نفسه إلى `rag/releases/<revision>/` غير قابلة للتعديل، ثم تبديل مؤشر SQLite ذري واحد في جدول `installed_resource` القائم. لا إضافة جدول سادس؛ صف المؤشر المحجوز وفق §7 و§10.3 هو `RAG_PACK / __ACTIVE_DATASET__`.
+6. الحفاظ على المؤشر والملفات القديمة عند فشل التحقق أو النقل أو Transaction. Promotion بلا Commit يبقى Orphan غير نشط. كل قارئ يستخدم `RevisionPinnedHandle`؛ لا تنظيف لإصدار له قارئ حي، ولا مزج Embedder جديد مع Index قديم.
+7. Startup يعيد التحقق من المؤشر وملفات الإصدار قبل الجاهزية. المصدر القديم المفقود ينتج `SOURCE_UNAVAILABLE` دون استبداله بمقطع من Revision أخرى.
+
+هذه سلسلة مطلوبة للمراحل اللاحقة، وليست كودًا مُنجزًا بواسطة هذين الفاحصين.
+
+## 7. التنزيل الآمن والتعافي — التنفيذ التالي
+
+يلزم DownloadService مع HTTPS والتحقق العادي من TLS، Disk Space، Staging فقط، أخطاء محددة، Pause/Cancel وResume مقيد بهوية Artifact وETag/Last-Modified عند توفرهما. Range غير مدعوم أو هوية تغيرت تعني Restart نظيفًا؛ لا جمع بايتات من Artifact مختلف. اكتمال HTTP لا يعني التفعيل. لا تُضعف الشهادات أو Hashes لتجاوز فشل الشبكة.
+
+كل فشل يسجل Host وHTTP Status والسبب القابل للإثبات، دون Tokens أو بيانات الطالب. يظل المورد القديم صالحًا إن كان البديل قد فشل. الموارد المشتركة تبقى عند حذف الحساب؛ لا تعود محادثات الحساب المحذوف أو إعداداته لحساب جديد.
+
+## 8. خطة الدمج والقبول
+
+| المرحلة | يمكن بناؤه دون المورد الحقيقي | الدليل الإضافي عند توفره |
+|---|---|---|
+| B-07 التنزيل | State Machine واختبارات هوية/Range/Restart/انقطاع/مساحة وفشل تحقق | Catalog/HTTPS Host فعليان؛ ملف كبير وسلوك الشبكة على Android |
+| B-07 المتخصص | Safe Extraction وSchema/Checksum/Invalid UTF-8 وفشل المرشح | Schema المعتمدة وPacks/Index/Embedder حقيقية؛ لا اختراع حقول إنتاج |
+| B-07 النشر | Transactions/Crash Recovery/Orphan وPinned Handles باختبارات محلية | تحقق المسار وFilesystem وStartup والتزامن على Android |
+| A+B+C / G2 مبكر | Interfaces وTyped Unavailable وDebug Fixture Wiring | LLM/Embedder حقيقيان وBiology fixture مراجعة وقياسات Vector/Retrieval/RAM على Android |
+| G3 مبكر | سريان السؤال/الإلغاء/المصادر واختبارات Guards | سؤال وإجابة RAG حقيقيان في Airplane Mode، ومصادر Revision صحيحة |
+| Product Mode | تدفقات الفشل واختبارات الخمس/Embedder الواحد دون تفعيل مصطنع | الخمس مكتملة ومراجَعة، توافق Android، ثم بوابات القبول المعتمدة |
+
+لا يؤخر G2/G3 حتى اكتمال UI أو موارد المواد الخمس. Fixture في Test/Debug فقط، عبر Handle مستقل لا يكتب مؤشر الإنتاج أو يعرض `RAG_READY`. fake Tutor للاختبارات المعزولة فقط. Cloud tests تثبت السلوك المختبر محليًا؛ لا تثبت Android أو جودة المحتوى أو P0 Production Acceptance.
+
+## 9. الرجوع والاختبارات
+
+هذه الشريحة إضافية ولا تغير DB أو البيانات أو UI؛ الرجوع يكون Revert للـPR بعد اعتماده، دون Migration أو حذف موارد. تتضمن الاختبارات ملفات مؤقتة فعلية، مرجع SHA-256 معلومًا، تلفًا بنفس الحجم، حجمًا مخالفًا، مسارات وروابط غير آمنة، ملفًا متعدد الدفعات وترويسات سليمة/مبتورة/مجهولة، مع بقاء فحوص الجاهزية المطلوبة. تقرير المرحلة المجاور يسجل الأوامر والنتائج الفعلية والقيود.
