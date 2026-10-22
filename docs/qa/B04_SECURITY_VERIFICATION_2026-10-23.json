@@ -1,0 +1,443 @@
+{
+  "task": "B-04 SECURITY-AUDIT-REPAIR-01",
+  "repository": "shehab5552/siraj-codex",
+  "branch": "codex/b04-security-repair-01",
+  "base": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "tested_source_tree": "e739b41cf0ca4e19a2bc479a4a880e1ddcde1d11",
+  "reviewed_source_tree": "721ef1369a4341505876efa50eb8b150d672b117",
+  "post_review_changes": "Only curly-brace lint fixes in UserRepository, with no behavior changes.",
+  "recorded_at": "2026-10-23T01:32:21.772349+03:00",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "host": "Linux x86_64 / Debian GNU/Linux 13",
+  "baseline": {
+    "passed": 130,
+    "failed": 0,
+    "skipped": 0
+  },
+  "commands": [
+    {
+      "command": [
+        "dart",
+        "format",
+        "--output=none",
+        "--set-exit-if-changed",
+        "integration_test/b04_android_secure_session_test.dart",
+        "lib/data/conversation_repository.dart",
+        "lib/data/user_repository.dart",
+        "lib/features/auth/auth_models.dart",
+        "lib/features/auth/auth_operation_lane.dart",
+        "lib/features/auth/auth_service.dart",
+        "lib/features/auth/kdf_worker.dart",
+        "lib/features/auth/login_page.dart",
+        "lib/features/auth/password_hasher.dart",
+        "lib/features/auth/session_guard.dart",
+        "lib/features/auth/session_marker_store.dart",
+        "lib/features/auth/signup_page.dart",
+        "lib/features/auth/startup_session_resolver.dart",
+        "lib/features/chat/conversation_draft_controller.dart",
+        "test/b04_auth_race_test.dart",
+        "test/b04_auth_real_widget_test.dart",
+        "test/b04_backup_policy_test.dart",
+        "test/b04_cross_store_recovery_test.dart",
+        "test/b04_full_flow_test.dart",
+        "test/b04_kdf_worker_test.dart",
+        "test/b04_keystore_channel_test.dart",
+        "test/b04_late_message_test.dart",
+        "test/b04_security_recovery_test.dart",
+        "test/support/auth_test_marker.dart",
+        "test/support/auth_test_repository.dart",
+        "tool/b04_kdf_benchmark.dart"
+      ],
+      "exit_code": 0,
+      "seconds": 0.135,
+      "started_utc": "2026-10-22T22:29:52.558218+00:00"
+    },
+    {
+      "command": [
+        "flutter",
+        "pub",
+        "get",
+        "--enforce-lockfile"
+      ],
+      "exit_code": 0,
+      "seconds": 0.577,
+      "started_utc": "2026-10-22T22:29:52.693847+00:00"
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze"
+      ],
+      "exit_code": 0,
+      "seconds": 1.756,
+      "started_utc": "2026-10-22T22:29:53.271402+00:00"
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--machine"
+      ],
+      "exit_code": 0,
+      "seconds": 24.056,
+      "started_utc": "2026-10-22T22:29:55.027486+00:00",
+      "passed": 167,
+      "failed": 0,
+      "skipped": 0,
+      "per_file": {
+        "b07_resource_status_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_artifact_integrity_test.dart": {
+          "passed": 23,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_resource_format_preflight_test.dart": {
+          "passed": 18,
+          "failed": 0,
+          "skipped": 0
+        },
+        "auth_service_test.dart": {
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        "password_hasher_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_startup_session_resolver_test.dart": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_backup_policy_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_resource_navigation_test.dart": {
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_auth_pages_widget_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_security_recovery_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_late_message_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_auth_real_widget_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_full_flow_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_schema_test.dart": {
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_kdf_worker_test.dart": {
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_validation_contracts_test.dart": {
+          "passed": 18,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_runtime_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_auth_race_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "conversation_draft_controller_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "chat_page_b05_widget_test.dart": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_cross_store_recovery_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_repository_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "widget_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_keystore_channel_test.dart": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        }
+      },
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 23096
+        }
+      ],
+      "errors": []
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine",
+        "test/b04_auth_race_test.dart",
+        "test/b04_auth_real_widget_test.dart",
+        "test/b04_backup_policy_test.dart",
+        "test/b04_cross_store_recovery_test.dart",
+        "test/b04_full_flow_test.dart",
+        "test/b04_kdf_worker_test.dart",
+        "test/b04_keystore_channel_test.dart",
+        "test/b04_late_message_test.dart",
+        "test/b04_security_recovery_test.dart",
+        "test/auth_service_test.dart",
+        "test/password_hasher_test.dart",
+        "test/b06_startup_session_resolver_test.dart",
+        "test/b06_auth_pages_widget_test.dart"
+      ],
+      "exit_code": 0,
+      "seconds": 17.088,
+      "started_utc": "2026-10-22T22:30:19.086867+00:00",
+      "passed": 67,
+      "failed": 0,
+      "skipped": 0,
+      "per_file": {
+        "b04_auth_race_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_backup_policy_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_cross_store_recovery_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_auth_real_widget_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_kdf_worker_test.dart": {
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_full_flow_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_keystore_channel_test.dart": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_late_message_test.dart": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b04_security_recovery_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "auth_service_test.dart": {
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        "password_hasher_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_startup_session_resolver_test.dart": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_auth_pages_widget_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        }
+      },
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 16390
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "kdf_before_single_sample": {
+    "iterations": 600000,
+    "elapsed_ms": 2506,
+    "heartbeat_ticks": 247,
+    "max_heartbeat_gap_ms": 33.415,
+    "rss_before_bytes": 209248256,
+    "rss_after_bytes": 210280448,
+    "max_rss_bytes": 233697280
+  },
+  "kdf_after": {
+    "platform": "linux",
+    "dart": "3.10.4 (stable) (Tue Dec 9 00:01:55 2025 -0800) on \"linux_x64\"",
+    "purpose": "Synthetic candidate profile; NOT Android acceptance",
+    "measurements": [
+      {
+        "sample": 1,
+        "iterations": 600000,
+        "elapsed_ms": 1900,
+        "heartbeat_ticks": 188,
+        "max_heartbeat_gap_ms": 23.577,
+        "process_rss_before_bytes": 210563072,
+        "process_rss_after_bytes": 211898368,
+        "process_max_rss_bytes": 233443328
+      },
+      {
+        "sample": 2,
+        "iterations": 600000,
+        "elapsed_ms": 1894,
+        "heartbeat_ticks": 189,
+        "max_heartbeat_gap_ms": 11.077,
+        "process_rss_before_bytes": 211959808,
+        "process_rss_after_bytes": 212029440,
+        "process_max_rss_bytes": 233443328
+      },
+      {
+        "sample": 3,
+        "iterations": 600000,
+        "elapsed_ms": 1918,
+        "heartbeat_ticks": 191,
+        "max_heartbeat_gap_ms": 10.337,
+        "process_rss_before_bytes": 212029440,
+        "process_rss_after_bytes": 212090880,
+        "process_max_rss_bytes": 233443328
+      }
+    ],
+    "cancel_settlement_ms": 2.092,
+    "cancel_result": "cancelled",
+    "memory_note": "RSS measures the entire Dart VM process, not an isolated worker heap or an Android app. No leak-free claim."
+  },
+  "kdf_candidate": {
+    "algorithm": "PBKDF2-HMAC-SHA256",
+    "iterations": 600000,
+    "salt_bytes": 16,
+    "output_bits": 256,
+    "android_approved": false,
+    "reference": "https://github.com/OWASP/CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md"
+  },
+  "independent_vectors": {
+    "source": "Python hashlib.pbkdf2_hmac",
+    "openssl": "OpenSSL 3.5.8 25 Aug 2026",
+    "count": 7,
+    "fixture": "test/fixtures/b04_pbkdf2_sha256_vectors.json"
+  },
+  "android_build": {
+    "command": "flutter build apk --debug --no-pub",
+    "exit_code": 1,
+    "result": "BLOCKED: No Android SDK found. Try setting the ANDROID_HOME environment variable.",
+    "apk_produced": false
+  },
+  "android_device_tests": "NOT_RUN / PENDING_DEVICE_TEST; no Android SDK, adb, emulator or connected Android device",
+  "network_observations": [
+    {
+      "url": "https://dl.google.com/android/repository/repository2-1.xml",
+      "hostname": "dl.google.com",
+      "http_status": 403,
+      "layer": "proxy CONNECT",
+      "cause": "CONNECT tunnel failed, response 403; upstream origin status was not obtained"
+    },
+    {
+      "url": "https://maven.google.com/",
+      "hostname": "maven.google.com",
+      "http_status": 403,
+      "layer": "proxy CONNECT",
+      "cause": "flutter doctor: Proxy failed to establish tunnel (403 Forbidden)"
+    },
+    {
+      "url": "https://cocoapods.org/",
+      "hostname": "cocoapods.org",
+      "http_status": 403,
+      "layer": "proxy CONNECT",
+      "cause": "flutter doctor global check: Proxy failed to establish tunnel (403 Forbidden); not needed for Android Auth"
+    }
+  ],
+  "review": {
+    "method": "Two independent static reviews: standards/security and official P0 specification. Regressions added and findings resolved.",
+    "remaining_blockers_in_reviewed_source_scope": 0,
+    "native_verification_claimed": false
+  },
+  "sqlite_cache_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
+  "log_hashes": {
+    "delivery-format.log": "6650de073f9c84b1f906dbb8f6cbd60eaf541806abeb5195490d10e14f0a9650",
+    "delivery-pub.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92",
+    "delivery-analyze.log": "857442a1938cce227e010db82f5b1f72281657f4d981f4b1ffe0ad80aad7d055",
+    "delivery-test.log": "c12fc96b831206aa3bd762ff7e568a4d256e0d7207fdc3a19c28b749e810608c",
+    "delivery-focused.log": "09517e6ecc4f67de9ac0d51503eced3d0ccd92a1c7c72d966df31b20ee0e85c3",
+    "kdf-before.log": "bebbae281eab72ea0e326c415e42114b4a236f121ab1cc6fb734d96cfb922ea8",
+    "kdf-after.json": "78368f788cc9457dc222a135b4d3ac17a07be831744f8ff1a64c1fb7d8e0eed8",
+    "android-build.log": "e16f37757a674c13e52403164cfded1e47be122a04bdbebae3f4b8ccec65c301",
+    "security-red.log": "d84513b6e5b046d86bc98118e01e4d91499f83e92e9132f7bce0e45537240112",
+    "late-message-red.log": "e024fa981db9eca6522130bb07f737ef6149c79f7ca79e08ae79ceb70edbd9cc",
+    "review-recovery-red.log": "4495f9331ea5f578e0a6284cb43a083de36c5350867f014d4077bc7473441620",
+    "cross-store-red.log": "1189d79dded9fad924a598b76a57433cb4e47e1edbcad1d55e4242401e0027a1",
+    "validation-fence-red.log": "728d59fd099b0a4d8320cede8224da7fe1a3a8d28ae350b1f7f282d60c081433"
+  },
+  "limitations": [
+    "Cloud measurements are not Android latency, RAM, ANR or Keystore evidence.",
+    "Before timing is one sample, after timings are three samples; not a statistically controlled performance comparison.",
+    "RSS measures the entire Dart VM process, not a worker heap; no leak-free claim.",
+    "Fake marker storage is used only in isolated cloud tests; production Keystore integration remains pending.",
+    "Auth production gate remains closed pending DD-05 device benchmark and security review."
+  ]
+}

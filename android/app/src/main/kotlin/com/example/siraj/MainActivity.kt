@@ -10,6 +10,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        secureSessionChannel?.dispose()
         secureSessionChannel = SirajSecureSessionChannel(
             applicationContext,
             flutterEngine.dartExecutor.binaryMessenger,

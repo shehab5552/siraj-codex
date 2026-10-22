@@ -20,6 +20,8 @@ class ConversationRepository {
     required String messageId,
     required String question,
     required String nowUtc,
+    Uint8List? sessionNonceHash,
+    bool Function()? isRequestCurrent,
   }) async {
     final validatedQuestion = question.trim();
     if (validatedQuestion.isEmpty ||
@@ -30,6 +32,22 @@ class ConversationRepository {
       throw ArgumentError('Blank/invalid first message');
     }
     return db.transaction(() async {
+      if (isRequestCurrent?.call() == false) {
+        throw StateError('Session locally blocked');
+      }
+      if (sessionNonceHash != null) {
+        final valid = await db
+            .customSelect(
+              'SELECT user_id FROM user_profile WHERE user_id = ? AND account_epoch = ? AND active_session_nonce_hash = ?',
+              variables: [
+                Variable.withString(userId),
+                Variable.withString(accountEpoch),
+                Variable.withBlob(sessionNonceHash),
+              ],
+            )
+            .getSingleOrNull();
+        if (valid == null) throw StateError('Session no longer active');
+      }
       final existing = await db
           .customSelect(
             '''
@@ -111,6 +129,9 @@ class ConversationRepository {
           Variable.withString(nowUtc),
         ],
       );
+      if (isRequestCurrent?.call() == false) {
+        throw StateError('Session locally blocked');
+      }
       return conversationId;
     });
   }
@@ -163,6 +184,7 @@ class ConversationRepository {
     required String answer,
     required String sourceRefsJson,
     required String nowUtc,
+    Uint8List? sessionNonceHash,
   }) async {
     final parsed = jsonDecode(sourceRefsJson);
     if (parsed is! List || parsed.any((ref) => ref is! Map<String, dynamic>)) {
@@ -175,6 +197,7 @@ class ConversationRepository {
       SELECT ?, c.conversation_id, 'ASSISTANT', ?, ?, ?
       FROM conversation c JOIN user_profile u ON u.user_id=c.user_id
       WHERE c.conversation_id = ? AND c.user_id = ? AND u.account_epoch = ?
+        ${sessionNonceHash == null ? '' : 'AND u.active_session_nonce_hash = ?'}
     ''',
       variables: [
         Variable.withString(messageId),
@@ -184,6 +207,7 @@ class ConversationRepository {
         Variable.withString(conversationId),
         Variable.withString(userId),
         Variable.withString(accountEpoch),
+        if (sessionNonceHash != null) Variable.withBlob(sessionNonceHash),
       ],
     );
     if (inserted != 1) {
