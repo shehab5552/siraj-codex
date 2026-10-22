@@ -1,0 +1,135 @@
+{
+  "task": "B-04 Android Verification and Local Transfer",
+  "recorded_at": "2026-10-23T02:51:33.492322+03:00",
+  "repository": "shehab5552/siraj-codex",
+  "branch": "codex/b04-android-verification-guide",
+  "dependent_base": "17ac3cd1d27acd0ae32a24cc09a5aa99b363c126",
+  "repair_code": "80b4f0fe1a228731ff6ae57ccdeb5598d201f681",
+  "repair_base": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "cloud_checks": [
+    {
+      "command": [
+        "flutter",
+        "pub",
+        "get",
+        "--enforce-lockfile"
+      ],
+      "exit_code": 0,
+      "seconds": 0.811,
+      "started_utc": "2026-10-22T23:46:59.499372+00:00",
+      "log": "final-0.log"
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze",
+        "--no-pub"
+      ],
+      "exit_code": 0,
+      "seconds": 1.285,
+      "started_utc": "2026-10-22T23:47:00.311066+00:00",
+      "log": "final-1.log"
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine"
+      ],
+      "exit_code": 0,
+      "seconds": 21.989,
+      "started_utc": "2026-10-22T23:47:01.596573+00:00",
+      "log": "final-2.log",
+      "passed": 170,
+      "failed": 0,
+      "skipped": 0,
+      "errors": [],
+      "done": {
+        "success": true,
+        "type": "done",
+        "time": 21342
+      }
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine",
+        "test/b04_probe_app_test.dart",
+        "test/b04_auth_race_test.dart",
+        "test/b04_auth_real_widget_test.dart",
+        "test/b04_backup_policy_test.dart",
+        "test/b04_cross_store_recovery_test.dart",
+        "test/b04_full_flow_test.dart",
+        "test/b04_kdf_worker_test.dart",
+        "test/b04_keystore_channel_test.dart",
+        "test/b04_late_message_test.dart",
+        "test/b04_security_recovery_test.dart",
+        "test/auth_service_test.dart",
+        "test/password_hasher_test.dart",
+        "test/b06_startup_session_resolver_test.dart",
+        "test/b06_auth_pages_widget_test.dart"
+      ],
+      "exit_code": 0,
+      "seconds": 19.093,
+      "started_utc": "2026-10-22T23:47:23.587883+00:00",
+      "log": "final-3.log",
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "errors": [],
+      "done": {
+        "success": true,
+        "type": "done",
+        "time": 18412
+      }
+    }
+  ],
+  "tested_added_dart_sha256": {
+    "integration_test/support/b04_probe_app.dart": "0c235f385fb197ad4de9a56f13ede85d331d64c36c62ead6b5d863c9c5d35c53",
+    "integration_test/b04_android_kdf_metrics_test.dart": "6870b576cdbe74d412d8d69dfc7daeb536257e7d5c4225a3f45140ced962dd99",
+    "test/b04_probe_app_test.dart": "b0eba3bec637c1f1e87ef3c1278c8ae057e0c01baf7bc39e5c5d89c43093bb69"
+  },
+  "reference_roundtrip": {
+    "files": 32,
+    "exact_code_bytes_match": true,
+    "original_project_accessed": false
+  },
+  "local_android_build": {
+    "command": "flutter build apk --debug --no-pub",
+    "exit_code": 1,
+    "error": "No Android SDK found. Try setting the ANDROID_HOME environment variable.",
+    "apk_produced": false
+  },
+  "windows_commands_executed": false,
+  "physical_samsung_test": "NOT_RUN / PENDING_DEVICE_TEST",
+  "production_gate": "CLOSED",
+  "production_kdf_approved": false,
+  "b08_compatibility": {
+    "pr": 4,
+    "head": "306b3a69bb855a49b3bf01bbb1b6bd30a1c087f5",
+    "method": "git merge-tree --write-tree, without merging branches or altering index/worktree",
+    "conflicts": [
+      "lib/data/user_repository.dart",
+      "lib/data/conversation_repository.dart",
+      "lib/features/chat/conversation_draft_controller.dart"
+    ],
+    "combined_suite_run": false
+  },
+  "independent_review": {
+    "blocking_findings": 0,
+    "method": "Read-only fresh reviewer, source/patch hashes/Windows transfer and APK isolation review",
+    "wording_corrections": "Native integration does not prove child cascade; clarified B05/B04 controller context",
+    "windows_or_native_execution_claimed": false
+  },
+  "log_sha256": {
+    "final-3.log": "a5712be654246dbe6a2bd74125105fe62db27d5e8a94c9a73a7878ae2a513c6b",
+    "final-2.log": "eb7757ea3db0f74382aad8e191c2e178d0f39770ae1a27f2f74b75d0fc8d7b40",
+    "final-1.log": "5a3b7b91872d152226dedb3f282e48a18df812288496782ef54b795daed3ba03",
+    "final-0.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92"
+  }
+}

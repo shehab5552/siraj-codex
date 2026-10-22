@@ -1,0 +1,281 @@
+{
+  "repository": "shehab5552/siraj-codex",
+  "base": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "code_commit": "80b4f0fe1a228731ff6ae57ccdeb5598d201f681",
+  "warning": "REFERENCE ONLY. Original project has not been accessed. Adapt manually; never blindly overwrite Auth/SQLite or migrate/delete data.",
+  "entries": [
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "kind": "modified",
+      "patch": "patches/android/app/src/main/AndroidManifest.xml.patch",
+      "patch_sha256": "1c65a1eb3188d8232138f1f334bade141455ddddfd3198e7b840732bd34bfc72",
+      "codex_base_sha256": "f697e1d2ab810bb5db1e74400493d833e01d26637c1493fc11a333a86fd33fe6",
+      "codex_result_sha256": "319d66d0f576741afa71627043f2f727b6e82c4bc4887bf7e874a5a6bfbca6b8"
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/example/siraj/MainActivity.kt",
+      "kind": "modified",
+      "patch": "patches/android/app/src/main/kotlin/com/example/siraj/MainActivity.kt.patch",
+      "patch_sha256": "229013e844b5eb3e2f107aeca6c87d09abde1141cf2a863e1f9e517115456536",
+      "codex_base_sha256": "92a8d6ab039de7377ba8d7af6da709cc9d88fa13e7a900f3a22b126143811eaf",
+      "codex_result_sha256": "6af21da011c200e2496d4c8f920e1574f5ff1a57e1fb318fb05ab9a1aed82549"
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/example/siraj/SirajSecureSessionChannel.kt",
+      "kind": "modified",
+      "patch": "patches/android/app/src/main/kotlin/com/example/siraj/SirajSecureSessionChannel.kt.patch",
+      "patch_sha256": "3da7394115c36c0e2c4bf01312ed5a06bad59f3b2513d9eb75985c6165e44e4a",
+      "codex_base_sha256": "430affaeb443dac432bfecd9a5ef856cbb17bcc52e622b46bd08b40b58f6da7a",
+      "codex_result_sha256": "def85a9825b0e9c6964a13e0753b59839e195847884169a8c6a57f261f53e08a"
+    },
+    {
+      "path": "android/app/src/main/res/xml/backup_rules.xml",
+      "kind": "new",
+      "patch": "patches/android/app/src/main/res/xml/backup_rules.xml.patch",
+      "patch_sha256": "77b5d2b553edf27b568a5d84d0118eeb61535936a616e6b4542ae240bef77107",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "2c5c697984f4c52b526337ab61113f5843e0bfc6af4722374916ffe6da38dd9a",
+      "full_new_file": "new_files/android/app/src/main/res/xml/backup_rules.xml.txt"
+    },
+    {
+      "path": "android/app/src/main/res/xml/data_extraction_rules.xml",
+      "kind": "new",
+      "patch": "patches/android/app/src/main/res/xml/data_extraction_rules.xml.patch",
+      "patch_sha256": "f657834a08c7a8162645db4e3710758909aa84e6934b05c3f2bc8aed7288d545",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "eda9dddce1e895de1efd716fe75e244187bf8f91a3bb7444c6ea1731e51c74a8",
+      "full_new_file": "new_files/android/app/src/main/res/xml/data_extraction_rules.xml.txt"
+    },
+    {
+      "path": "integration_test/b04_android_secure_session_test.dart",
+      "kind": "modified",
+      "patch": "patches/integration_test/b04_android_secure_session_test.dart.patch",
+      "patch_sha256": "548173603201f3a470f8f0de6fcbad6c833909449ae5258f0a31a44654f40aef",
+      "codex_base_sha256": "e13d8a166006e8e8d2b891f11fcb9ebf5f5ededa046db9cbff48ef5d37b65f84",
+      "codex_result_sha256": "3b20ca540341dd380644ccc9d3af0597ad5e3a02854701f975a6c77f9957a9f0"
+    },
+    {
+      "path": "lib/data/conversation_repository.dart",
+      "kind": "modified",
+      "patch": "patches/lib/data/conversation_repository.dart.patch",
+      "patch_sha256": "4ed0ee233bd92a91bb59c61ec39b5e3fcf0bfdc33151f98eb25d16442205fc2f",
+      "codex_base_sha256": "88178116c0e7cbf63066f9927c69a2ebec5cb729dd4b6811381377debae0d21b",
+      "codex_result_sha256": "2841336b567e62b3d9259d9c3550a2e7ac45fa1f46294bc14cf3da0afc42f257"
+    },
+    {
+      "path": "lib/data/user_repository.dart",
+      "kind": "modified",
+      "patch": "patches/lib/data/user_repository.dart.patch",
+      "patch_sha256": "5e3b81ee9c3c31bbd08c02cba402b86ca0c099880373abda8c49b8269ae00542",
+      "codex_base_sha256": "b2e21731ac16a34e16ff9926e923f596c46db232283a86f715f47644f1f08c53",
+      "codex_result_sha256": "4d35c991ab79f1b8c0f99bd2adf9b7fac4a5326a39cb77353ebdb9e6c7e702c5"
+    },
+    {
+      "path": "lib/features/auth/auth_models.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/auth_models.dart.patch",
+      "patch_sha256": "266d9b7ea38326034e1e5ba544ff11760041c27f3647fa9c1ac7a6bc1b3a102a",
+      "codex_base_sha256": "4d83fe56fa20232337211cf5b818c360a37e8dcc7dbcbc9bbf6d50156a0ec1f8",
+      "codex_result_sha256": "c01d566aa638e12d9bde6c6b750cefb7a8c3e5e3dce055f30f6af51f32998714"
+    },
+    {
+      "path": "lib/features/auth/auth_operation_lane.dart",
+      "kind": "new",
+      "patch": "patches/lib/features/auth/auth_operation_lane.dart.patch",
+      "patch_sha256": "20612e84871703e3b78accf037e4170b4695ab08dcda293e3070f571ab743083",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "977134ced4b3234db148bc755caa13cb9dc686c643226e7a0da3617fd67309df",
+      "full_new_file": "new_files/lib/features/auth/auth_operation_lane.dart.txt"
+    },
+    {
+      "path": "lib/features/auth/auth_service.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/auth_service.dart.patch",
+      "patch_sha256": "5753afcd717504f6958e133909e4bf0947c52604acae01e99211d70da091da1e",
+      "codex_base_sha256": "9e383d45f1487527899419eb9251b6d64c157d7e82f3c01a3d25f6854907d944",
+      "codex_result_sha256": "76fe4d0523a66d2c036ce3419d8fb7a01c7dd3c04095c83c8d89d3bb21e96b9a"
+    },
+    {
+      "path": "lib/features/auth/kdf_worker.dart",
+      "kind": "new",
+      "patch": "patches/lib/features/auth/kdf_worker.dart.patch",
+      "patch_sha256": "c571e28f1126e3bc123d55dd19e88f081a38fdfa3d790da105c1d075ee7e14d3",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "7c78d80a517186fb3ffd7614da4873e5512bf76d90b45cfc10430586ceb11d01",
+      "full_new_file": "new_files/lib/features/auth/kdf_worker.dart.txt"
+    },
+    {
+      "path": "lib/features/auth/login_page.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/login_page.dart.patch",
+      "patch_sha256": "f02cf08da5a3706117d149727b50a061b26f1eb5c169cfcf48e1265846facdd0",
+      "codex_base_sha256": "b6ec1ef14c56a483d8afcb36609308ec4dbcb654c421606f66177ddaf6b90217",
+      "codex_result_sha256": "7cb171b6e3020e4525b2a82ef08dca3041d8fe4877775047201e6c02ed02cb77"
+    },
+    {
+      "path": "lib/features/auth/password_hasher.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/password_hasher.dart.patch",
+      "patch_sha256": "091e8b870c328ce9e8c9609afee6eb8df4079a3e5f89c0a6dfc5f2a37e142f1b",
+      "codex_base_sha256": "7632547c9450aa362db9a99b6e041f813802be0c5ebb3b7eb6ffab5c9085ff3a",
+      "codex_result_sha256": "8933cd19f521ad9c4bf71ed246858130e1a06e45392b882ace6c7c852a269d4a"
+    },
+    {
+      "path": "lib/features/auth/session_guard.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/session_guard.dart.patch",
+      "patch_sha256": "53f03f5ea232b6c396bcf30579ab75f30b63383e6ca2129acbecc87773e539d3",
+      "codex_base_sha256": "d18442eb1c305c63b0daf20a9d4c342042ee90af0e3d880de8f12ea3fa4d6961",
+      "codex_result_sha256": "97f740f8e076d97c8bed576d6b3d8a466ffad247879d360183cf262926b583fe"
+    },
+    {
+      "path": "lib/features/auth/session_marker_store.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/session_marker_store.dart.patch",
+      "patch_sha256": "eb1304c163ff204ea839d91116b35565b3defda3e26a92ce1bda57ce9b6866d6",
+      "codex_base_sha256": "fd7274a2d1a177187476b75b3a0b07acdbc274cda356424c2bf23564ea95cdb0",
+      "codex_result_sha256": "d3143441537b84a84480ba1f4de583c0df2c6a8a3a997970c6632d3ee4cebeab"
+    },
+    {
+      "path": "lib/features/auth/signup_page.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/signup_page.dart.patch",
+      "patch_sha256": "f1be5b2ab83e1a8965f5b5574bf146ffa141b29602fb54674811707337202dea",
+      "codex_base_sha256": "688119a8f11dcfcab27bd1d0a882429c3d624644ec9e100a63e07ef768d3e493",
+      "codex_result_sha256": "ef75c7adbee663739b318bf65305fb80eea4432bc249fb96a343bab8f39e3b90"
+    },
+    {
+      "path": "lib/features/auth/startup_session_resolver.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/auth/startup_session_resolver.dart.patch",
+      "patch_sha256": "71925887c94152c373491842b31639723b070184ec87ac25a4c87380b676f960",
+      "codex_base_sha256": "f0fe8578f0b589835e6574e4e0518f15100851f702c16ca33a119573e4a72dbc",
+      "codex_result_sha256": "e8ea0fbc938897f95a8880e0f95f0dba50612a1cf3c310d085727bf394025ae2"
+    },
+    {
+      "path": "lib/features/chat/conversation_draft_controller.dart",
+      "kind": "modified",
+      "patch": "patches/lib/features/chat/conversation_draft_controller.dart.patch",
+      "patch_sha256": "254985e4c102d2f1f9d01b189aa5acc6c0784f7d8d0b93182d31dc5939bd2590",
+      "codex_base_sha256": "5f2baa850b1ee352994a7498ba54d94c85359310057132e7c6aaa86299024548",
+      "codex_result_sha256": "4802d9edbfed0cb1c181ba0509d806e1a7ad6621e497174a4b1e7b2e72d651ab"
+    },
+    {
+      "path": "test/b04_auth_race_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_auth_race_test.dart.patch",
+      "patch_sha256": "687357f23a8a4d1699c54ca43f421dc28c8693620b2d698d994508ca1bbb0c18",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "78f697cc3c7f3aabd0ea635afb7d87b60b498e1b35e9cc38cffe38c1f42a56f6",
+      "full_new_file": "new_files/test/b04_auth_race_test.dart.txt"
+    },
+    {
+      "path": "test/b04_auth_real_widget_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_auth_real_widget_test.dart.patch",
+      "patch_sha256": "60df23b4ec71f1304b46a4900d31e0ea7d012de866ee4e2c67d14082649c2d14",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "2e48ef843e249904b58bf50d55bfa1a02c8a3642f67d7d8c0d783d50c40400f0",
+      "full_new_file": "new_files/test/b04_auth_real_widget_test.dart.txt"
+    },
+    {
+      "path": "test/b04_backup_policy_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_backup_policy_test.dart.patch",
+      "patch_sha256": "08a8ba11ad1412899d73366972cc326582b5fdab4be8f1f6794435facf6c82c4",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "3c5c28528dfd8641c0ed66a8b86824339fdc68120c088f60275e785924b58453",
+      "full_new_file": "new_files/test/b04_backup_policy_test.dart.txt"
+    },
+    {
+      "path": "test/b04_cross_store_recovery_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_cross_store_recovery_test.dart.patch",
+      "patch_sha256": "4af432dd22a8017e926dd5e680eb00773c2c6f8ce588045ddd6ed14935e8261c",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "ec5b540a8b7fddd7b6982613a3a9e5ffa6153cc0455dbef1ab9216680e5ea2f1",
+      "full_new_file": "new_files/test/b04_cross_store_recovery_test.dart.txt"
+    },
+    {
+      "path": "test/b04_full_flow_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_full_flow_test.dart.patch",
+      "patch_sha256": "d7f81046dacd69f912a4d03c13dd98c259d6889f769f29b174a9f30351b54611",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "b5d9db148e9451a95b9059987174e18e6b533baa77df08bac56c955c8328f774",
+      "full_new_file": "new_files/test/b04_full_flow_test.dart.txt"
+    },
+    {
+      "path": "test/b04_kdf_worker_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_kdf_worker_test.dart.patch",
+      "patch_sha256": "f20da84ebadd77f6b315a7cfe2ae5651c4053edfc5951b6c3feccaab0cd27184",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "2d990e7775d0793b4d5bcce329151442b2967535502926cc19ec9a942ae62433",
+      "full_new_file": "new_files/test/b04_kdf_worker_test.dart.txt"
+    },
+    {
+      "path": "test/b04_keystore_channel_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_keystore_channel_test.dart.patch",
+      "patch_sha256": "0b407b690d205d731c9a3c255085ee498d6449ff59fd380febd70bd8cefa5775",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "fa99cf119a53884207c5af1e0fcb66e21a39c0883605c046562ba44de2963a46",
+      "full_new_file": "new_files/test/b04_keystore_channel_test.dart.txt"
+    },
+    {
+      "path": "test/b04_late_message_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_late_message_test.dart.patch",
+      "patch_sha256": "5d1dd16662a46a372daa8ebd0b211dde123f6fb04032ea3a0c6e1b0319c3840b",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "44dab2d1439bee55afa62162c13418a8ea5d58114b735c063dc8dac46c79b9f8",
+      "full_new_file": "new_files/test/b04_late_message_test.dart.txt"
+    },
+    {
+      "path": "test/b04_security_recovery_test.dart",
+      "kind": "new",
+      "patch": "patches/test/b04_security_recovery_test.dart.patch",
+      "patch_sha256": "dcb420495f804b124dfc639c9c8a2265d3f83eb6a6256eedc85e1077265cc0c5",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "ce677bbb915394420c0d8a9c0e975d7b5a70aa1e4fa896914fc6efd6868fe83f",
+      "full_new_file": "new_files/test/b04_security_recovery_test.dart.txt"
+    },
+    {
+      "path": "test/fixtures/b04_pbkdf2_sha256_vectors.json",
+      "kind": "new",
+      "patch": "patches/test/fixtures/b04_pbkdf2_sha256_vectors.json.patch",
+      "patch_sha256": "a12a73d16cb874dc944caba94a445b88fc7017ffd50aa0404c870a842b8e7b10",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "785532b7fd6e46f781ecaa0084f3a8a4d6b6dc85169bd1f515dcff775ad18eae",
+      "full_new_file": "new_files/test/fixtures/b04_pbkdf2_sha256_vectors.json.txt"
+    },
+    {
+      "path": "test/support/auth_test_marker.dart",
+      "kind": "new",
+      "patch": "patches/test/support/auth_test_marker.dart.patch",
+      "patch_sha256": "2e3269abf0963781251d44fc550bddd50429e5f8cab2dc93d177d9ec219c5ac0",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "05e89cced11614d5283e593611e9b47710cfacc918cf26e28b61bbd19da1a807",
+      "full_new_file": "new_files/test/support/auth_test_marker.dart.txt"
+    },
+    {
+      "path": "test/support/auth_test_repository.dart",
+      "kind": "new",
+      "patch": "patches/test/support/auth_test_repository.dart.patch",
+      "patch_sha256": "4665a77d205e6bd407bbd8e01f06026ffdccf5cc264bb31d32415bfd466c768b",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "ec223d4ad55e9ef2917f791d6a43951faf5bb2a24c7336aa7f032824f9607eb0",
+      "full_new_file": "new_files/test/support/auth_test_repository.dart.txt"
+    },
+    {
+      "path": "tool/b04_kdf_benchmark.dart",
+      "kind": "new",
+      "patch": "patches/tool/b04_kdf_benchmark.dart.patch",
+      "patch_sha256": "432ce1485fb7e8ca1297b00a82226ab8a7e862787efde6e35985f06a2e65d6cc",
+      "codex_base_sha256": null,
+      "codex_result_sha256": "f2a14ffa85f046d666a01cba4fc5a21e81462d58815a1098a9a3b88bdb591c34",
+      "full_new_file": "new_files/tool/b04_kdf_benchmark.dart.txt"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+diff --git a/test/fixtures/b04_pbkdf2_sha256_vectors.json b/test/fixtures/b04_pbkdf2_sha256_vectors.json
+new file mode 100644
+index 0000000..7d5c33d
+--- /dev/null
++++ b/test/fixtures/b04_pbkdf2_sha256_vectors.json
+@@ -0,0 +1,54 @@
++{
++  "source": "Generated independently with Python hashlib.pbkdf2_hmac / OpenSSL, not Dart cryptography. Synthetic test inputs only.",
++  "vectors": [
++    {
++      "id": "ascii-1",
++      "password": "password",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 1,
++      "expected_hex": "e1b08f92be8174d9f442d95d89aa4ccdc311231a4d70d0b854d1548de8fabdfd"
++    },
++    {
++      "id": "ascii-2",
++      "password": "password",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 2,
++      "expected_hex": "a0ffd34292e4e7d519ee0f25124e0c5b9481d88be40f4662eb6cb4b9e43f9f41"
++    },
++    {
++      "id": "ascii-4096",
++      "password": "password",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 4096,
++      "expected_hex": "91700e3c494e10071700866601efd486e43765fa8b42b9a129203386a5ca509b"
++    },
++    {
++      "id": "unicode",
++      "password": "كلمة_تجريبية🔐",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 4096,
++      "expected_hex": "4b6630ad6af5ae5856d70d7c9de0f6e6710b1710e78ba49a6741fedc6bd49f19"
++    },
++    {
++      "id": "embedded-nul",
++      "password": "pass\u0000word",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 4096,
++      "expected_hex": "228a831afcdf4d7b61d3a8695c6cab1d931550a09aa906c1c7b283fd6091aa2e"
++    },
++    {
++      "id": "long-hmac-key",
++      "password": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 4096,
++      "expected_hex": "56256a136f7cecb871db1e9ba841679f9b90820eadfa14b4557591239f69e5db"
++    },
++    {
++      "id": "candidate-600k",
++      "password": "independent-test-vector",
++      "salt_hex": "000102030405060708090a0b0c0d0e0f",
++      "iterations": 600000,
++      "expected_hex": "a8c72883c1839f5068abcb17cbc532d68a5562ce194927f62d1310484d510059"
++    }
++  ]
++}
