@@ -56,11 +56,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$ANDROID_HOME"
-          command -v sdkmanager
-          sdkmanager 'platform-tools' 'emulator' 'platforms;android-36' 'build-tools;35.0.0' 'system-images;android-33;google_apis;x86_64'
+          test -n "$ANDROID_HOME" || { echo '::error title=B04 checkpoint::ANDROID_HOME missing'; exit 1; }
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+          command -v sdkmanager || { echo '::error title=B04 checkpoint::sdkmanager not found in the official SDK cmdline-tools/latest/bin'; exit 1; }
+          if ! sdkmanager 'platform-tools' 'emulator' 'platforms;android-36' 'build-tools;35.0.0' 'system-images;android-33;google_apis;x86_64' > "$RUNNER_TEMP/b04-sdk.log" 2>&1; then
+            python3 - <<'PY'
+          import os
+          from pathlib import Path
+          text = (Path(os.environ['RUNNER_TEMP']) / 'b04-sdk.log').read_text(errors='replace')[-2000:]
+          print('::error title=B04 sdkmanager::' + text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
+            exit 1
+          fi
           echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64'
-          test -e /dev/kvm
+          test -e /dev/kvm || { echo '::error title=B04 checkpoint::KVM unavailable on runner'; exit 1; }
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd siraj-b04-api33 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/b04-emulator.log" 2>&1 &
           timeout 300 adb wait-for-device
