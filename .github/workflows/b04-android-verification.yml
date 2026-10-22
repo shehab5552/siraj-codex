@@ -68,12 +68,35 @@ jobs:
           PY
             exit 1
           fi
+          echo '::notice title=B04 checkpoint::Official SDK components installed'
           echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64'
           test -e /dev/kvm || { echo '::error title=B04 checkpoint::KVM unavailable on runner'; exit 1; }
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd siraj-b04-api33 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/b04-emulator.log" 2>&1 &
-          timeout 300 adb wait-for-device
-          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          emulator_pid=$!
+          report_emulator_failure() {
+            python3 - <<'PY'
+          import os
+          from pathlib import Path
+          text = (Path(os.environ['RUNNER_TEMP']) / 'b04-emulator.log').read_text(errors='replace')[-3000:]
+          print('::error title=B04 emulator diagnostics::' + text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
+          }
+          sleep 10
+          if ! kill -0 "$emulator_pid" 2>/dev/null; then
+            report_emulator_failure
+            exit 1
+          fi
+          if ! timeout 300 adb wait-for-device; then
+            echo '::error title=B04 checkpoint::Timed out waiting for emulator ADB device'
+            report_emulator_failure
+            exit 124
+          fi
+          if ! timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'; then
+            echo '::error title=B04 checkpoint::Timed out waiting for sys.boot_completed'
+            report_emulator_failure
+            exit 124
+          fi
           adb shell input keyevent 82
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
