@@ -95,6 +95,8 @@ class DownloadResult<T> {
   final DownloadFailure? failure;
   final T? evidence;
   final File? stagedFile;
+
+  /// Reused prefix bytes; zero for a successfully restarted full transfer.
   final int resumedFrom;
   final DownloadRestartReason? restartReason;
 }
