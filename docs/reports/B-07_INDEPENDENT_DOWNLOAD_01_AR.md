@@ -1,6 +1,6 @@
 # SIRAJ P0 — B-07 / INDEPENDENT-DOWNLOAD-01
 
-**التاريخ:** 2026-10-22. **حالة التنفيذ:** الكود والاختبارات مكتملان ضمن نطاق النقل الآمن. **حالة التسليم المطلوبة:** معلقة على دمج PR #2 بواسطة المالك؛ لا يوجد PR جديد مبني على `main` بعد الدمج حتى الآن. هذا عائق قاعدة Git، وليس انتظارًا لكود المشروع الأصلي أو موارد AI.
+**التاريخ:** 2026-10-22. **حالة التنفيذ:** الكود والاختبارات مكتملان ضمن نطاق النقل الآمن. **حالة التسليم:** راجعت PR #2 واختبرته ودمجته بتفويض المالك الصريح؛ أُنشئ فرع التنزيل النهائي من `main` بعد الدمج، ونُقلت Commits الشريحة الثلاثة دون إعادة كتابة الخدمة. PR التنزيل المستقل: https://github.com/shehab5552/siraj-codex/pull/3 — دون Merge. الاختبارات أدناه أُعيدت على القاعدة النهائية، وليست نقلًا لعدد التشغيل السابق.
 
 ## 1. المراجع وحدود النطاق
 
@@ -15,19 +15,27 @@
 | البند | القيمة المثبتة |
 |---|---|
 | Repository / Default branch | `shehab5552/siraj-codex` / `main` |
-| `main` الفعلي عند التحقق | `de84bcfaa6ee885eccd906f933e589d876a4cdac` |
-| PR #2 | https://github.com/shehab5552/siraj-codex/pull/2 — OPEN، `merged=false`، `merged_at=null` |
-| قاعدة العمل التحضيري | رأس PR #2 المتحقق منه: `983ea1272bbb2e4c6319cd99aca25dd7273bc47d` |
-| فرع العمل المرفوع | `codex/wip-b07-independent-download-01` |
-| Commit التنفيذ | `3ebd38fb06ec6372172204d85ba17f974e5a04ff` |
-| Commit تصحيح عداد Resume وتغطية السياسات | `f662ccbe3be237ee383f56f073775966b89092fc` |
-| Push | نجح رفع الفرع إلى origin، ثم التحقق من SHA البعيد |
-| PR جديد | **لم يُنشأ:** شرط «من main بعد دمج PR #2» غير متحقق؛ لم يُفتح PR بقاعدة مخالفة للطلب |
-| Merge | لم ينفذ؛ `main` وفرع PR #2 لم يتغيرا بهذه المهمة |
+| `main` وGit Base للفرع النهائي | `651af0d62d05761c80d9a8cbc9d1f51b836929eb` |
+| PR #2 | https://github.com/shehab5552/siraj-codex/pull/2 — MERGED، `merged=true`، `merged_at=2026-10-22T06:40:21Z` |
+| طريقة دمج PR #2 | GitHub REST الرسمي، Merge Commit، مع تقييد الطلب برأس PR المختبر `983ea1272bbb2e4c6319cd99aca25dd7273bc47d` |
+| نقطة الفصل/قاعدة العمل التحضيري | `983ea1272bbb2e4c6319cd99aca25dd7273bc47d` |
+| رأس الفرع التحضيري المحفوظ | `de3294a3fac198c0da621fc4d6fb1b2f7e3446e9` |
+| فرع العمل النهائي المرفوع | `codex/b07-independent-download-01` |
+| رأس الكود المنقول الذي أُعيد اختباره | `cd18c57f3d7f8893da624ad3efed38e9a926f70c`؛ تلاه تحديث هذا التقرير فقط |
+| PR التنزيل الجديد / Target | https://github.com/shehab5552/siraj-codex/pull/3 / `main` |
+| Merge المسموح والمنفذ | PR #2 فقط؛ لم يدمج PR #1 أو PR #3 |
 
-الفرع تحضيري للمراجعة، وليس ادعاءً بوجود B-07 Resource Validation على `main`. لا يُستنتج الدمج من Test Merge SHA؛ الدليل المستخدم هو `merged` و`merged_at` ورأس `main` الحي. هذا التقرير يُحفظ في Commit توثيق لاحق؛ رأس الفرع النهائي متاح في GitHub وسجل Commits.
+عند التحقق الأول كانت PR #2 مفتوحة و`main` عند `de84bcfaa6ee885eccd906f933e589d876a4cdac`. بعد توضيح المالك وتفويضه الصريح بدمج PR #2، أُعيدت مراجعته بمحوري المعمارية والمواصفة على Diff مثبتة من تلك القاعدة إلى `983ea12`. لم توجد موانع ضمن نطاقه؛ GitHub عرض `mergeable=true` و`mergeable_state=clean` دون Checks مسجلة، ونجح التحليل و130/0/0 في اختباراته المعزولة بعد معالجة تنزيل SQLite الموثقة في §9. نجح الدمج الرسمي دون تجاوز حماية فرع.
 
-بعد دمج PR #2: يُجلب `main` الفعلي، وتُراجع أي تغييرات جديدة، ثم يُنشأ فرع مستقل منه وتُنقل Commits هذه المهمة فقط، وتُعاد الفحوص المناسبة، ويُرفع PR جديد إلى `main` دون Merge. لا حاجة لإعادة بناء الوظائف أو نقل كود من المشروع الأصلي.
+بعد Fetch ثبت SHA الجديد لـ`main` وكون `983ea12` سلفًا له، وتطابق محتواهما. ثم أُنشئ الفرع النهائي من `origin/main` ونُقلت Commits التنزيل الثلاثة فقط دون تعارضات:
+
+| Commit التحضيري | Commit المنقول إلى الفرع النهائي |
+|---|---|
+| `3ebd38fb06ec6372172204d85ba17f974e5a04ff` — التنفيذ | `b2e96d13ba8e44a321f7ee9af90adb724c98c454` |
+| `f662ccbe3be237ee383f56f073775966b89092fc` — Resume/السياسات | `256399ebf02ee41c00f968069df74f875d1c8527` |
+| `de3294a3fac198c0da621fc4d6fb1b2f7e3446e9` — تقرير WIP | `cd18c57f3d7f8893da624ad3efed38e9a926f70c` |
+
+قبل تحديث التقرير كان `git diff de3294a HEAD` فارغًا: الخدمة والاختبارات لم تُعد كتابتها. فرق PR مقابل قاعدة `main` يقتصر على 16 ملفًا لهذه الشريحة. ملفات فاحصي Resource Validation واختباراتهما وتقريره السابق وملف PR #1 و`pubspec.yaml` و`pubspec.lock` لم تتغير. لا حاجة لاستيراد كود المشروع الأصلي. رأس Commit التوثيق النهائي متاح في PR وسجل Git، ولا يغير الكود المختبر.
 
 ## 3. المعمارية والواجهة
 
@@ -103,22 +111,25 @@ Provenance تربط SHA-256 لهوية الطلب كاملة بعدد بايتا
 
 Flutter **3.38.5** / Dart **3.10.4** / Linux x64. كل ملفات التنزيل والبيانات الاصطناعية في Temp Directories معزولة. Test Server هو `HttpServer.bindSecure` فعلي فوق Loopback، وليس Transport Mock. الانقطاع يرسل HTTP Body أقصر من Content-Length عبر TLS Socket حقيقية. شهادة ومفتاح الخادم مواد اختبار علنية غير صالحة للإنتاج؛ Trust خاص بالـTest Client فقط.
 
+أعيد الفحص الساكن: لا مراجع لـ`server_cert.pem` أو `server_key.pem` أو `download_tls` أو `badCertificateCallback` في `lib/` و`android/`. لا Assets نشطة تدرج `test/` ولا Gradle SourceSet ينقل شهادة الاختبار أو مفتاحها إلى التطبيق. القراءة والثقة بالشهادة محصورتان في `test/support/download_server.dart`، والعميل الافتراضي للخدمة `HttpClient.new` بثقة النظام. الشهادة ذات SAN لـ`127.0.0.1` و`localhost` وموضوع `SIRAJ isolated download test`؛ لم تعرض محتويات المفتاح. هذا فصل ساكن واختبار رفض TLS، وليس تحليل APK مبني.
+
 | الأمر | النتيجة الفعلية |
 |---|---|
-| Baseline `flutter analyze` | exit 0، No issues found |
-| Baseline `flutter test --machine` على كود PR #2 | exit 0، **130 passed / 0 failed / 0 skipped** |
-| `flutter pub get --enforce-lockfile` | exit 0، دون تغيير Lockfile |
-| Focused Download + Storage Channel Tests | **54** اختبارًا في النسخة النهائية: 49 نقل/سياسة و5 عقد Native Channel |
-| `flutter analyze --no-pub` بعد آخر تعديل | exit 0، No issues found، نحو 1.5 ثانية |
-| `flutter test --no-pub --machine` بعد آخر تعديل | exit 0، **184 passed / 0 failed / 0 skipped**، نحو 14.5 ثانية |
-| `flutter test --machine` في تحقق Regression السابق | exit 0، 177/0/0 قبل إضافة 7 اختبارات سياسات الأنواع النهائية |
-| Format check للملفات الجديدة | نجح، ثم Format للتعديلات النهائية؛ لا تغييرات تنسيق مطلوبة |
+| مراجعة PR #2 قبل الدمج: Pub/Analyze | exit 0؛ Lockfile ثابت وNo issues found |
+| إعادة `flutter test --machine` على كود PR #2 المعزول قبل الدمج | exit 0، **130 passed / 0 failed / 0 skipped**؛ سبقتها محاولة توقفت قبل الاختبارات بسبب تنزيل SQLite، انظر §9 |
+| `flutter pub get --enforce-lockfile` على الفرع النهائي | exit 0، دون تغيير Lockfile |
+| `flutter analyze` على الفرع النهائي | exit 0، No issues found |
+| `flutter test --machine` على الفرع النهائي | exit 0، **184 passed / 0 failed / 0 skipped**؛ 15.784 ثانية للأمر |
+| `flutter test --no-pub --machine test/b07_download_service_test.dart test/b07_download_space_probe_test.dart` | exit 0، **54 passed / 0 failed / 0 skipped**؛ 5.797 ثانية؛ 49 نقل/سياسة و5 عقد Native Channel |
+| `dart format --output=none --set-exit-if-changed` للملفات الثمانية | exit 0؛ 0 ملفات تغيرت |
 | `git diff --check` | نجح |
 | AndroidManifest | XML صالح محليًا؛ ليس دليلًا على APK أو Manifest Merging |
 | `flutter devices --machine` | Linux فقط |
 | APK/Native Android/جهاز فعلي/G2/G3 | **NOT RUN**؛ لا ادعاء قبول Android أو إنتاج |
 
-العد من `testDone` غير المخفية؛ تحميل Suites لا يعد اختبارًا. لا أخطاء أو stderr في التشغيل النهائي. الاختبارات السابقة الـ130 نجحت دون Regression.
+هذا التشغيل الجديد على `cd18c57` بدأ في **06:40:58 UTC** بتاريخ 2026-10-22؛ التحليل ثم الاختبار الكامل عند 06:41:01 ثم الاختبار المركز عند 06:41:16. سجلاته في `/tmp/siraj-download-final-branch-20261022/` وملخصها `summary.json` في بيئة التنفيذ. تحديث التقرير اللاحق توثيقي فقط.
+
+العد من `testDone` غير المخفية؛ تحميل Suites لا يعد اختبارًا. `done.success=true` في التشغيلين، ولا أحداث Error أو محتوى stderr. الـ54 جزء من الـ184 وليست إضافة إليها؛ الاختبارات السابقة الـ130 نجحت دون Regression.
 
 ### تغطية الحالات المطلوبة
 
@@ -147,9 +158,13 @@ Flutter **3.38.5** / Dart **3.10.4** / Linux x64. كل ملفات التنزيل
 
 أثبتت اختبارات إضافية قبل التصحيح: قبول Body206 أطول من Range، واستبدال مرشح مكتمل بهوية أخرى، وضياع Cancel أثناء حفظ نهائي أو إنهاء Pause/رفض Validator، وحالة Progress غير صحيحة للمنافس Busy، وعداد Resume يحتفظ بإزاحة قديمة بعد Restart. عولجت الأسباب وأعيد التشغيل. ملاحظات Braces المرحلية عولجت قبل التحليل النهائي النظيف.
 
-راجعت جهتان مستقلتان Standards/Architecture وSpec/Data Safety على Diff مثبتة، ثم التصحيحات اللاحقة. أغلقت ملاحظات Lifecycle، ولا Findings قابلة للتنفيذ باقية. المراجعتان ساكنتان؛ نتائج Flutter منفصلة عنهما. لم تنفذ مراجعة Qodo في هذه المهمة.
+راجعت جهتان مستقلتان Standards/Architecture وSpec/Data Safety على Diff مثبتة، ثم التصحيحات اللاحقة. وعند الإنهاء أُعيدت مراجعتان مستقلتان لـPR #2، ثم لشريحة التنزيل عند `651af0d...cd18c57`؛ لم توجد موانع برمجية باقية ضمن نطاق الشريحة وشروط الاستخدام الموثقة. المراجعات ساكنة؛ نتائج Flutter منفصلة عنها. لم تنفذ مراجعة Qodo في هذه المهمة.
 
-لم يفشل تنزيل خارجي في هذه المهمة؛ Pub وGitHub نجحا، والاختبارات محلية. رفض TLS وHTTP503/302/416 والانقطاع أخطاء اختبار مقصودة على Host `127.0.0.1`، وليست مضيفين إنتاجيين محجوبين. لا نستنتج من Cache Pub السماح بكل المضيفين. فشل تنزيل Qodo الموثق في المرحلة السابقة ليس محاولة تنزيل جديدة هنا.
+**فشل تنزيل حقيقي أثناء التحقق المعزول من PR #2:** الرابط `https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-3.5.2/libsqlite3.x64.linux.so`، المضيف `github.com`. فشل Dart Native Hook في حل الاسم: `Temporary failure in name resolution`, errno `-3`، **دون الحصول على HTTP Status**؛ لم تبدأ حالات الاختبار في تلك المحاولة، فلا تصنف كاختبارات فاشلة أو متخطاة. الحزمة تستخدم متغيرات Proxy، لكن Dart 3.10 لا يمررها إلى Hooks كما يبدأ دعمه في 3.11، وهو ما يفسر اختلاف المساحة الجديدة عن Cache بيئة العمل المجهز سابقًا.
+
+عولجت بيئة الاختبار بتنزيل المكتبة من الرابط الرسمي بواسطة `curl` عبر وكيل الجلسة: `github.com` أعاد **302** إلى `release-assets.githubusercontent.com` الذي أعاد **200**. طوبق SHA-256 مع المرجع المثبت داخل حزمة sqlite3 3.5.2: `b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2`، وتأكد توقيع ELF قبل وضعها في Cache الـHook المعزول. يعيد الـHook أيضًا فحص Hash للـCache. لم يُعدّل كود الحزمة أو التطبيق أو التبعيات؛ نجحت بعدها 130/0/0 قبل الدمج. سجلات هذه المراجعة في `/tmp/siraj-pr2-final-review-20261022/`.
+
+نجح Pub وGitHub واختبار الفرع النهائي دون فشل تنزيل جديد. لا دليل على حجب المضيفين أعلاه؛ فشل Hook كان قبل HTTP، ونجح الوصول عبر Proxy. رفض TLS وHTTP503/302/416 والانقطاع في اختبارات الخدمة أخطاء مقصودة على `127.0.0.1`. لا نستنتج من Cache Pub السماح بكل المضيفين. فشل تنزيل Qodo الموثق في المرحلة السابقة ليس محاولة تنزيل جديدة هنا.
 
 ## 10. القيود والرجوع والتكامل المقبل
 
@@ -157,6 +172,8 @@ Flutter **3.38.5** / Dart **3.10.4** / Linux x64. كل ملفات التنزيل
 - لا Safe ZIP Extraction أو Pack Schema أو Embedding/Index Runtime أو PDF Reader أو Model Load أو Dataset Activation هنا. لا Fake Tutor في المنتج.
 - Staging خاص ومنسق Isolate واحد وعدم وجود كتّاب خارجيين شروط استخدام. Crash قد يفقد آخر Checkpoint؛ Restart المحافظ يحفظ السلامة دون وعد بالاستئناف من آخر بايت دائمًا.
 - خدمة النقل ليست موصولة بواجهة موارد/Consent نهائية أو Catalog إنتاجي؛ هذا عمل Wiring لاحق عندما يعتمد Catalog، مع إبقاء النقل مستقلًا عن نوع المورد. لا تمنع الموارد الغائبة بناء Validators والسياسات المستقلة.
-- Rollback: إيقاف استخدام الفرع التحضيري، أو Revert لتغييرات هذه المهمة عند اعتمادها؛ لا Migration أو حذف بيانات/موارد Active مطلوب. لم يتغير `main` بهذه المهمة.
+- Rollback لشريحة التنزيل: Revert لتغييراتها عند اعتمادها؛ لا Migration أو حذف بيانات/موارد Active مطلوب. التغيير الوحيد المنفذ على `main` في الإنهاء هو دمج PR #2 بتفويض المالك؛ شريحة التنزيل بقيت في PR #3 للمراجعة.
 
-**الخطوة اللازمة للتسليم:** دمج PR #2 بواسطة المالك، ثم إنشاء الفرع المطلوب من `main` الفعلي وPR جديد لهذه Commits فقط، دون Merge تلقائي. **العمل الفني التالي بعد التسليم:** Validators المتخصصة/الاستخراج الآمن وWiring الموارد وفق العقود المعتمدة؛ Atomic Dataset Activation في مساره المنفصل. يظل Biology-first G2/G3 أولوية عند توفر LLM/Embedder/Fixture مراجعة وجهاز Android، دون انتظار واجهة كاملة أو خمس Packs إنتاجية، ودون اعتبار Cloud Tests بديلًا عن الجهاز.
+**المهمة التالية من خطة B بعد تسليم PR التنزيل:** إكمال قبول B-07 لهذه الشريحة على جهاز Android فعلي: تشغيل قناة `StatFs` وHTTPS، انقطاع الشبكة وResume، Pause/Cancel وإعادة تشغيل العملية، نقص المساحة وملف كبير، والتحقق من بقاء الموارد النشطة سليمة دون READY زائفة. النتيجة المطلوبة أدلة جهاز وLogs ونسخ الموارد وحالات النجاح والفشل؛ يلزم جهاز مصرح ومتاح وروابط/Fixtures معتمدة. هذا يطابق مطلب Android network tests والقبول الفعلي في B-07 من خطة الفريق B المعدلة، ولم يبدأ داخل PR #3 أو عبر كمبيوتر المالك.
+
+بعد ذلك تبقى Validators المتخصصة/الاستخراج الآمن وWiring الموارد وفق عقود A/C المعتمدة؛ لا اختراع Schema أو إعادة بناء المنجز. Atomic Dataset Activation يبقى منفصلًا في B-12. يظل Biology-first G2/G3 أولوية عند توفر LLM/Embedder/Fixture مراجعة وجهاز Android، دون انتظار واجهة كاملة أو خمس Packs إنتاجية، ودون اعتبار Cloud Tests بديلًا عن الجهاز.
