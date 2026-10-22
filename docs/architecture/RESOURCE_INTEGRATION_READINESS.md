@@ -13,7 +13,21 @@
 | `ArtifactIntegrityValidator` | قراءة ملف فعلي، SHA-256، حجم اختياري، رفض مسارات وروابط غير آمنة، prefix محدود | يحتاج Catalog موثوقًا وStaging خاصًا بالتطبيق دون كتابات متزامنة |
 | `ResourceFormatPreflight` | تعرف محدود على ترويسة GGUF/PDF من البايتات المقروءة نفسها | لا يثبت صحة الملف كاملة أو قابلية تشغيله/قراءته |
 | التنزيل، فك الأرشيف، Validators المتخصصة، النشر والمؤشر | غير منفذة في هذه الشريحة | `UNIMPLEMENTED`؛ لا تُستنتج من نجاح الاختبارات الجديدة |
-| LLM وEmbedder وبيانات الأحياء الحقيقية | لا دليل دمج أو جهاز في هذه الشريحة | `PENDING_RESOURCE` / `PENDING_TEST` بحسب المورد؛ ليست سببًا لتعطيل العمل المستقل |
+| LLM وEmbedder وبيانات الأحياء الحقيقية | لا دليل دمج أو جهاز في هذه الشريحة | التصنيف المنفصل أدناه؛ غيابها لا يعطل العمل المستقل |
+
+تصنيفات الاعتماد المطلوبة: `AVAILABLE_VERIFIED`، `AVAILABLE_UNVERIFIED`، `NOT_AVAILABLE`، `INCOMPATIBLE`، `PENDING_APPROVAL`، `PENDING_DEVICE_TEST`. لا نضع موردًا في حالة عدم توافق دون اختباره، ولا نفترض توفر مورد غير مفحوص خارج نطاق المستودع والحزمة.
+
+| الاعتماد الخارجي | التصنيف الحالي | الدليل وحدود الحكم |
+|---|---|---|
+| Flutter/Dart وحزم المشروع المقفلة | `AVAILABLE_VERIFIED` لبيئة Linux المختبرة | Flutter 3.38.5 / Dart 3.10.4 ونجاح `pub get --enforce-lockfile`؛ ليس إثبات توافق Android |
+| Local LLM artifact | `NOT_AVAILABLE` في المدخلات المفحوصة | لا GGUF/وزن إنتاجي ولا Catalog تنزيل له في المستودع؛ الحزمة مرجع هندسي |
+| Shared Query Embedding artifact/config | `NOT_AVAILABLE` في المدخلات المفحوصة | لا نموذج أو Tokenizer/Pooling/Normalization إنتاجية مستلمة |
+| RAG Packs and Indexes | `NOT_AVAILABLE` في المدخلات المفحوصة | لا خمس Packs/فهارس إنتاجية أو Fixture Biology فعلية؛ تصريحات الاختبار ليست بيانات تعليمية |
+| Official PDF Books | `NOT_AVAILABLE` في المدخلات المفحوصة | ملفات PDF الموجودة تحت docs تقارير هندسية، وليست كتب المنهج |
+| Android AI runtime resources/adapter | `NOT_AVAILABLE` في المدخلات المفحوصة | لا Adapter LLM/QueryEmbedder أو موارد Runtime/ABI إنتاجية مثبتة؛ هيكل مشروع Android لا يثبت توفرها |
+| توافق Runtime/ABI والموارد على جهاز Android | `PENDING_DEVICE_TEST` | `flutter devices --machine` أظهر Linux فقط؛ لم تنفذ G2/G3 أو اختبارات Android |
+
+لا يقرر هذا الجرد ما يوجد على كمبيوتر المالك أو في المستودع الأصلي؛ لم يُفتح أي منهما.
 
 ## 2. حدود الموارد والمسؤوليات
 
@@ -35,6 +49,18 @@
 | G2/G3 | Biology fixture مراجعة، Runtime وEmbedder فعليان، جهاز Android مناسب وأدلة القياس | لا تُستبدل هذه الأدلة باختبارات Linux أو إجابات Tutor مصطنعة |
 
 تعريفات الحقول أعلاه مقتبسة من العقود المعتمدة وليست Schema إنتاجية جديدة. تبقى الحقول والقيم غير المستلمة صريحةً كمدخلات مطلوبة؛ لا توجد روابط تنزيل تجريبية في إعدادات المنتج.
+
+### ملفات Configuration وخطوة الإضافة لكل مورد
+
+| المورد | Configuration المطلوبة عند التسليم | التخزين/التفعيل | ما يبقى BLOCKED وما يمكن بناؤه الآن |
+|---|---|---|---|
+| Local LLM | Catalog entry و`ModelConfig` من §6.6: model/version/artifact/runtime/context/prompt/generation، وملفات Tokenizer التي يحددها Runtime المختار | `models/`؛ Hash ثم Validator/Runtime/Device وLoad قبل READY | تشغيل وتقييم النموذج BLOCKED بغيابه؛ يمكن بناء التنزيل والعقد وTyped Unavailable واختبارات الفشل |
+| Shared Query Embedding | `SharedEmbeddingConfig`: model ID وRevision ومسار Artifact وTokenizer/Pooling/Normalization/Dimension، وملفات preprocessing المطابقة للفهارس | ضمن مرشح Dataset ثم الإصدار المثبت؛ لا تفعيل منفرد | Correctness/توافق Android BLOCKED؛ يمكن بناء فحوص تطابق التصريحات وملكية المرشح |
+| RAG Packs/Indexes | Release Catalog للخمس وEmbedder الواحد، Manifest/Checksums، Schema وIndex Type/Version وSource Metadata من C | Staging ثم immutable Release والمؤشر الذري بعد كل الفحوص | البحث الحقيقي وSchema الإنتاجية النهائية BLOCKED بالبيانات؛ يمكن بناء الاستخراج الآمن والمعاملات واختبارات رفض المرشح |
+| Official PDF Books | Book Catalog بمراجع الكتب المعتمدة وروابطها وحجم/Hash إن توفرا؛ Configuration للـReader Adapter المختار | `books/`؛ اكتمال النقل وReader Open/Parse وHash إن أعلن | قبول الكتب الرسمية BLOCKED بغيابها؛ يمكن بناء التنزيل وواجهة Reader واختبارات الأخطاء بملفات اصطناعية معزولة |
+| Android Runtime Resources | حزم/مكتبات المحرك المختار وABI وModel/Embedding Config متوافقة، وتعليمات بنائه/ترخيصه وقياسات الجهاز | Adapter محلي، تحميل من المسار/Revision المثبت؛ لا استدعاء شبكة للتوليد | تحميل Runtime وG2/G3 وRAM/Latency BLOCKED بالموارد والجهاز؛ يمكن بناء Interface/Cancel/Lifecycle واختبارات المضاعفات المعزولة |
+
+أسماء الملفات الفيزيائية وSchema النهائية غير المسلمة لا تُخترع هنا. عند وصول المورد: تثبيت مصدره/Revision وConfiguration، فحص Hash/الحجم، إمرار Validators المناسبة، ربط Adapter، تشغيل الاختبارات المحددة في الأقسام التالية، ثم اعتماد التفعيل الخاص بنوعه. تضاف Configuration إلى مالكها الحالي في المعمارية؛ لا تنشأ طبقة عامة تخلط الموارد الثلاثة.
 
 ## 4. عقد سلامة البايتات المنفذ الآن
 
