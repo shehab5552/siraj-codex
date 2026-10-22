@@ -439,5 +439,13 @@
     "RSS measures the entire Dart VM process, not a worker heap; no leak-free claim.",
     "Fake marker storage is used only in isolated cloud tests; production Keystore integration remains pending.",
     "Auth production gate remains closed pending DD-05 device benchmark and security review."
-  ]
+  ],
+  "delivery": {
+    "code_commit": "80b4f0fe1a228731ff6ae57ccdeb5598d201f681",
+    "pull_request": "https://github.com/shehab5552/siraj-codex/pull/5",
+    "target_branch": "main",
+    "report": "docs/reports/B-04_SECURITY_AUDIT_REPAIR_01_AR.md",
+    "report_commit_changes_code": false,
+    "automatic_merge_performed": false
+  }
 }
