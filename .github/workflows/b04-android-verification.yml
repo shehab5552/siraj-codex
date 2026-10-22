@@ -59,6 +59,13 @@ jobs:
           test -n "$ANDROID_HOME" || { echo '::error title=B04 checkpoint::ANDROID_HOME missing'; exit 1; }
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
           command -v sdkmanager || { echo '::error title=B04 checkpoint::sdkmanager not found in the official SDK cmdline-tools/latest/bin'; exit 1; }
+          python3 - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          executable = Path(os.environ['ANDROID_HOME']) / 'cmdline-tools/latest/bin/sdkmanager'
+          with (Path(os.environ['RUNNER_TEMP']) / 'b04-licenses.log').open('w') as log:
+              subprocess.run([str(executable), '--licenses'], input='y\n' * 100, text=True, stdout=log, stderr=subprocess.STDOUT, check=True)
+          PY
           if ! sdkmanager 'platform-tools' 'emulator' 'platforms;android-36' 'build-tools;35.0.0' 'system-images;android-33;google_apis;x86_64' > "$RUNNER_TEMP/b04-sdk.log" 2>&1; then
             python3 - <<'PY'
           import os
@@ -68,8 +75,34 @@ jobs:
           PY
             exit 1
           fi
+          if [ ! -f "$ANDROID_HOME/system-images/android-33/google_apis/x86_64/package.xml" ]; then
+            echo '::error title=B04 checkpoint::sdkmanager returned without the required API33 image; inspect official SDK licensing/install output'
+            exit 1
+          fi
           echo '::notice title=B04 checkpoint::Official SDK components installed'
-          echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64'
+      - name: Build isolated probe APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --debug --no-pub --target integration_test/support/b04_probe_app.dart
+          cp build/app/outputs/flutter-apk/app-debug.apk build/b04-probe-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging build/b04-probe-debug.apk > b04-apk-package.txt
+          grep -F "package: name='com.example.siraj.b04verification'" b04-apk-package.txt
+          echo '::notice title=B04 APK::Isolated probe APK built; application ID verified: com.example.siraj.b04verification'
+      - name: Boot disposable Android emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+          if ! echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64' > "$RUNNER_TEMP/b04-avd.log" 2>&1; then
+            python3 - <<'PY'
+          import os
+          from pathlib import Path
+          text = (Path(os.environ['RUNNER_TEMP']) / 'b04-avd.log').read_text(errors='replace')[-2000:]
+          print('::error title=B04 avdmanager::' + text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
+            exit 1
+          fi
           test -e /dev/kvm || { echo '::error title=B04 checkpoint::KVM unavailable on runner'; exit 1; }
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd siraj-b04-api33 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/b04-emulator.log" 2>&1 &
@@ -102,20 +135,24 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
           flutter devices
-      - name: Build isolated probe APK
-        shell: bash
-        run: |
-          set -euo pipefail
-          flutter build apk --debug --no-pub --target integration_test/support/b04_probe_app.dart
-          cp build/app/outputs/flutter-apk/app-debug.apk build/b04-probe-debug.apk
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging build/b04-probe-debug.apk > b04-apk-package.txt
-          grep -F "package: name='com.example.siraj.b04verification'" b04-apk-package.txt
       - name: Actual Android Keystore and candidate KDF tests
         shell: bash
         run: |
           set -euo pipefail
           flutter test integration_test/b04_android_secure_session_test.dart -d emulator-5554 --no-pub --reporter expanded
-          flutter test integration_test/b04_android_kdf_metrics_test.dart -d emulator-5554 --no-pub --reporter expanded
+          echo '::notice title=B04 native session::Android Keystore and SQLite session test passed on API33 emulator'
+          flutter test integration_test/b04_android_kdf_metrics_test.dart -d emulator-5554 --no-pub --reporter expanded | tee "$RUNNER_TEMP/b04-kdf-metrics.log"
+          python3 - <<'PY'
+          import json, os, re
+          from pathlib import Path
+          text = (Path(os.environ['RUNNER_TEMP']) / 'b04-kdf-metrics.log').read_text()
+          match = re.search(r'SIRAJ_B04_METRICS (\{[^\n]+\})', text)
+          assert match, 'Successful metric test must publish its synthetic result'
+          metrics = json.loads(match.group(1))
+          assert set(metrics) == {'platform', 'samples', 'cancel_settlement_ms', 'production_approved', 'note'}
+          output = json.dumps(metrics, separators=(',', ':'))
+          print('::notice title=B04 Android metrics::' + output.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
+          PY
       - name: Record evidence limits
         if: always()
         shell: bash
