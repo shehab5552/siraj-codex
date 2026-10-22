@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:siraj/features/resources/download_contracts.dart';
 import 'package:siraj/features/resources/download_service.dart';
 import 'package:siraj/features/resources/resource_download_validator.dart';
+import 'package:siraj/features/resources/resource_format_preflight.dart';
 import 'package:siraj/features/resources/resource_validation_contracts.dart';
 
 import 'support/download_server.dart';
@@ -183,6 +184,7 @@ void main() {
       final result = await service.retry(handle);
       expect(result.state, DownloadState.downloaded);
       expect(result.restartReason, DownloadRestartReason.rangeIgnored);
+      expect(result.resumedFrom, 0);
       expect(await result.stagedFile!.readAsBytes(), payload);
     },
   );
@@ -209,6 +211,7 @@ void main() {
       expect(result.state, DownloadState.downloaded);
       expect(server.requests.last.range, isNull);
       expect(result.restartReason, DownloadRestartReason.validatorChanged);
+      expect(result.resumedFrom, 0);
       expect(await result.stagedFile!.readAsBytes(), payload);
     },
   );
@@ -566,6 +569,7 @@ void main() {
     final result = await service.retry(handle);
     expect(result.state, DownloadState.downloaded);
     expect(result.restartReason, DownloadRestartReason.rangeNotSatisfiable);
+    expect(result.resumedFrom, 0);
     expect(server.requests.last.range, isNull);
   });
 
@@ -724,6 +728,99 @@ void main() {
       expect((await cancellation).state, DownloadState.cancelled);
       expect(await getPartial().exists(), isFalse);
       expect(await getMetadata().exists(), isFalse);
+    },
+  );
+
+  for (final kind in [
+    ResourceContractKind.llm,
+    ResourceContractKind.ragPack,
+    ResourceContractKind.ragEmbedding,
+  ]) {
+    test('${kind.dbKind} missing a catalog hash fails before HTTP', () async {
+      final request = DownloadSpec(
+        resourceId: spec.resourceId,
+        artifactRevision: spec.artifactRevision,
+        kind: kind,
+        url: spec.url,
+        destinationKey: spec.destinationKey,
+        maxBytes: spec.maxBytes,
+      );
+      expect(
+        (await service.start(request).result).failure!.code,
+        DownloadFailureCode.invalidSpec,
+      );
+      expect(server.requests, isEmpty);
+    });
+  }
+
+  for (final kind in [
+    ResourceContractKind.llm,
+    ResourceContractKind.ragPack,
+    ResourceContractKind.ragEmbedding,
+  ]) {
+    test(
+      '${kind.dbKind} uses the same transport and retains specialized checks',
+      () async {
+        // A header/opaque fixture is deliberately not a production model/pack.
+        final bytes = kind == ResourceContractKind.llm
+            ? [...ascii.encode('GGUF'), 3, 0, 0, 0, ...List<int>.filled(16, 0)]
+            : ascii.encode('isolated opaque dataset artifact');
+        final hash = await Sha256().hash(bytes);
+        final request = DownloadSpec(
+          resourceId: spec.resourceId,
+          artifactRevision: spec.artifactRevision,
+          kind: kind,
+          url: spec.url,
+          destinationKey: spec.destinationKey,
+          maxBytes: bytes.length,
+          expectedSize: bytes.length,
+          expectedSha256: hash.bytes
+              .map((b) => b.toRadixString(16).padLeft(2, '0'))
+              .join(),
+        );
+        server.respond = (request, _) =>
+            DownloadTestServer.full(request, bytes);
+        final result = await service.start(request).result;
+        expect(result.state, DownloadState.downloaded);
+        expect(await result.stagedFile!.readAsBytes(), bytes);
+        expect(
+          result.evidence!.format.remainingChecks,
+          contains(switch (kind) {
+            ResourceContractKind.llm => ResourceValidationCheck.modelLoadProven,
+            ResourceContractKind.ragPack =>
+              ResourceValidationCheck.validPackSchema,
+            _ => ResourceValidationCheck.androidSampleQueryPassed,
+          }),
+        );
+        if (kind != ResourceContractKind.llm) {
+          expect(
+            result.evidence!.format.status,
+            FormatHeaderStatus.specializedValidatorRequired,
+          );
+        }
+      },
+    );
+  }
+
+  test(
+    'PDF without catalog hash remains subject to PDF readability validation',
+    () async {
+      final request = DownloadSpec(
+        resourceId: spec.resourceId,
+        artifactRevision: spec.artifactRevision,
+        kind: ResourceContractKind.pdf,
+        url: spec.url,
+        destinationKey: spec.destinationKey,
+        expectedSize: spec.expectedSize,
+        maxBytes: spec.maxBytes,
+      );
+      final result = await service.start(request).result;
+      expect(result.state, DownloadState.downloaded);
+      expect(result.evidence!.integrity.sha256Matched, isFalse);
+      expect(
+        result.evidence!.format.remainingChecks,
+        contains(ResourceValidationCheck.pdfReadable),
+      );
     },
   );
 }

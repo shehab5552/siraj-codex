@@ -214,6 +214,7 @@ class DownloadService<T> {
     handle._resumedFrom = offset;
     for (var round = 0; round < 2; round++) {
       handle._httpStatus = null;
+      handle._resumedFrom = offset;
       handle._bytes = offset;
       handle._total = spec.expectedSize ?? previousTotal;
       await _checkSpace(
@@ -298,6 +299,7 @@ class DownloadService<T> {
         if (offset > 0) {
           handle._restartReason = DownloadRestartReason.rangeIgnored;
           offset = 0;
+          handle._resumedFrom = 0;
         }
         total = response.contentLength >= 0 ? response.contentLength : null;
       } else {
