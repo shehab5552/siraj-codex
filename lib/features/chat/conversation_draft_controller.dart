@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:cryptography/cryptography.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/conversation_repository.dart';
@@ -78,6 +81,10 @@ class ConversationDraftController {
       messageId: messageId,
       question: question,
       nowUtc: _clock().toUtc().toIso8601String(),
+      sessionNonceHash: Uint8List.fromList(
+        (await Sha256().hash(utf8.encode(session.sessionNonce))).bytes,
+      ),
+      isRequestCurrent: () => !_guard.isBlocked(session),
     );
     _firstQuestion = question;
     _conversationId = conversationId;

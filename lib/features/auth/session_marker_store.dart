@@ -26,16 +26,26 @@ class KeystoreSessionMarkerStore implements SessionMarkerStore {
   static const Duration _deadline = Duration(seconds: 15);
 
   @override
-  Future<String?> read() => _channel
-      .invokeMethod<String>('read', <String, String>{'scope': _scope})
-      .timeout(_deadline);
+  Future<String?> read() async {
+    final raw = await _channel
+        .invokeMethod<String>('read', <String, String>{'scope': _scope})
+        .timeout(_deadline);
+    if (raw != null && raw.length > 4096) {
+      throw const FormatException('Secure marker exceeds size limit');
+    }
+    return raw;
+  }
 
   @override
   Future<void> write(PersistedSessionMarker marker) async {
+    final encoded = marker.encode();
+    if (encoded.length > 4096) {
+      throw ArgumentError('Secure marker exceeds size limit');
+    }
     await _channel
         .invokeMethod<void>('write', <String, String>{
           'scope': _scope,
-          'marker': marker.encode(),
+          'marker': encoded,
         })
         .timeout(_deadline);
   }
