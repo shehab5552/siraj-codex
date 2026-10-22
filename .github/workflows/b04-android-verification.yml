@@ -1,0 +1,101 @@
+name: B04 isolated Android verification
+
+on:
+  push:
+    branches: [codex/b04-android-verification-guide]
+    paths:
+      - .github/workflows/b04-android-verification.yml
+      - integration_test/**
+      - test/b04_probe_app_test.dart
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: b04-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Official Flutter source, fixed release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 3.38.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse --short=10 HEAD)" = f6ff1529fd
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Configure disposable Android package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          old = 'applicationId = "com.example.siraj"'
+          text = p.read_text()
+          assert text.count(old) == 1, 'Unexpected Gradle structure; do not guess application ID'
+          p.write_text(text.replace(old, 'applicationId = "com.example.siraj.b04verification"'))
+          PY
+          flutter --version
+          dart --version
+          flutter pub get --enforce-lockfile
+          flutter analyze
+          flutter test --reporter expanded
+      - name: Install official Android emulator components
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_HOME"
+          command -v sdkmanager
+          sdkmanager 'platform-tools' 'emulator' 'platforms;android-36' 'build-tools;35.0.0' 'system-images;android-33;google_apis;x86_64'
+          echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64'
+          test -e /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -avd siraj-b04-api33 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/b04-emulator.log" 2>&1 &
+          timeout 300 adb wait-for-device
+          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          flutter devices
+      - name: Build isolated probe APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --debug --no-pub --target integration_test/support/b04_probe_app.dart
+          cp build/app/outputs/flutter-apk/app-debug.apk build/b04-probe-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging build/b04-probe-debug.apk > b04-apk-package.txt
+          grep -F "package: name='com.example.siraj.b04verification'" b04-apk-package.txt
+      - name: Actual Android Keystore and candidate KDF tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter test integration_test/b04_android_secure_session_test.dart -d emulator-5554 --no-pub --reporter expanded
+          flutter test integration_test/b04_android_kdf_metrics_test.dart -d emulator-5554 --no-pub --reporter expanded
+      - name: Record evidence limits
+        if: always()
+        shell: bash
+        run: |
+          printf '%s\n' "SHA=$GITHUB_SHA" 'Runner: ubuntu-24.04, API33 Google APIs x86_64 emulator' 'This is not Samsung/physical-device acceptance.' 'No production KDF approval or security-gate activation.' > b04-evidence-limits.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: b04-isolated-android-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/b04-probe-debug.apk
+            b04-apk-package.txt
+            b04-evidence-limits.txt
