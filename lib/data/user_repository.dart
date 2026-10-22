@@ -46,6 +46,7 @@ class UserRepository {
         Variable.withString(nowUtc),
         Variable.withString(nowUtc),
       ],
+      updates: {db.userProfile},
     );
   }
 
@@ -73,6 +74,7 @@ class UserRepository {
         Variable.withString(userId),
         Variable.withString(accountEpoch),
       ],
+      updates: {db.userProfile},
     );
   }
 
@@ -90,6 +92,7 @@ class UserRepository {
       Variable.withString(userId),
       Variable.withString(accountEpoch),
     ],
+    updates: {db.userProfile},
   );
 
   /// Account-owned records cascade; installed_resource survives.
@@ -106,6 +109,7 @@ class UserRepository {
         Variable.withString(userId),
         Variable.withString(accountEpoch),
       ],
+      updates: {db.userProfile, db.conversation, db.message, db.appSetting},
     ),
   );
 }
