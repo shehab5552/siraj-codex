@@ -25,6 +25,8 @@
 
 التقرير نفسه ضمن Commit توثيق لاحق على PR ذاته؛ تسجل صفحة Commits وبيانات PR قيمة HEAD النهائية. PR #1 السابق للتحقق من الكتابة منفصل، وملفه ليس ضمن هذا التغيير.
 
+**نتائج عمليات التسليم:** نجح إنشاء الفرع وCommit وPush وإنشاء PR #2 ورفع التقرير. أخفق تحديث الوصف بواسطة `gh pr edit` برسالة `GraphQL: Projects (classic) is being deprecated in favor of the new Projects experience` عند الحقل `repository.pullRequest.projectCards`؛ عولج باستخدام GitHub REST `PATCH /repos/shehab5552/siraj-codex/pulls/2`، ونجح التحديث (exit 0، `state=open`، `merged=false`). هذا خلل في مسار CLI القديم، وليس رفض صلاحية Push. لم ينفذ Merge.
+
 ## 3. الهدف ومعايير القبول
 
 قاعدة `main` تضمنت عقود المتطلبات وتصريح المرشح، دون فاحص فعلي للبايتات. الهدف إضافة تحقق قابل للاستدعاء والاختبار، قبل بناء DownloadService والتفعيل، مع إبقاء الفصل بين LLM وDataset وPDF.
