@@ -5,12 +5,18 @@ import '../../app/app_routes.dart';
 /// Debug preview when [onOpenChat] is null; otherwise entered only after
 /// validating the encrypted marker and its matching SQLite nonce.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, this.onOpenChat, this.onOpenResources});
+  const HomePage({
+    super.key,
+    this.onOpenChat,
+    this.onOpenResources,
+    this.onOpenHistory,
+  });
 
   final VoidCallback? onOpenChat;
 
   /// Supplied only from an authenticated bootstrap. Never use it in preview.
   final VoidCallback? onOpenResources;
+  final VoidCallback? onOpenHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -37,15 +43,15 @@ class HomePage extends StatelessWidget {
                   children: [
                     Text(
                       authenticated
-                          ? 'جلسة محلية موثّقة — B-06'
+                          ? 'جلسة محلية موثّقة'
                           : 'معاينة هندسية — Debug',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       authenticated
-                          ? 'تم التحقق من الجلسة المشفّرة وقاعدة الحساب. '
-                                'حفظ السؤال الأول مدعوم؛ توليد إجابات Local AI/RAG غير مفعّل بعد.'
+                          ? 'أسئلتك ومحادثاتك محفوظة محليًا. '
+                                'تتوفر الإجابات عند جاهزية موارد المعلم المحلي.'
                           : 'واجهة معاينة فقط. SQLite والمصادقة بُنيت أجزاء منهما، '
                                 'لكن لا توجد جلسة موثّقة في هذه المعاينة، '
                                 'ولذلك إرسال المحادثة معطّل.',
@@ -74,9 +80,18 @@ class HomePage extends StatelessWidget {
                 label: const Text('حالة الموارد'),
               ),
             ],
+            if (authenticated && onOpenHistory != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('open-chat-history'),
+                onPressed: onOpenHistory,
+                icon: const Icon(Icons.history),
+                label: const Text('محادثاتي المحفوظة'),
+              ),
+            ],
             const SizedBox(height: 12),
             const Text(
-              'الإجابات عبر Tutor وRAG تتطلب تكامل المكونات المحلية لاحقًا.',
+              'تبقى المحادثات على جهازك. تعمل الوظائف التعليمية دون شبكة بعد تجهيز مواردها.',
               textAlign: TextAlign.center,
             ),
           ],

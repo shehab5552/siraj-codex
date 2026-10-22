@@ -3,12 +3,20 @@ import 'package:flutter/material.dart';
 
 import 'app_bootstrap.dart';
 import 'app_routes.dart';
+import '../integrations/ai/tutor_port.dart';
 
 class SirajApp extends StatelessWidget {
-  const SirajApp({super.key, this.debugPreview = false});
+  const SirajApp({
+    super.key,
+    this.debugPreview = false,
+    this.tutor = const UnavailableTutorPort(),
+    this.sources = const UnavailableSourceResolver(),
+  });
 
   /// Only explicitly used in debug widget tests; never in release/profile.
   final bool debugPreview;
+  final TutorPort tutor;
+  final SourceResolverPort sources;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +31,11 @@ class SirajApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: AppBootstrap(debugPreview: debugPreview && kDebugMode),
+      home: AppBootstrap(
+        debugPreview: debugPreview && kDebugMode,
+        tutor: tutor,
+        sources: sources,
+      ),
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }

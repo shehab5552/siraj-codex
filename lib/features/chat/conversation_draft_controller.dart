@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:cryptography/cryptography.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../data/conversation_repository.dart';
@@ -30,8 +34,15 @@ class ConversationDraftController {
   Future<String>? _pendingCommit;
   String? _conversationId;
   String? _firstQuestion;
+  String? _draftId;
+  String? _firstMessageId;
+  bool _evictedOldest = false;
 
   String? get conversationId => _conversationId;
+  String? get firstMessageId => _firstMessageId;
+  bool get evictedOldest => _evictedOldest;
+  ConversationRepository get repository => _conversations;
+  SessionGuard get sessionGuard => _guard;
   bool get isTemporary => _conversationId == null;
 
   /// Returns the new conversation ID. Concurrent duplicate calls share
@@ -39,6 +50,7 @@ class ConversationDraftController {
   Future<String> commitFirstQuestion({
     required AuthSession session,
     required String question,
+    bool Function()? isRequestCurrent,
   }) {
     final trimmed = question.trim();
     if (trimmed.isEmpty) {
@@ -58,27 +70,35 @@ class ConversationDraftController {
     if (pending != null) return pending;
 
     late final Future<String> operation;
-    operation = _commit(session, trimmed).whenComplete(() {
+    operation = _commit(session, trimmed, isRequestCurrent).whenComplete(() {
       if (identical(_pendingCommit, operation)) _pendingCommit = null;
     });
     _pendingCommit = operation;
     return operation;
   }
 
-  Future<String> _commit(AuthSession session, String question) async {
+  Future<String> _commit(
+    AuthSession session,
+    String question,
+    bool Function()? isRequestCurrent,
+  ) async {
     if (!await _guard.isCurrent(session)) {
       throw const AuthFailure(AuthFailureCode.sessionInvalid);
     }
-    final conversationId = _newId();
-    final messageId = _newId();
-    await _conversations.saveFirstUserMessage(
+    final conversationId = _draftId ??= _newId();
+    final messageId = _firstMessageId ??= _newId();
+    final nonceHash = await Sha256().hash(utf8.encode(session.sessionNonce));
+    final committed = await _conversations.saveFirstUserMessageWithOutcome(
       userId: session.userId,
       accountEpoch: session.accountEpoch,
       conversationId: conversationId,
       messageId: messageId,
       question: question,
       nowUtc: _clock().toUtc().toIso8601String(),
+      sessionNonceHash: Uint8List.fromList(nonceHash.bytes),
+      isRequestCurrent: isRequestCurrent,
     );
+    _evictedOldest = committed.evictedOldest;
     _firstQuestion = question;
     _conversationId = conversationId;
     return conversationId;

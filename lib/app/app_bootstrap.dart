@@ -14,9 +14,12 @@ import '../features/auth/signup_page.dart';
 import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
+import '../features/chat/conversation_history_controller.dart';
+import '../features/chat/conversation_history_page.dart';
 import '../features/home/home_page.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
+import '../integrations/ai/tutor_port.dart';
 import 'app_routes.dart';
 
 /// B-06 Step 1: fail-closed startup. No test-only/weak KDF is connected.
@@ -26,10 +29,14 @@ class AppBootstrap extends StatefulWidget {
     super.key,
     this.debugPreview = false,
     this.loadStartupForTesting,
+    this.tutor = const UnavailableTutorPort(),
+    this.sources = const UnavailableSourceResolver(),
   });
 
   final bool debugPreview;
   final Future<StartupDecision> Function()? loadStartupForTesting;
+  final TutorPort tutor;
+  final SourceResolverPort sources;
 
   @override
   State<AppBootstrap> createState() => _AppBootstrapState();
@@ -144,6 +151,21 @@ class _AppBootstrapState extends State<AppBootstrap> {
               return _statusScreen(context, 'تعذّر استعادة الجلسة بأمان.');
             }
             return HomePage(
+              onOpenHistory: () {
+                final history = ConversationHistoryController(
+                  session: session,
+                  conversations: ConversationRepository(runtime.database),
+                  guard: SessionGuard(UserRepository(runtime.database)),
+                  tutor: widget.tutor,
+                  sources: widget.sources,
+                );
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ConversationHistoryPage(controller: history),
+                  ),
+                );
+              },
               onOpenResources: () =>
                   unawaited(_openResourceStatus(session, runtime)),
               onOpenChat: () {
@@ -152,6 +174,8 @@ class _AppBootstrapState extends State<AppBootstrap> {
                   AppRoutes.chat,
                   arguments: AuthenticatedChatRoute(
                     session: session,
+                    tutor: widget.tutor,
+                    sources: widget.sources,
                     draftController: ConversationDraftController(
                       conversations: ConversationRepository(runtime.database),
                       guard: SessionGuard(users),
