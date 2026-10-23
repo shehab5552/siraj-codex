@@ -58,12 +58,13 @@ class HomePage extends StatelessWidget {
                     const Text('LLM: غير مثبت الجاهزية'),
                     const Text('RAG: غير مثبت الجاهزية'),
                     const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: const Key('open-resource-status'),
-                      onPressed: onOpenResources,
-                      icon: const Icon(Icons.inventory_2_outlined),
-                      label: const Text('حالة الموارد'),
-                    ),
+                    if (authenticated && onOpenResources != null)
+                      OutlinedButton.icon(
+                        key: const Key('open-resource-status'),
+                        onPressed: onOpenResources,
+                        icon: const Icon(Icons.inventory_2_outlined),
+                        label: const Text('حالة الموارد'),
+                      ),
                   ],
                 )),
                 const SizedBox(height: SirajSpacing.x3),
