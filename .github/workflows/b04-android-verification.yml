@@ -94,7 +94,11 @@ jobs:
         run: |
           set -euo pipefail
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
-          if ! echo no | avdmanager create avd --force --name siraj-b04-api33 --package 'system-images;android-33;google_apis;x86_64' > "$RUNNER_TEMP/b04-avd.log" 2>&1; then
+          export ANDROID_USER_HOME="$RUNNER_TEMP/b04-android-user"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          if ! echo no | avdmanager create avd --force --name siraj-b04-api33 --path "$ANDROID_AVD_HOME/siraj-b04-api33.avd" --package 'system-images;android-33;google_apis;x86_64' > "$RUNNER_TEMP/b04-avd.log" 2>&1; then
             python3 - <<'PY'
           import os
           from pathlib import Path
@@ -103,6 +107,8 @@ jobs:
           PY
             exit 1
           fi
+          test -f "$ANDROID_AVD_HOME/siraj-b04-api33.ini" || { echo '::error title=B04 checkpoint::AVD ini was not created in explicit ANDROID_AVD_HOME'; exit 1; }
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx siraj-b04-api33
           test -e /dev/kvm || { echo '::error title=B04 checkpoint::KVM unavailable on runner'; exit 1; }
           sudo chmod a+rw /dev/kvm
           "$ANDROID_HOME/emulator/emulator" -avd siraj-b04-api33 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/b04-emulator.log" 2>&1 &
