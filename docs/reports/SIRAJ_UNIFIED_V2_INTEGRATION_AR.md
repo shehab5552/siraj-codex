@@ -18,3 +18,6 @@ This branch has a GitHub Actions workflow to run enforced dependencies, analyzer
 
 ## Before main
 Require clean CI, verified Android signup/login/logout/delete with account preservation, Android download/activation and lifecycle checks, actual V2 accessibility/RTL checks, and security review. No `main` merge without verified readiness. Existing PRs remain unmerged.
+
+## Isolated visual preview
+`lib/main_v2_preview.dart` is a separate debug-only launch target for reviewing navigation without a real account. It never overrides the production entrypoint `lib/main.dart`, never enables Auth in release mode, and never represents real chat/AI/Quiz functionality. The preview APK opens four tabs with unavailable states; do not call it the completed app.

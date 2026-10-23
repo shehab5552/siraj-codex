@@ -50,7 +50,7 @@ jobs:
           assert source.count(old)==1
           path.write_text(source.replace(old,'applicationId = "com.example.siraj.unifiedpreview"'))
           PY
-          flutter build apk --debug --no-pub
+          flutter build apk --debug --no-pub --target=lib/main_v2_preview.dart
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-debug.apk dist/siraj-unified-preview-debug.apk
           sha256sum dist/siraj-unified-preview-debug.apk > dist/SHA256SUMS
