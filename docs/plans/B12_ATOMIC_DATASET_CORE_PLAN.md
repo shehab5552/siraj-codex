@@ -11,3 +11,5 @@ Bounded delivery: app-private candidate ownership/write serialization; reuse exi
 5. Enforced pub get, analyzer/full test, independent review, fix with regressions, Arabic report, commit/push/stacked PR. No production readiness/G2/G3/Android claims.
 
 Ledger: initial reserved-row RED→GREEN confirmed destructive unverified-write path and repaired it. Initial full226/0/0. Independent spec/standards review tree5bfd8cb76b749c10433bc06d8180eea09d51aa4c found cached runtime proof reuse after failed recovery and stalled-stream cancellation. Both reproduced RED→GREEN; writer subscription drainage and file-backed SQLite restart included. Focused47/0/0 before final full run. Same-revision single-instance embedder proof reuse also has RED→GREEN regression.
+
+Final: enforced pub get/analyze PASS; full231/0/0 locally and in Actions40021363816,47 new. Debug APK compiled with isolated datasetverification ID; no device/powercut/AI proof. Code c42c0fbb3bd989c49ebfba700582d1ce9263135c, PR9 open to B07, no merge. All review findings repaired. Production adapters/consent/assembly/resources remain explicitly pending.

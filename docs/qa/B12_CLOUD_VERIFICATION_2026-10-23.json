@@ -56,7 +56,7 @@
     "observable stalled-stream cancellation with subscription drainage"
   ],
   "sqlite_native_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
-  "android": "Not executed locally; CI build requested on push. No device, emulator, native AI or powercut acceptance.",
+  "android": "Debug APK compiled in GitHub Actions; no device/emulator/native AI or physical powercut test",
   "product_ready": false,
   "G2_G3_passed": false,
   "remaining": [
@@ -76,5 +76,28 @@
     "shared-reader-red.log": "99570029c4c05967adcf941fe9cc841ce85eeabd822a01181fbce7037bd2d7e6",
     "shared-reader-green.log": "1a981bb3b124f3931f8c267f92ad04c1c491e04301ff98f2f2a2583c95877367",
     "focused-final.log": "ea558dcb392003d44cc753a6a2ee07b14b51dc7ac7369976893ed75c963ab043"
+  },
+  "code_commit": "c42c0fbb3bd989c49ebfba700582d1ce9263135c",
+  "pull_request": "https://github.com/shehab5552/siraj-codex/pull/9",
+  "android_ci": {
+    "run_id": 40021363816,
+    "url": "https://github.com/shehab5552/siraj-codex/actions/runs/40021363816",
+    "head_sha": "c42c0fbb3bd989c49ebfba700582d1ce9263135c",
+    "status": "completed",
+    "conclusion": "success",
+    "linux_tests": {
+      "passed": 231,
+      "failed": 0,
+      "skipped": 0
+    },
+    "apk_build": "success",
+    "application_id": "com.example.siraj.datasetverification",
+    "artifact_id": 12531056403,
+    "artifact_size_bytes": 76376040,
+    "artifact_archive_digest": "sha256:8f39ec04d6f4fc7ed02728bcddd31b6484d104ddf03d867bea72286d3d1d6187",
+    "artifact_url": "https://github.com/shehab5552/siraj-codex/actions/runs/40021363816/artifacts/12531056403",
+    "retention_days": 7,
+    "device_execution": false,
+    "warning": "Pinned upload-artifact v4 targets deprecated Node20; runner forced Node24, upload succeeded"
   }
 }

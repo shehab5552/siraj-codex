@@ -53,4 +53,12 @@
 
 ## الأولوية التالية
 
-الأولوية التعليمية هي B-09 Biology G2/G3: Runtime/ABI معتمد وLocal LLM وShared Embedding وFixture/Index مراجعة، ثم تشغيل Android حقيقي وربط الـLease. B-12 التالي هو توصيل Catalog والتجميع وOne-consent إلى الآلية دون إعلان الخمس جاهزة قبل فحوصها. B-10 يتطلب BookCatalog وروابط رسمية وPDF Viewer/Parser مختبرًا؛ لا تعتمد روابط أو ملفات كتب تخمينية. نتيجة CI وCommit/PR ستضاف بعد الرفع.
+الأولوية التعليمية هي B-09 Biology G2/G3: Runtime/ABI معتمد وLocal LLM وShared Embedding وFixture/Index مراجعة، ثم تشغيل Android حقيقي وربط الـLease. B-12 التالي هو توصيل Catalog والتجميع وOne-consent إلى الآلية دون إعلان الخمس جاهزة قبل فحوصها. B-10 يتطلب BookCatalog وروابط رسمية وPDF Viewer/Parser مختبرًا؛ لا تعتمد روابط أو ملفات كتب تخمينية. نتيجة CI وCommit/PR مثبتة أدناه.
+
+## Git وCI النهائي
+
+Commit الكود المختبر والمرفوع: `c42c0fbb3bd989c49ebfba700582d1ce9263135c`. [PR9](https://github.com/shehab5552/siraj-codex/pull/9) مفتوح وMERGEABLE ويستهدف `codex/b07-independent-download-01`؛ لا Merge. نطاق Commit الكود14 ملفًا/2190 إضافة، والـCommit التوثيقي التالي يضيف سجل المتابعة ويحدث النتائج دون تغيير lib/test/Android.
+
+نجح [Actions40021363816](https://github.com/shehab5552/siraj-codex/actions/runs/40021363816) على Commit الكود نفسه: pub enforced وanalyze وLinux **231/0/0** وفق Check annotations، وتجهيز SDK وبناء APK ورفع Artifact. تحقق aapt من `com.example.siraj.datasetverification` في نسخة CI فقط؛ لا تعديل Gradle ملتزم أو تفعيل Auth/Validator وهمي. هذا دليل بناء Android يرث كود B-07، وليس تشغيل DatasetReleaseManager على جهاز أو قبول Native AI.
+
+[Artifact12531056403](https://github.com/shehab5552/siraj-codex/actions/runs/40021363816/artifacts/12531056403) بحجم76,376,040بايت، وبصمة أرشيف artifact `sha256:8f39ec04d6f4fc7ed02728bcddd31b6484d104ddf03d867bea72286d3d1d6187`، مدة الاحتفاظ7 أيام. هذه بصمة الأرشيف، لا APK المفرد. تحذير غير مانع: upload-artifact v4 يستهدف Node20 المتقادم وشغله GitHub بـNode24 بنجاح. لم يفشل تنزيل في هذا التشغيل. main بقي `651af0d62d05761c80d9a8cbc9d1f51b836929eb`، وPR1/3/4/5/6/7/8/9 مفتوحة وPR2 مدمج سابقًا.
