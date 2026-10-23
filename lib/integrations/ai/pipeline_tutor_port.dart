@@ -307,6 +307,7 @@ class PipelineTutorPort implements TutorPort, SourceResolverPort {
   TutorErrorCode _runtimeError(RuntimeErrorCode code) => switch (code) {
     RuntimeErrorCode.notReady ||
     RuntimeErrorCode.incompatible => TutorErrorCode.resourceNotReady,
+    RuntimeErrorCode.embeddingFailed => TutorErrorCode.resourceNotReady,
     RuntimeErrorCode.loadFailed => TutorErrorCode.modelLoadFailed,
     RuntimeErrorCode.cancelled => TutorErrorCode.requestCancelled,
     RuntimeErrorCode.outOfMemory => TutorErrorCode.outOfMemory,
