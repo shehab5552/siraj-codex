@@ -1,0 +1,80 @@
+{
+  "task": "B-12/TK-19 immutable dataset release core (controlled mechanism only)",
+  "branch": "codex/b12-atomic-dataset-core",
+  "base": "27ff8e5265e03092ccf84fedeae39d5bb4d008a7",
+  "target_branch": "codex/b07-independent-download-01",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "timezone": "Asia/Aden",
+  "finished_aden": "2026-10-23T23:41:33.818756+03:00",
+  "validation": {
+    "finished_utc": "2026-10-23T20:41:33.818756+00:00",
+    "results": [
+      {
+        "name": "pub-enforced-final",
+        "command": [
+          "flutter",
+          "pub",
+          "get",
+          "--enforce-lockfile"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.598
+      },
+      {
+        "name": "analyze-final",
+        "command": [
+          "flutter",
+          "analyze",
+          "--no-pub"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 1.636
+      },
+      {
+        "name": "full-final",
+        "command": [
+          "flutter",
+          "test",
+          "--no-pub",
+          "--machine"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 15.231
+      }
+    ]
+  },
+  "tests": {
+    "passed": 231,
+    "failed": 0,
+    "skipped": 0
+  },
+  "new_focused_tests": 47,
+  "reviewed_tree": "5bfd8cb76b749c10433bc06d8180eea09d51aa4c",
+  "review_findings_fixed": [
+    "runtime proof invalidated on failed forced revalidation",
+    "observable stalled-stream cancellation with subscription drainage"
+  ],
+  "sqlite_native_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
+  "android": "Not executed locally; CI build requested on push. No device, emulator, native AI or powercut acceptance.",
+  "product_ready": false,
+  "G2_G3_passed": false,
+  "remaining": [
+    "approved production catalog/manifests and actual six-component resources",
+    "trusted archive assembly from B07 completed downloads and one-consent aggregate UI",
+    "real schema/index/embedding/Android sample-query validator",
+    "B09 runtime and revision-lease adapter",
+    "actual Android crash/offline/storage/scientific tests"
+  ],
+  "logs_sha256": {
+    "pub-enforced-final.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92",
+    "analyze-final.log": "ed80a67a8932ba0358c467585dc8cbbe836cc41277b89222a1b21be2fab3d826",
+    "full-final.log": "ecba5cc1447f773548d41b4eff7891cfc36608d62a956ecfc4d2d719378b8a0f",
+    "pointer-red.log": "5b2e1e8e1b98d6085574bfd14aa770d8a73e2399ed3c5d4b9f2d4fd510875e14",
+    "review-regressions-red.log": "a4e9d6cbbcf94f2e9dad8c000f308fd583be7a306bda52f29fc1cd6bb9d67017",
+    "review-regressions-green.log": "f0d02986c019412c8d8d0d36cde835dc089e83a51b41b014ae3f4356e0e512c3",
+    "shared-reader-red.log": "99570029c4c05967adcf941fe9cc841ce85eeabd822a01181fbce7037bd2d7e6",
+    "shared-reader-green.log": "1a981bb3b124f3931f8c267f92ad04c1c491e04301ff98f2f2a2583c95877367",
+    "focused-final.log": "ea558dcb392003d44cc753a6a2ee07b14b51dc7ac7369976893ed75c963ab043"
+  }
+}
