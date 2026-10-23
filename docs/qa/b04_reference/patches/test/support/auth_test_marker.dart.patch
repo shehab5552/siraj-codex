@@ -1,0 +1,40 @@
+diff --git a/test/support/auth_test_marker.dart b/test/support/auth_test_marker.dart
+new file mode 100644
+index 0000000..14e3530
+--- /dev/null
++++ b/test/support/auth_test_marker.dart
+@@ -0,0 +1,34 @@
++import 'dart:async';
++import 'package:siraj/features/auth/auth_models.dart';
++import 'package:siraj/features/auth/session_marker_store.dart';
++
++class ControlledMarker implements SessionMarkerStore {
++  String? raw;
++  bool pauseNext = false;
++  bool failAfterWrite = false;
++  bool failBeforeWrite = false;
++  bool failClear = false;
++  final entered = Completer<void>();
++  final release = Completer<void>();
++  @override
++  Future<String?> read() async => raw;
++  @override
++  Future<void> write(PersistedSessionMarker marker) async {
++    if (pauseNext) {
++      pauseNext = false;
++      entered.complete();
++      await release.future;
++    }
++    if (failBeforeWrite) throw StateError('isolated write failure');
++    raw = marker.encode();
++    if (failAfterWrite) {
++      throw StateError('isolated lost storage acknowledgement');
++    }
++  }
++
++  @override
++  Future<void> clear() async {
++    if (failClear) throw StateError('isolated clear failure');
++    raw = null;
++  }
++}

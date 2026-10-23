@@ -1,0 +1,75 @@
+diff --git a/tool/b04_kdf_benchmark.dart b/tool/b04_kdf_benchmark.dart
+new file mode 100644
+index 0000000..8f01b1b
+--- /dev/null
++++ b/tool/b04_kdf_benchmark.dart
+@@ -0,0 +1,69 @@
++import 'dart:async';
++import 'dart:convert';
++import 'dart:io';
++import 'dart:typed_data';
++
++import 'package:siraj/features/auth/kdf_worker.dart';
++import 'package:siraj/features/auth/password_hasher.dart';
++
++/// Synthetic workload only. Never accepts or prints user credentials/hashes.
++/// Cloud timings are not an Android work-factor approval.
++Future<void> main() async {
++  final measurements = <Map<String, Object>>[];
++  final hasher = PasswordHasher(iterations: PasswordHasher.candidateIterations);
++  for (var i = 0; i < 3; i++) {
++    var ticks = 0;
++    var previous = 0;
++    var maxGap = 0;
++    final watch = Stopwatch()..start();
++    final before = ProcessInfo.currentRss;
++    final timer = Timer.periodic(const Duration(milliseconds: 10), (_) {
++      final now = watch.elapsedMicroseconds;
++      final gap = now - previous;
++      if (gap > maxGap) maxGap = gap;
++      previous = now;
++      ticks++;
++    });
++    try {
++      final credential = await hasher.hashPassword('synthetic-benchmark-only');
++      credential.hash.fillRange(0, credential.hash.length, 0);
++    } finally {
++      timer.cancel();
++    }
++    measurements.add({
++      'sample': i + 1,
++      'iterations': PasswordHasher.candidateIterations,
++      'elapsed_ms': watch.elapsedMilliseconds,
++      'heartbeat_ticks': ticks,
++      'max_heartbeat_gap_ms': maxGap / 1000,
++      'process_rss_before_bytes': before,
++      'process_rss_after_bytes': ProcessInfo.currentRss,
++      'process_max_rss_bytes': ProcessInfo.maxRss,
++    });
++  }
++  final worker = IsolatePbkdf2();
++  final cancel = KdfCancellation();
++  final task = worker.derive(
++    password: 'synthetic-only',
++    salt: Uint8List(16),
++    iterations: 5000000,
++    cancellation: cancel,
++  );
++  final settled = task.then<Object?>((_) => null, onError: (Object e) => e);
++  await Future<void>.delayed(const Duration(milliseconds: 20));
++  final watch = Stopwatch()..start();
++  cancel.cancel();
++  final result = await settled;
++  stdout.writeln(
++    jsonEncode({
++      'platform': Platform.operatingSystem,
++      'dart': Platform.version,
++      'purpose': 'Synthetic candidate profile; NOT Android acceptance',
++      'measurements': measurements,
++      'cancel_settlement_ms': watch.elapsedMicroseconds / 1000,
++      'cancel_result': result is KdfFailure ? result.code.name : 'unexpected',
++      'memory_note':
++          'RSS measures the entire Dart VM process, not an isolated worker heap or an Android app. No leak-free claim.',
++    }),
++  );
++}

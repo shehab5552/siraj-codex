@@ -1,0 +1,147 @@
+diff --git a/test/b04_kdf_worker_test.dart b/test/b04_kdf_worker_test.dart
+new file mode 100644
+index 0000000..9d1be7d
+--- /dev/null
++++ b/test/b04_kdf_worker_test.dart
+@@ -0,0 +1,141 @@
++import 'dart:async';
++import 'dart:convert';
++import 'dart:io';
++import 'dart:typed_data';
++
++import 'package:flutter_test/flutter_test.dart';
++import 'package:siraj/features/auth/kdf_worker.dart';
++import 'package:siraj/features/auth/password_hasher.dart';
++
++void main() {
++  final fixture =
++      jsonDecode(
++            File(
++              'test/fixtures/b04_pbkdf2_sha256_vectors.json',
++            ).readAsStringSync(),
++          )
++          as Map<String, dynamic>;
++  Uint8List bytes(String hex) => Uint8List.fromList([
++    for (var i = 0; i < hex.length; i += 2)
++      int.parse(hex.substring(i, i + 2), radix: 16),
++  ]);
++  for (final v in fixture['vectors'] as List) {
++    test('PBKDF2 independent Python/OpenSSL vector ${v['id']}', () async {
++      final result = await IsolatePbkdf2().derive(
++        password: v['password'] as String,
++        salt: bytes(v['salt_hex'] as String),
++        iterations: v['iterations'] as int,
++      );
++      expect(result, bytes(v['expected_hex'] as String));
++    });
++  }
++  test(
++    'cancels a real busy worker and allows safe subsequent derivation',
++    () async {
++      final worker = IsolatePbkdf2();
++      final cancellation = KdfCancellation();
++      final operation = worker.derive(
++        password: 'synthetic-only',
++        salt: Uint8List(16),
++        iterations: 5000000,
++        cancellation: cancellation,
++      );
++      final assertion = expectLater(
++        operation,
++        throwsA(
++          isA<KdfFailure>().having(
++            (e) => e.code,
++            'code',
++            KdfFailureCode.cancelled,
++          ),
++        ),
++      );
++      await Future<void>.delayed(const Duration(milliseconds: 20));
++      cancellation.cancel();
++      await assertion.timeout(const Duration(seconds: 2));
++      expect(
++        await worker.derive(password: 'q', salt: Uint8List(16), iterations: 2),
++        hasLength(32),
++      );
++    },
++  );
++  test(
++    'concurrent work is rejected rather than queued without bounds',
++    () async {
++      final worker = IsolatePbkdf2();
++      final cancellation = KdfCancellation();
++      final operation = worker.derive(
++        password: 'q',
++        salt: Uint8List(16),
++        iterations: 5000000,
++        cancellation: cancellation,
++      );
++      final first = expectLater(operation, throwsA(isA<KdfFailure>()));
++      await expectLater(
++        worker.derive(password: 'q', salt: Uint8List(16), iterations: 2),
++        throwsA(
++          isA<KdfFailure>().having((e) => e.code, 'code', KdfFailureCode.busy),
++        ),
++      );
++      cancellation.cancel();
++      await first;
++    },
++  );
++  test('already cancelled request never derives', () async {
++    final cancellation = KdfCancellation()..cancel();
++    await expectLater(
++      IsolatePbkdf2().derive(
++        password: 'q',
++        salt: Uint8List(16),
++        iterations: 2,
++        cancellation: cancellation,
++      ),
++      throwsA(isA<KdfFailure>()),
++    );
++  });
++  test('deadline terminates work and releases the worker', () async {
++    final worker = IsolatePbkdf2(deadline: Duration.zero);
++    await expectLater(
++      worker.derive(password: 'q', salt: Uint8List(16), iterations: 5000000),
++      throwsA(
++        isA<KdfFailure>().having(
++          (e) => e.code,
++          'code',
++          KdfFailureCode.timedOut,
++        ),
++      ),
++    );
++  });
++  test('600k worker permits main event-loop progress', () async {
++    var ticks = 0;
++    final timer = Timer.periodic(
++      const Duration(milliseconds: 10),
++      (_) => ticks++,
++    );
++    try {
++      await PasswordHasher(
++        iterations: PasswordHasher.candidateIterations,
++      ).hashPassword('synthetic-only');
++      expect(ticks, greaterThan(5));
++    } finally {
++      timer.cancel();
++    }
++  });
++  test(
++    'oversized passwords and credential metadata are rejected without truncation',
++    () async {
++      final hasher = PasswordHasher(iterations: 2);
++      await expectLater(hasher.hashPassword('x' * 1025), throwsArgumentError);
++      final credential = await hasher.hashPassword('q');
++      expect(
++        await hasher.verifyPassword(
++          password: 'q',
++          salt: credential.salt,
++          expectedHash: credential.hash,
++          parametersJson: ' ' * 4097 + credential.parametersJson,
++        ),
++        false,
++      );
++    },
++  );
++}
