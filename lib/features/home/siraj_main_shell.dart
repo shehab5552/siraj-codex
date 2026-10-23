@@ -7,10 +7,12 @@ enum SirajMainTab { home, assistant, library, quiz }
 
 class SirajMainShell extends StatefulWidget {
   const SirajMainShell({
-    super.key, this.onOpenChat, this.onOpenResources,
+    super.key, this.onOpenChat, this.onOpenResources, this.onOpenHistory, this.onOpenQuiz,
   });
   final VoidCallback? onOpenChat;
   final VoidCallback? onOpenResources;
+  final VoidCallback? onOpenHistory;
+  final VoidCallback? onOpenQuiz;
   @override
   State<SirajMainShell> createState() => _SirajMainShellState();
 }
@@ -20,6 +22,10 @@ class _SirajMainShellState extends State<SirajMainShell> {
 
   void _select(int index) {
     final selected = SirajMainTab.values[index];
+    if (selected == SirajMainTab.quiz && widget.onOpenQuiz != null) {
+      widget.onOpenQuiz!();
+      return;
+    }
     if (selected == SirajMainTab.assistant && widget.onOpenChat != null) {
       widget.onOpenChat!();
       return;
@@ -31,7 +37,7 @@ class _SirajMainShellState extends State<SirajMainShell> {
   Widget build(BuildContext context) {
     final selectedIndex = _selected.index;
     final pages = <Widget>[
-      HomePage(onOpenChat: widget.onOpenChat, onOpenResources: widget.onOpenResources),
+      HomePage(onOpenChat: widget.onOpenChat, onOpenResources: widget.onOpenResources, onOpenHistory: widget.onOpenHistory, onOpenQuiz: widget.onOpenQuiz),
       const SirajStatusView(
         title: 'المساعد المحلي',
         message: 'تحتاج المحادثة إلى جلسة حساب موثقة. لا توجد إجابات مولدة تجريبيًا.',

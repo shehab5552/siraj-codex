@@ -11,6 +11,8 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        downloadStorageChannel?.dispose()
+        secureSessionChannel?.dispose()
         downloadStorageChannel = SirajDownloadStorageChannel(
             applicationContext,
             flutterEngine.dartExecutor.binaryMessenger,

@@ -5,9 +5,11 @@ import '../../core/design/siraj_design.dart';
 
 /// No session means an explicitly limited debug preview only.
 class HomePage extends StatelessWidget {
-  const HomePage({super.key, this.onOpenChat, this.onOpenResources});
+  const HomePage({super.key, this.onOpenChat, this.onOpenResources, this.onOpenHistory, this.onOpenQuiz});
   final VoidCallback? onOpenChat;
   final VoidCallback? onOpenResources;
+  final VoidCallback? onOpenHistory;
+  final VoidCallback? onOpenQuiz;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +81,24 @@ class HomePage extends StatelessWidget {
                       icon: Icons.chat_bubble_outline,
                       label: authenticated ? 'فتح المحادثة' : 'فتح معاينة المحادثة',
                     ),
+                    if (authenticated && onOpenHistory != null) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        key: const Key('open-chat-history'),
+                        onPressed: onOpenHistory,
+                        icon: const Icon(Icons.history),
+                        label: const Text('محادثاتي المحفوظة'),
+                      ),
+                    ],
+                    if (authenticated && onOpenQuiz != null) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        key: const Key('open-quiz'),
+                        onPressed: onOpenQuiz,
+                        icon: const Icon(Icons.quiz_outlined),
+                        label: const Text('اختبر فهمك'),
+                      ),
+                    ],
                   ],
                 )),
               ],
