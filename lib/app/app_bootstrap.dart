@@ -16,6 +16,7 @@ import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
 import '../features/chat/conversation_history_controller.dart';
 import '../features/chat/conversation_history_page.dart';
+import '../features/home/home_page.dart';
 import '../features/home/siraj_main_shell.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
@@ -147,7 +148,7 @@ class _AppBootstrapState extends State<AppBootstrap>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.debugPreview && kDebugMode) return const SirajMainShell();
+    if (widget.debugPreview && kDebugMode) return const HomePage();
     return FutureBuilder<StartupDecision>(
       future: _startup,
       builder: (context, snapshot) {
