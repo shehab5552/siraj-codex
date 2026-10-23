@@ -159,6 +159,17 @@ jobs:
           output = json.dumps(metrics, separators=(',', ':'))
           print('::notice title=B04 Android metrics::' + output.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A'))
           PY
+          flutter test integration_test/b04_android_probe_ui_test.dart -d emulator-5554 --no-pub --reporter expanded
+          echo '::notice title=B04 native UI::Android UI with real 600000 KDF and Keystore passed Signup/loading/Login/Logout/Delete/cascade/resource preservation; no physical-device or broad ANR approval'
+          adb logcat -b events -d -s am_anr > "$RUNNER_TEMP/b04-anr-events.log"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          lines = (Path(os.environ['RUNNER_TEMP']) / 'b04-anr-events.log').read_text(errors='replace').splitlines()
+          matches = [line for line in lines if 'com.example.siraj.b04verification' in line]
+          assert not matches, 'ANR record for isolated test package in emulator event buffer'
+          print('::notice title=B04 ANR observation::No isolated-package ANR entry in available emulator event buffer after the tests; not physical-device or broad ANR acceptance')
+          PY
       - name: Record evidence limits
         if: always()
         shell: bash
