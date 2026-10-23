@@ -26,7 +26,8 @@
       "patch": "patches/android/app/src/main/kotlin/com/example/siraj/SirajSecureSessionChannel.kt.patch",
       "patch_sha256": "3da7394115c36c0e2c4bf01312ed5a06bad59f3b2513d9eb75985c6165e44e4a",
       "codex_base_sha256": "430affaeb443dac432bfecd9a5ef856cbb17bcc52e622b46bd08b40b58f6da7a",
-      "codex_result_sha256": "def85a9825b0e9c6964a13e0753b59839e195847884169a8c6a57f261f53e08a"
+      "codex_result_sha256": "def85a9825b0e9c6964a13e0753b59839e195847884169a8c6a57f261f53e08a",
+      "full_reference_source": "complete_platform/android/app/src/main/kotlin/com/example/siraj/SirajSecureSessionChannel.kt.txt"
     },
     {
       "path": "android/app/src/main/res/xml/backup_rules.xml",

@@ -9,6 +9,9 @@
   وSQL/تواقيع الدوال. لا تغييرات مخترعة أو snippets ناقصة بديلًا عن Patch.
 - `new_files/<path>.txt`: المحتوى الكامل للملف الجديد. امتداد txt يمنع
   Flutter analyze من اعتباره كودًا ثانيًا؛ أزله عند إضافة ملف متوافق فقط.
+- `complete_platform/.../SirajSecureSessionChannel.kt.txt`: class القناة كاملة
+  من Commit الإصلاح، إذا لم توجد قناة في مشروعك أصلًا؛ طابق package/namespace
+  والعقد قبل إضافتها. ليست أمرًا باستبدال قنوات Activity أو Auth/SQLite.
 - `.gitattributes`: يمنع تحويل LF/CRLF في مواد المرجع، كي تبقى البصمات
   مستقرة بعد clone على Windows مع core.autocrlf.
   فراغ سطر context الفارغ في unified diff جزء من صيغة Patch؛ لا تزيله عند التنسيق.

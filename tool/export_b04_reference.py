@@ -47,6 +47,11 @@ def main():
             full.parent.mkdir(parents=True, exist_ok=True)
             full.write_bytes(after)
             entry["full_new_file"] = full.relative_to(out).as_posix()
+        elif name.endswith("/SirajSecureSessionChannel.kt"):
+            full = out / "complete_platform" / (name + ".txt")
+            full.parent.mkdir(parents=True, exist_ok=True)
+            full.write_bytes(after)
+            entry["full_reference_source"] = full.relative_to(out).as_posix()
         entries.append(entry)
     manifest = {
         "repository": "shehab5552/siraj-codex",

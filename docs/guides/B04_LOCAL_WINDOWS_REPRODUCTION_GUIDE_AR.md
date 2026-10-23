@@ -163,6 +163,7 @@ code "$bundle\patches\lib\features\auth\password_hasher.dart.patch"
 |---|---|
 | `integration_test/support/b04_probe_app.dart` | entry point Debug Android فقط؛ DB `siraj_b04_probe`، نطاق Keystore `b04_test`، Signup/Login الحقيقيان، Logout/Delete ومورد سجل MISSING |
 | `integration_test/b04_android_kdf_metrics_test.dart` | ثلاث عينات600000 وقياس heartbeat/RSS والإلغاء **على Android**؛ لا يطبع كلمة/Hash/nonce |
+| `integration_test/b04_android_probe_ui_test.dart` | قيادة UI مع Auth/Keystore/SQLite حقيقية؛ إنشاء USER محفوظة وDelete cascade وبقاء المورد؛ التحميل ليس وحده إثبات عدم ANR |
 | `test/b04_probe_app_test.dart` | 3 اختبارات UI للمسبار باستخدام SQLite/Auth الحقيقيين وMarker معزول،1000 لتدفق UI فقط |
 | `.github/workflows/b04-android-verification.yml` | GitHub-hosted API33 Emulator؛ تثبيت package اختبار منفصل، لا يدمج PR ولا يفتح Gate |
 | `tool/export_b04_reference.py` | إعادة توليد المرجع من Commits Codex المحددة؛ لا ينقل الإصلاحات إلى مشروعك تلقائيًا |
@@ -405,6 +406,10 @@ if ($LASTEXITCODE -ne 0) { throw 'عالج اختلاف API أو فشل المت
 2. افتح `SirajSecureSessionChannel.kt` وادمج Patch: shared bounded executor،
    disposed guards، rejected queue، bounds وUTF-8، debug-only b04_test.
    احتفظ بـAES/GCM ومفاتيح provider ولا ترجع key/marker إلى logs.
+   إن لا يوجد هذا class أصلًا، استخدم الكود الكامل المثبت في
+   `docs/qa/b04_reference/complete_platform/android/app/src/main/kotlin/com/example/siraj/SirajSecureSessionChannel.kt.txt`،
+   مع نقل الملف إلى مسار package المحلي وتعديل سطر package فقط بعد مطابقة
+   العقد؛ لا يكفي Patch مبنية على ملف غير موجود لإضافة القناة لأول مرة.
 3. انقل dispose السابق في configureFlutterEngine فقط، واحتفظ بباقي قنواتك
    وsuper calls والتنظيف الموجود. لا تجمع flutter_secure_storage والقناة
    المباشرة لكتابة **نفس** Marker؛ إذا مخزنك مختلف فاكتب adapter واحدًا للعقد
@@ -425,6 +430,33 @@ android:dataExtractionRules="@xml/data_extraction_rules"
 6. احفظ وابنِ **نسخة الاختبار المعزولة فقط** بعد الخطوة9. نجاح XML unit test
    لا يثبت نجاح Kotlin أو merged manifest أو OEM backup.
 
+إن لم تكن Activity تسجل القناة أصلًا، فهذه الإضافة داخل class Activity
+الموجود، بعد إضافة `import io.flutter.embedding.engine.FlutterEngine`:
+
+```kotlin
+private var secureSessionChannel: SirajSecureSessionChannel? = null
+
+override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+    super.configureFlutterEngine(flutterEngine)
+    secureSessionChannel?.dispose()
+    secureSessionChannel = SirajSecureSessionChannel(
+        this, flutterEngine.dartExecutor.binaryMessenger,
+    )
+    // أبقِ أي تسجيل لقنواتك الأخرى الموجودة هنا.
+}
+
+override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+    secureSessionChannel?.dispose()
+    secureSessionChannel = null
+    super.cleanUpFlutterEngine(flutterEngine)
+}
+```
+
+ادمج داخل overrides القائمة إن وجدت؛ لا تضف method ثانية بالاسم نفسه، ولا
+تغير superclass أو تحذف hooks أخرى. جلسة flutter_secure_storage سابقة لا
+تصبح ciphertext القناة الجديدة تلقائيًا؛ اختبر التوافق أو اطلب Login
+صحيحة لاستعادة الجلسة وفق العقد، دون حذف الحساب/DB أو تجاوز كلمة المرور.
+
 ### الخطوة 8 — حراسة المحادثة وB-08
 
 1. افتح first USER transaction وcontroller، وانقل sessionNonceHash وفحص
@@ -442,7 +474,8 @@ android:dataExtractionRules="@xml/data_extraction_rules"
 ### الخطوة 9 — أدوات الاختبار وعزل APK
 
 1. أضف `integration_test/support/b04_probe_app.dart` و
-   `integration_test/b04_android_kdf_metrics_test.dart` من checkout المرجعي؛
+   `integration_test/b04_android_kdf_metrics_test.dart` و
+   `integration_test/b04_android_probe_ui_test.dart` من checkout المرجعي؛
    عدّل imports/adapter DB إذا كانت APIs المحلية مختلفة. المسبار يستعمل
    `driftDatabase(name: 'siraj_b04_probe')` وقناة b04_test، ولا يمس DB الإنتاجية.
 2. إن لا يوجد Drift/هذه العقود في مشروعك، لا تضف schema Codex كاملًا لتشغيل
@@ -468,7 +501,7 @@ dev_dependencies:
 
 ```kotlin
 getByName("debug") {
-    applicationIdSuffix = ".b04verification"
+    applicationIdSuffix = ".local.b04verification"
     versionNameSuffix = "-b04-test"
 }
 ```
@@ -477,7 +510,7 @@ getByName("debug") {
 
 ```groovy
 debug {
-    applicationIdSuffix '.b04verification'
+    applicationIdSuffix '.local.b04verification'
     versionNameSuffix '-b04-test'
 }
 ```
@@ -489,9 +522,17 @@ Kotlin وMainActivity؛ تغيير applicationId للاختبار لا يعني 
 التجريبي فقط**، ولم تُدخل في ملفات Gradle الإنتاجية في PR #5.
 
 المثال عندما defaultConfig.applicationId هو `com.example.siraj` يعطي
-`com.example.siraj.b04verification`. أعطِ تثبيت الاختبار اسم launcher واضحًا
+`com.example.siraj.local.b04verification`. أعطِ تثبيت الاختبار اسم launcher واضحًا
 مثل `SIRAJ B04 TEST` في فرع التجربة إن أردت تجنب الالتباس؛ راجع Manifest merge.
 لا تشغّل flutter run/test integration قبل فحص APK وID كما يلي.
+
+استخدم suffix مختلفة لمرجع Codex المحلي مثل `.codex.b04verification` إن
+ستجربه أيضًا، واضبط `$project` و`$probeId` له صراحة. APK Actions المنشورة
+تستعمل `com.example.siraj.b04verification`؛ ليست نسخة مشروعك الأصلي. لا تخلط
+هذه التثبيتات الثلاثة أو قواعد بياناتها. مفاتيح debug signing قد تختلف بين
+Windows وActions وبين runners؛ `INSTALL_FAILED_UPDATE_INCOMPATIBLE` لا يعالج
+بحذف بيانات التطبيق الحالي أو مفاتيحه. احتفظ بـID مستقلة ومصدر توقيع متسق
+لكل تجربة، ولا تثبت APK من مصدر آخر فوق package قائمة مجهولة.
 
 ## 8. أوامر Windows: SDK وFlutter والاختبارات
 
@@ -593,7 +634,7 @@ $badging = & $aapt dump badging $apk
 if ($LASTEXITCODE -ne 0) { throw 'تعذر فحص APK.' }
 $actualId = [regex]::Match(($badging | Select-Object -First 1), "name='([^']+)'").Groups[1].Value
 $baseId = 'com.example.siraj' # غيّره إلى applicationId الأصلي الذي سجلته قبل تعديل debug.
-$probeId = "$baseId.b04verification" # طابق variant الفعلي إن لديك flavors.
+$probeId = "$baseId.local.b04verification" # طابق variant الفعلي إن لديك flavors؛ Codex reference تستعمل suffix مستقلة.
 if ($actualId -ne $probeId -or $actualId -eq $baseId -or -not $actualId.EndsWith('.b04verification')) {
   throw "هوية APK غير آمنة/غير متوقعة: $actualId؛ لا تثبته."
 }
@@ -619,6 +660,8 @@ flutter test integration_test/b04_android_secure_session_test.dart -d $device --
 if ($LASTEXITCODE -ne 0) { throw 'فشل native session acceptance؛ احفظ الخطوة والخطأ المنقحين.' }
 flutter test integration_test/b04_android_kdf_metrics_test.dart -d $device --no-pub --reporter expanded
 if ($LASTEXITCODE -ne 0) { throw 'فشل قياس/إلغاء KDF على Android؛ لا تعتمد الإعداد.' }
+flutter test integration_test/b04_android_probe_ui_test.dart -d $device --no-pub --reporter expanded
+if ($LASTEXITCODE -ne 0) { throw 'فشل UI/SQLite/Keystore الحقيقي؛ لا تعلن نجاح مسار الهاتف.' }
 ```
 
 الأول يستخدم Keystore الحقيقي وSQLite مؤقتة: إنشاء/كلمة خاطئة/صحيحة/
@@ -626,6 +669,10 @@ reopen/Logout/Login/Delete وبقاء سجل مورد. الثاني ثلاث ع�
 heartbeat/RSS وإلغاء. طباعات `SIRAJ_B04_METRICS` بيانات synthetic فقط.
 SQLite reopen في الأول **ليس** Force-stop/reboot. لا تختصر timeout بخفض
 iterations إذا تأخر الهاتف؛ سجل الفشل والأداء للمراجعة.
+الثالث يقود Signup والتحميل وكلمة خاطئة وصحيحة وLogout/Delete عبر UI الحقيقية،
+ويحفظ محادثة ورسالة USER ليثبت cascade عند الحذف مع بقاء المورد. لا يستدعي
+Tutor ولا يعرض إجابة علمية اصطناعية. نجاحه يخص السيناريو المختبر، وليس
+اختبار lifecycle/backup أو إثبات عدم ANR مطلقًا.
 
 هذه الاختبارات تنظف نطاق `b04_test`؛ نفذها **قبل** إنشاء حساب المسبار
 اليدوي. APK integration قد يستبدل entry point الاختباري بنفس ID المعزولة،
@@ -653,7 +700,7 @@ process. لا يوجد Fake Tutor أو Fake Storage في entry point.
 
 ```powershell
 $device = Read-Host 'نفس ID الهاتف'
-$probeId = 'com.example.siraj.b04verification' # ID المؤكد من APK، لا تنسخه إذا كان مشروعك مختلفًا.
+$probeId = 'com.example.siraj.local.b04verification' # ID المؤكد من APK، لا تنسخه إذا كان مشروعك مختلفًا أو تختبر artifact Codex.
 $evidence = Read-Host 'المسار الكامل لمجلد B04-evidence الذي أنشأته'
 $probePid = (adb -s $device shell pidof -s $probeId).Trim()
 if (-not $probePid) { throw 'شغّل المسبار أولًا.' }
@@ -703,7 +750,7 @@ adb -s $device shell am start -n $activity
 | استمرار الجلسة | Force-stop ثم فتح، ثم reboot يدوي وفتح | جلسة صحيحة تستعاد عبر native Keystore وDB نفسها | startup status وnative error code؛ لا Marker/nonce |
 | Logout | اخرج ثم Force-stop وافتح | Login مطلوب؛ session القديمة لا تعود | native test وخطوة الإبطال، لا DB dump |
 | Login مجددًا | بعد الخروج، كلمة الاختبار الصحيحة | جلسة جديدة فقط؛ لا old session revival | typed failure ونسخة الكود |
-| Delete والموارد | أضف سجل المورد MISSING في المسبار؛ سجل العدد؛ أكد Delete | Signup يعود وعدد الموارد يبقى؛ native integration يثبت حذف الحساب وإبطال الجلسة وبقاء المورد، وليس cascade لصفوف أطفال لم ينشئها | عدد الصفوف/المورد قبل/بعد، لا محتوى محادثة |
+| Delete والموارد | أضف سجل المورد MISSING في المسبار؛ سجل العدد؛ أكد Delete | Signup يعود وعدد الموارد يبقى؛ basic session test لا يثبت child cascade، بينما probe UI test يزرع محادثة وUSER ويختبر حذفيهما فعلًا | عدد الصفوف/المورد قبل/بعد، لا محتوى محادثة |
 | تزامن/كتابة متأخرة | race/late-message unit tests؛ لا تضغط يدويًا وتحكم وحده | رفض الطلب المتداخل وكتابة nonce قديمة، لا duplicate USER | اسم assertion الفاشلة وتواقيت الطلبات الاصطناعية |
 | فشل DB/التخزين | recovery/cross-store/channel tests؛ ثم عطل native معزول إن جهز fixture مراجعة | لا نجاح كاذب؛ حجب حساس وRetry؛ لا حذف للحساب | نطاق الاختبار/مرحلة fault؛ لا مفاتيح أو ciphertext |
 | Lifecycle | rotate/Activity recreation أثناء العملية ثم reopen | لا callback قديم يطغى على Marker أحدث أو thread متراكم | logs مقتضبة/وصف الخطوات؛ يظل PASS بحاجة إلى تنفيذ فعلي |
