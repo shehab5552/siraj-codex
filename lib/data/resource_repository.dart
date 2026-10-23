@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'app_database.dart';
+import 'dataset_pointer_store.dart';
 
 /// Device-scoped resource registry (never account-owned).
 /// B-07/B-12 will provide verification-gated READY/ACTIVE transitions.
@@ -34,6 +35,7 @@ class ResourceRepository {
   }) {
     if (!kinds.contains(kind) ||
         !unverifiedStates.contains(state) ||
+        resourceId == activeDatasetResourceId ||
         resourceId.trim().isEmpty) {
       throw ArgumentError('Unsupported resource identity/state');
     }

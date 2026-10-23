@@ -1,0 +1,6 @@
+# Preserve the exact bytes whose SHA-256 values are in manifest.json on Windows.
+# A unified diff's context-only blank line is a required single space.
+*.patch -text whitespace=-blank-at-eol,-blank-at-eof
+new_files/** -text
+complete_platform/** -text
+manifest.json text eol=lf

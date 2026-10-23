@@ -1,0 +1,184 @@
+import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:siraj/data/app_database.dart';
+import 'package:siraj/data/user_repository.dart';
+import 'package:siraj/features/auth/auth_service.dart';
+import 'package:siraj/features/auth/password_hasher.dart';
+import 'package:siraj/features/auth/signup_page.dart';
+import 'package:siraj/features/auth/login_page.dart';
+import 'support/auth_test_marker.dart';
+
+void main() {
+  testWidgets('Cancel from Signup stops real KDF and creates no account', (
+    t,
+  ) async {
+    await t.runAsync(() async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final users = UserRepository(db);
+      final auth = AuthService(
+        users: users,
+        passwordHasher: PasswordHasher(iterations: 600000),
+        markerStore: ControlledMarker(),
+      );
+      Future<void>? submitted;
+      try {
+        await t.pumpWidget(
+          MaterialApp(
+            home: SignupPage(
+              onCancel: auth.cancelPendingAuthentication,
+              onCreateAccount:
+                  ({
+                    required username,
+                    required password,
+                    required confirmation,
+                  }) {
+                    submitted = auth
+                        .createAccount(
+                          username: username,
+                          password: password,
+                          confirmation: confirmation,
+                        )
+                        .then<void>((_) {});
+                    return submitted!;
+                  },
+            ),
+          ),
+        );
+        await t.enterText(
+          find.byKey(const Key('signup-username')),
+          'synthetic',
+        );
+        await t.enterText(
+          find.byKey(const Key('signup-password')),
+          'synthetic-only',
+        );
+        await t.enterText(
+          find.byKey(const Key('signup-confirmation')),
+          'synthetic-only',
+        );
+        await t.ensureVisible(find.byKey(const Key('signup-submit')));
+        await t.tap(find.byKey(const Key('signup-submit')));
+        await t.pump();
+        final settled = expectLater(submitted, throwsA(anything));
+        await t.ensureVisible(find.text('إلغاء'));
+        await t.tap(find.text('إلغاء'));
+        await settled;
+        await t.pumpAndSettle();
+        expect(await users.currentAccount(), isNull);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+      } finally {
+        await t.pumpWidget(const SizedBox.shrink());
+        await t.pumpAndSettle();
+        await db.close();
+      }
+    });
+  });
+  testWidgets(
+    'real 600k Signup/Login UI paints frames and persists through AuthService',
+    (t) async {
+      await t.runAsync(() async {
+        final db = AppDatabase.forTesting(NativeDatabase.memory());
+        final auth = AuthService(
+          users: UserRepository(db),
+          passwordHasher: PasswordHasher(
+            iterations: PasswordHasher.candidateIterations,
+          ),
+          markerStore: ControlledMarker(),
+        );
+        Future<void>? submitted;
+        var completed = false;
+        try {
+          await t.pumpWidget(
+            MaterialApp(
+              home: SignupPage(
+                onCancel: auth.cancelPendingAuthentication,
+                onCreateAccount:
+                    ({
+                      required username,
+                      required password,
+                      required confirmation,
+                    }) {
+                      submitted = auth
+                          .createAccount(
+                            username: username,
+                            password: password,
+                            confirmation: confirmation,
+                          )
+                          .then<void>((_) {});
+                      return submitted!;
+                    },
+                onCompleted: () => completed = true,
+              ),
+            ),
+          );
+          await t.enterText(
+            find.byKey(const Key('signup-username')),
+            'synthetic-user',
+          );
+          await t.enterText(
+            find.byKey(const Key('signup-password')),
+            'synthetic-only',
+          );
+          await t.enterText(
+            find.byKey(const Key('signup-confirmation')),
+            'synthetic-only',
+          );
+          await t.ensureVisible(find.byKey(const Key('signup-submit')));
+          await t.tap(find.byKey(const Key('signup-submit')));
+          await t.pump();
+          expect(find.byType(CircularProgressIndicator), findsOneWidget);
+          // Frames are actually pumped while the real CPU derivation is running.
+          await t.pump(const Duration(milliseconds: 32));
+          expect(completed, false);
+          await submitted;
+          await t.pumpAndSettle();
+          expect(completed, true);
+          expect(
+            t
+                .widget<TextFormField>(find.byKey(const Key('signup-password')))
+                .controller!
+                .text,
+            isEmpty,
+          );
+          expect(await auth.checkSession(auth.activeSession!), true);
+          await auth.logout();
+          completed = false;
+          await t.pumpWidget(
+            MaterialApp(
+              home: LoginPage(
+                onCancel: auth.cancelPendingAuthentication,
+                onLogin: ({required username, required password}) {
+                  submitted = auth
+                      .login(username: username, password: password)
+                      .then<void>((_) {});
+                  return submitted!;
+                },
+                onCompleted: () => completed = true,
+              ),
+            ),
+          );
+          await t.enterText(
+            find.byKey(const Key('login-username')),
+            'synthetic-user',
+          );
+          await t.enterText(
+            find.byKey(const Key('login-password')),
+            'synthetic-only',
+          );
+          await t.ensureVisible(find.byKey(const Key('login-submit')));
+          await t.tap(find.byKey(const Key('login-submit')));
+          await t.pump();
+          await submitted;
+          await t.pumpAndSettle();
+          expect(completed, true);
+          expect(await auth.checkSession(auth.activeSession!), true);
+        } finally {
+          await t.pumpWidget(const SizedBox.shrink());
+          await t.pumpAndSettle();
+          await db.close();
+        }
+      });
+    },
+  );
+}

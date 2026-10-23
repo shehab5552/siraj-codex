@@ -15,6 +15,7 @@ import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
 import '../features/home/home_page.dart';
+import '../features/home/siraj_main_shell.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
 import 'app_routes.dart';
@@ -143,7 +144,7 @@ class _AppBootstrapState extends State<AppBootstrap> {
             if (session == null || runtime == null) {
               return _statusScreen(context, 'تعذّر استعادة الجلسة بأمان.');
             }
-            return HomePage(
+            return SirajMainShell(
               onOpenResources: () =>
                   unawaited(_openResourceStatus(session, runtime)),
               onOpenChat: () {

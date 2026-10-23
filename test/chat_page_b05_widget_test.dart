@@ -13,6 +13,8 @@ import 'package:siraj/features/auth/session_guard.dart';
 import 'package:siraj/features/chat/chat_page.dart';
 import 'package:siraj/features/chat/conversation_draft_controller.dart';
 
+import 'support/chat_widget_harness.dart';
+
 void main() {
   group('B-05 chat UI: authenticated draft only', () {
     late AppDatabase db;
@@ -64,16 +66,21 @@ void main() {
       accountEpoch: session.accountEpoch,
     )).length;
 
-    Future<void> render(WidgetTester tester, {bool authenticated = true}) =>
-        tester.pumpWidget(
-          MaterialApp(
-            home: authenticated
-                ? ChatPage(draftController: draft, session: session)
-                : const ChatPage(),
-          ),
-        );
+    Future<void> render(
+      WidgetTester tester, {
+      bool authenticated = true,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: authenticated
+              ? ChatPage(draftController: draft, session: session)
+              : const ChatPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
 
-    testWidgets('opening a verified draft does not create a DB row', (
+    chatWidgetTest('opening a verified draft does not create a DB row', (
       tester,
     ) async {
       await render(tester);
@@ -82,7 +89,7 @@ void main() {
       expect(await savedCount(), 0);
     });
 
-    testWidgets('verified first question persists once; no fake AI answer', (
+    chatWidgetTest('verified first question persists once; no fake AI answer', (
       tester,
     ) async {
       await render(tester);
@@ -107,7 +114,7 @@ void main() {
       expect(rows.single.read<String>('role'), 'USER');
     });
 
-    testWidgets('preview without supplied session cannot persist', (
+    chatWidgetTest('preview without supplied session cannot persist', (
       tester,
     ) async {
       await render(tester, authenticated: false);
@@ -118,7 +125,7 @@ void main() {
       expect(await savedCount(), 0);
     });
 
-    testWidgets('invalidated session shows error and saves nothing', (
+    chatWidgetTest('invalidated session shows error and saves nothing', (
       tester,
     ) async {
       await render(tester);
@@ -127,13 +134,14 @@ void main() {
         accountEpoch: session.accountEpoch,
         nowUtc: '2026-10-22T00:00:01.000Z',
       );
-      await tester.enterText(
-        find.byKey(const Key('chat-question-input')),
-        'سؤال',
-      );
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('chat-send-enabled')));
       await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('chat-question-input')))
+            .enabled,
+        false,
+      );
+      expect(find.byKey(const Key('chat-send-disabled')), findsOneWidget);
       expect(find.byKey(const Key('chat-save-error')), findsOneWidget);
       expect(await savedCount(), 0);
       expect(draft.isTemporary, isTrue);

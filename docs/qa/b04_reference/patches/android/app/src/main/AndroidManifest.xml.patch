@@ -1,0 +1,13 @@
+diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+index 8df5197..575a868 100644
+--- a/android/app/src/main/AndroidManifest.xml
++++ b/android/app/src/main/AndroidManifest.xml
+@@ -1,5 +1,8 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+     <application
++        android:allowBackup="false"
++        android:fullBackupContent="@xml/backup_rules"
++        android:dataExtractionRules="@xml/data_extraction_rules"
+         android:label="siraj"
+         android:name="${applicationName}"
+         android:icon="@mipmap/ic_launcher">

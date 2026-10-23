@@ -1,0 +1,95 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:siraj/features/auth/auth_models.dart';
+import 'package:siraj/features/auth/session_marker_store.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  const channel = MethodChannel('siraj/auth_keystore_v1');
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  const marker = PersistedSessionMarker(
+    userId: 'synthetic',
+    accountEpoch: 'test-epoch',
+    sessionNonce: 'test-only',
+    issuedAt: '2026-10-23T00:00:00Z',
+  );
+  tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+  test(
+    'production/test scopes and method payload match the Kotlin contract',
+    () async {
+      final calls = <MethodCall>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return call.method == 'read' ? marker.encode() : null;
+      });
+      const store = KeystoreSessionMarkerStore();
+      await store.write(marker);
+      expect(await store.read(), marker.encode());
+      await store.clear();
+      expect(calls.map((c) => c.method), ['write', 'read', 'clear']);
+      expect(
+        calls.every((c) => (c.arguments as Map)['scope'] == 'production'),
+        true,
+      );
+      calls.clear();
+      await const KeystoreSessionMarkerStore.forTesting().clear();
+      expect((calls.single.arguments as Map)['scope'], 'b04_test');
+    },
+  );
+  test(
+    'platform read/write failure propagates without plaintext fallback',
+    () async {
+      messenger.setMockMethodCallHandler(channel, (_) async {
+        throw PlatformException(code: 'SIRAJ_SECURE_SESSION_FAILED');
+      });
+      await expectLater(
+        const KeystoreSessionMarkerStore().read(),
+        throwsA(isA<PlatformException>()),
+      );
+      await expectLater(
+        const KeystoreSessionMarkerStore().write(marker),
+        throwsA(isA<PlatformException>()),
+      );
+    },
+  );
+  test(
+    'oversized marker read/write fails before persistence or JSON parsing',
+    () async {
+      messenger.setMockMethodCallHandler(channel, (_) async => 'x' * 4097);
+      await expectLater(
+        const KeystoreSessionMarkerStore().read(),
+        throwsFormatException,
+      );
+      final big = PersistedSessionMarker(
+        userId: 'x' * 4097,
+        accountEpoch: 'test',
+        sessionNonce: 'test-only',
+        issuedAt: marker.issuedAt,
+      );
+      await expectLater(
+        const KeystoreSessionMarkerStore().write(big),
+        throwsArgumentError,
+      );
+      expect(
+        PersistedSessionMarker.decode(' ' * 4097 + marker.encode()),
+        isNull,
+      );
+    },
+  );
+  testWidgets('hung native call is bounded by the 15-second deadline', (
+    tester,
+  ) async {
+    final native = Completer<Object?>();
+    messenger.setMockMethodCallHandler(channel, (_) => native.future);
+    final result = expectLater(
+      const KeystoreSessionMarkerStore().read(),
+      throwsA(isA<TimeoutException>()),
+    );
+    await tester.pump(const Duration(seconds: 16));
+    await result;
+    native.complete(null);
+    await tester.pump();
+  });
+}
