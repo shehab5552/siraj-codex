@@ -161,7 +161,7 @@ jobs:
           PY
           flutter test integration_test/b04_android_probe_ui_test.dart -d emulator-5554 --no-pub --reporter expanded
           echo '::notice title=B04 native UI::Android UI with real 600000 KDF and Keystore passed Signup/loading/Login/Logout/Delete/cascade/resource preservation; no physical-device or broad ANR approval'
-          adb logcat -b events -d -s am_anr > "$RUNNER_TEMP/b04-anr-events.log"
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 logcat -b events -d -s am_anr > "$RUNNER_TEMP/b04-anr-events.log"
           python3 - <<'PY'
           import os
           from pathlib import Path
