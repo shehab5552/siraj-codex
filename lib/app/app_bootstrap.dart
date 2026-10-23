@@ -14,9 +14,19 @@ import '../features/auth/signup_page.dart';
 import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
+import '../features/chat/conversation_history_controller.dart';
+import '../features/chat/conversation_history_page.dart';
 import '../features/home/home_page.dart';
+import '../features/home/siraj_main_shell.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
+import '../integrations/ai/tutor_port.dart';
+import '../integrations/ai/quiz_port.dart';
+import '../data/quiz_session_access.dart';
+import '../features/quiz/quiz_controller.dart';
+import '../features/quiz/quiz_cleanup_owner.dart';
+import '../features/quiz/quiz_scorer.dart';
+import '../features/quiz/quiz_page.dart';
 import 'app_routes.dart';
 
 /// B-06 Step 1: fail-closed startup. No test-only/weak KDF is connected.
@@ -26,22 +36,33 @@ class AppBootstrap extends StatefulWidget {
     super.key,
     this.debugPreview = false,
     this.loadStartupForTesting,
+    this.tutor = const UnavailableTutorPort(),
+    this.sources = const UnavailableSourceResolver(),
+    this.quiz = const UnavailableQuizPort(),
+    this.numericPrecision = const UnavailableNumericPrecision(),
   });
 
   final bool debugPreview;
   final Future<StartupDecision> Function()? loadStartupForTesting;
+  final TutorPort tutor;
+  final SourceResolverPort sources;
+  final QuizPort quiz;
+  final NumericPrecisionPort numericPrecision;
 
   @override
   State<AppBootstrap> createState() => _AppBootstrapState();
 }
 
-class _AppBootstrapState extends State<AppBootstrap> {
+class _AppBootstrapState extends State<AppBootstrap>
+    with WidgetsBindingObserver {
+  final _quizCleanup = QuizCleanupOwner();
   DatabaseRuntime? _runtime;
   late Future<StartupDecision> _startup;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startup = _resolve();
   }
 
@@ -84,7 +105,8 @@ class _AppBootstrapState extends State<AppBootstrap> {
           current.accountEpoch != expected.accountEpoch ||
           current.sessionNonce != expected.sessionNonce) {
         // Do not keep a stale authenticated home in the widget tree.
-        setState(() => _startup = _resolve());
+        final nextStartup = _resolve();
+        setState(() { _startup = nextStartup; });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('انتهت صلاحية الجلسة. يلزم تسجيل الدخول.'),
@@ -112,7 +134,13 @@ class _AppBootstrapState extends State<AppBootstrap> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_quizCleanup.retry());
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     final runtime = _runtime;
     if (runtime != null) unawaited(runtime.close());
     super.dispose();
@@ -143,7 +171,40 @@ class _AppBootstrapState extends State<AppBootstrap> {
             if (session == null || runtime == null) {
               return _statusScreen(context, 'تعذّر استعادة الجلسة بأمان.');
             }
-            return HomePage(
+            return SirajMainShell(
+              onOpenQuiz: () {
+                final controller = QuizController(
+                  session: session,
+                  access: SqliteQuizSessionAccess(
+                    database: runtime.database,
+                    session: session,
+                  ),
+                  port: widget.quiz,
+                  sources: widget.sources,
+                  scorer: QuizScorer(precision: widget.numericPrecision),
+                  cleanup: _quizCleanup,
+                );
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => QuizPage(controller: controller),
+                  ),
+                );
+              },
+              onOpenHistory: () {
+                final history = ConversationHistoryController(
+                  session: session,
+                  conversations: ConversationRepository(runtime.database),
+                  guard: SessionGuard(UserRepository(runtime.database)),
+                  tutor: widget.tutor,
+                  sources: widget.sources,
+                );
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ConversationHistoryPage(controller: history),
+                  ),
+                );
+              },
               onOpenResources: () =>
                   unawaited(_openResourceStatus(session, runtime)),
               onOpenChat: () {
@@ -152,6 +213,8 @@ class _AppBootstrapState extends State<AppBootstrap> {
                   AppRoutes.chat,
                   arguments: AuthenticatedChatRoute(
                     session: session,
+                    tutor: widget.tutor,
+                    sources: widget.sources,
                     draftController: ConversationDraftController(
                       conversations: ConversationRepository(runtime.database),
                       guard: SessionGuard(users),
