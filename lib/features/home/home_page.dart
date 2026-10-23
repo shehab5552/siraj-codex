@@ -19,6 +19,13 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('سراج'),
         actions: [
+          if (authenticated && onOpenHistory != null)
+            IconButton(
+              key: const Key('open-chat-history'),
+              tooltip: 'محادثاتي المحفوظة',
+              onPressed: onOpenHistory,
+              icon: const Icon(Icons.history),
+            ),
           IconButton(
             tooltip: 'حالة الموارد',
             onPressed: onOpenResources,
@@ -81,15 +88,6 @@ class HomePage extends StatelessWidget {
                       icon: Icons.chat_bubble_outline,
                       label: authenticated ? 'فتح المحادثة' : 'فتح معاينة المحادثة',
                     ),
-                    if (authenticated && onOpenHistory != null) ...[
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        key: const Key('open-chat-history'),
-                        onPressed: onOpenHistory,
-                        icon: const Icon(Icons.history),
-                        label: const Text('محادثاتي المحفوظة'),
-                      ),
-                    ],
                     if (authenticated && onOpenQuiz != null) ...[
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
