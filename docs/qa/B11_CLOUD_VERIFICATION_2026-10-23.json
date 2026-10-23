@@ -63,7 +63,7 @@
     "app-scoped retryable cleanup after disposal"
   ],
   "sqlite_native_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
-  "android": "CI requested on push; no device or emulator test; no G2/G3",
+  "android": "Debug APK compiled in GitHub Actions; no device/emulator/scientific execution or G2/G3",
   "remaining": [
     "real A/C Quiz generation and QuestionValidator",
     "reviewed numeric precision adapter",
@@ -76,5 +76,26 @@
     "full-final.log": "4a9cc6487d83f651c9155f9111609da242c2136faad9cbc56d72d782c226ebea",
     "review-regressions-red.log": "5b6765b5115a5592ead2da12f5164b2a78f1f8d007e0d3029c7e04a291602338",
     "review-fixes-focused-final.log": "bc75bea0cc7564a81a9b3ad07913446b396326c0e244660a234eb6d748d3b40f"
+  },
+  "code_commit": "e0f93d6343b01f2c1a48ad26d169b62a9b6dc2df",
+  "pull_request": "https://github.com/shehab5552/siraj-codex/pull/8",
+  "android_ci": {
+    "run_id": 40018602023,
+    "url": "https://github.com/shehab5552/siraj-codex/actions/runs/40018602023",
+    "status": "completed",
+    "conclusion": "success",
+    "linux_tests": {
+      "passed": 246,
+      "failed": 0,
+      "skipped": 0
+    },
+    "apk_build": "success",
+    "application_id": "com.example.siraj.quizverification",
+    "artifact_id": 12529073917,
+    "artifact_size_bytes": 76484744,
+    "artifact_archive_digest": "sha256:8150c88242a003af49919865bcb245f10218d53d712f83f0d727a3a5bc45863f",
+    "artifact_url": "https://github.com/shehab5552/siraj-codex/actions/runs/40018602023/artifacts/12529073917",
+    "device_execution": false,
+    "warning": "Pinned upload-artifact v4 targets deprecated Node20; runner forced Node24, step succeeded"
   }
 }

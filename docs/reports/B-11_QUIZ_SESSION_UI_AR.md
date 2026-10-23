@@ -27,14 +27,22 @@ Flutter 3.38.5 / Dart 3.10.4 على Linux x64. `flutter pub get --enforce-lockfi
 
 راجعت جهتان مستقلتان المواصفة والمعايير في الشجرة `0cb6c3e55ba068fafa2d7c97af28d50776e7a490`. كُشفت ثلاث نقاط: precision ناقصة، سباق مصدر السؤال السابق، وضياع إعادة التنظيف بعد Dispose. أُثبتت باختبارات RED قبل الإصلاح، ثم GREEN. الأدلة الخام محفوظة سحابيًا في `/tmp/siraj-b11-20261023/` وبصماتها في `docs/qa/B11_CLOUD_VERIFICATION_2026-10-23.json`.
 
-استُخدمت مكتبة SQLite native المخبأة من البيئة، وتحقق SHA256=`b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2`، دون تغيير pubspec/lock أو إضافة dependency override. لم يفشل تحميل جديد خلال الفحوص النهائية. واجه إعداد worktree سابقًا فشل DNS لمحمّل Dart عند `github.com` قبل HTTP، فلا HTTP status لتلك المحاولة؛ الحزمة المخبأة المطابقة أتاحت التحقق. لا ينسب ذلك إلى فساد SQLite أو فشل اختبارات التطبيق.
+استُخدمت مكتبة SQLite native المخبأة من البيئة، وتحقق SHA256=`b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2`، دون تغيير pubspec/lock أو إضافة dependency override. لم يفشل تحميل جديد خلال الفحوص النهائية. سجل إعداد B-09 السابق فشل DNS لمحمّل Dart عند `github.com` قبل HTTP؛ لم نعد هذا الطلب في B-11 بل أعدنا استخدام البايتات المخبأة المطابقة. لا ينسب ذلك إلى فساد SQLite أو فشل اختبارات التطبيق.
 
 ## الحدود وما لم يثبت
 
 هذا تسليم Flutter لعقد Quiz وواجهته والجلسة والتصحيح المحافظ؛ **ليس إثباتًا للتوليد العلمي الحقيقي أو اكتمال B-11 النهائي**. QuizPort وNumericPrecisionPort الافتراضيان غير متاحين، ولا أسئلة بنك بديلة. ما يزال مولد NEW items من Few-shot مراجع وQuestionValidator ومفتاح/سياسة precision مراجعة وLLM/RAG/Embedding/Index المتوافقة وAndroid الحقيقي مطلوبًا. لا RAG_READY أو G2/G3 أو نجاح Offline AI. لا تختزل اختبارات fake في نجاح مسار تعليمي.
 
-لم يُختبر هاتف أو Emulator في هذه المرحلة. نتيجة بناء APK من CI ستضاف بعد اكتمالها، وحتى نجاحها دليل Compilation فقط. لا تعديل Auth الإنتاجي، ولا تعارض B-04/B-08 أُخفي: ما يزال يحتاج تسوية قبل الجمع النهائي للـPRs. ملفات B-04 القائمة لم تُعدل. لم يُفتح المشروع الأصلي أو الكمبيوتر المحلي.
+لم يُختبر هاتف أو Emulator في هذه المرحلة. نجح بناء APK في CI، وهو دليل Compilation فقط. لا تعديل Auth الإنتاجي، ولا تعارض B-04/B-08 أُخفي: ما يزال يحتاج تسوية قبل الجمع النهائي للـPRs. ملفات B-04 القائمة لم تُعدل. لم يُفتح المشروع الأصلي أو الكمبيوتر المحلي.
 
 ## التالي
 
 الأولوية التعليمية مستمرة: ربط B-09 بالـRuntime/ABI المعتمد وموارد Biology المراجعة وتنفيذ G2/G3 على Android فور توفرها. مستقلًا عن ذلك يمكن بناء آلية B-12 للتفعيل الذري وRevision pinning فوق B-07 في فرع منفصل، مع إبقاء Product Ready مؤجلًا لحين الخمس وShared Embedder. B-10 يحتاج Catalog موثقًا وقرار PDF Viewer المعتمد؛ لا اعتماد روابط كتب أو مكتبة تخمينية.
+
+## Git والتسليم النهائي
+
+Commit الكود المختبر: `e0f93d6343b01f2c1a48ad26d169b62a9b6dc2df`. PR مفتوح دون دمج: https://github.com/shehab5552/siraj-codex/pull/8 . عدد الملفات:21؛ إضافات2660 وحذف سطر واحد مقابل B-08 وقت Commit الكود. Commit التوثيق اللاحق يسجل نتيجة CI ولا يغير الكود المختبر.
+
+نجح [GitHub Actions run40018602023](https://github.com/shehab5552/siraj-codex/actions/runs/40018602023): Flutter مثبت، enforced dependencies، analyze، **246/0/0** وفق Check annotations، Android SDK، وبناء Debug APK. تحقق aapt من `com.example.siraj.quizverification`، دون تغيير المعرف في ملفات Gradle الملتزمة. [Artifact12529073917](https://github.com/shehab5552/siraj-codex/actions/runs/40018602023/artifacts/12529073917) حجمه76,484,744بايت، وبصمة أرشيف artifact `sha256:8150c88242a003af49919865bcb245f10218d53d712f83f0d727a3a5bc45863f`؛ هذه بصمة الأرشيف وليست ادعاء بصمة APK المفرد. الاحتفاظ7 أيام. لم ننفذ تثبيتًا أو تشغيلًا على جهاز/Emulator.
+
+تحذير CI غير مانع: upload-artifact v4 المثبت يستهدف Node20 المتقادم، وشغله GitHub بـNode24 ونجح رفع artifact. لم يفشل تنزيل في هذا التشغيل، ولا HTTP failure يخصه.
