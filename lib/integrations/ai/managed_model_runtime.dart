@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import '../../features/resources/artifact_integrity_validator.dart';
 import '../../features/resources/resource_format_preflight.dart';
 import '../../features/resources/resource_validation_contracts.dart';
 import 'runtime_contract.dart';
+import 'runtime_operation_lane.dart';
 import 'tutor_contract.dart';
 
 /// Owns one native backend lane. A timeout/cancel never authorizes concurrent
@@ -14,23 +13,20 @@ class ManagedModelRuntime implements ModelRuntime {
     required ModelBackend backend,
     required Duration operationTimeout,
   }) : _backend = backend,
-       _timeout = operationTimeout {
+       _operations = RuntimeOperationLane(operationTimeout) {
     if (operationTimeout <= Duration.zero) {
       throw ArgumentError.value(operationTimeout);
     }
   }
   final ModelBackend _backend;
-  final Duration _timeout;
+  final RuntimeOperationLane _operations;
   ModelRuntimeState _state = ModelRuntimeState.notLoaded;
   ModelConfig? _configuration;
   ModelCapabilities? _capabilities;
-  Future<void>? _lane;
   int? _loadMs, _completionMs;
   @override
   RuntimeMetrics getMetrics() =>
       RuntimeMetrics(loadMs: _loadMs, completionMs: _completionMs);
-  TutorCancellation? _activeCancellation;
-  String? _activeRequestId;
   @override
   ModelRuntimeState get state => _state;
   @override
@@ -38,10 +34,10 @@ class ManagedModelRuntime implements ModelRuntime {
   @override
   ModelCapabilities? get capabilities => _capabilities;
   @override
-  Future<void> get whenIdle => _lane ?? Future<void>.value();
+  Future<void> get whenIdle => _operations.whenIdle;
 
   void _requireIdle() {
-    if (_lane != null) throw const RuntimeFailure(RuntimeErrorCode.busy);
+    _operations.requireIdle();
   }
 
   @override
@@ -143,82 +139,40 @@ class ManagedModelRuntime implements ModelRuntime {
     required RuntimeErrorCode failureCode,
   }) async {
     _checkCancelled(external);
-    final token = TutorCancellation();
-    final logicalSettled = Completer<void>();
-    final interrupted = Completer<T>();
-    Future<void>? cancelDrain;
-    var stopped = false;
-    void interrupt(RuntimeErrorCode code) {
-      if (stopped || logicalSettled.isCompleted) return;
-      stopped = true;
-      token.cancel();
-      if (requestId != null && _capabilities?.supportsCancellation == true) {
-        cancelDrain = Future<void>.sync(
-          () => _backend.cancel(requestId),
-        ).then<void>((_) {}, onError: (Object _, StackTrace _) {});
-      }
-      interrupted.completeError(RuntimeFailure(code));
-    }
-
-    _activeCancellation = token;
-    _activeRequestId = requestId;
     _state = phase;
     final clock = Stopwatch()..start();
-    external.whenCancelled.then((_) => interrupt(RuntimeErrorCode.cancelled));
-    token.whenCancelled.then((_) => interrupt(RuntimeErrorCode.cancelled));
-    final timer = Timer(_timeout, () => interrupt(RuntimeErrorCode.timeout));
-    final actual = Future<T>.sync(() => work(token));
-    var actualDone = false;
-    final actualSettled = actual.then<void>(
-      (_) {
-        actualDone = true;
-      },
-      onError: (Object _, StackTrace _) {
-        actualDone = true;
-      },
-    );
-    late final Future<void> drain;
-    drain = () async {
-      await actualSettled;
-      await logicalSettled.future;
-      final cancellation = cancelDrain;
-      if (cancellation != null) await cancellation;
-      if (identical(_lane, drain)) {
-        _lane = null;
-        _activeCancellation = null;
-        _activeRequestId = null;
-      }
-    }();
-    _lane = drain;
     try {
-      final result = await Future.any([actual, interrupted.future]);
-      _checkCancelled(token);
-      _state = successState;
-      if (phase == ModelRuntimeState.loading) {
-        _loadMs = clock.elapsedMilliseconds;
-      }
-      if (phase == ModelRuntimeState.generating) {
-        _completionMs = clock.elapsedMilliseconds;
-      }
+      final result = await _operations.run<T>(
+        external: external,
+        work: work,
+        requestId: requestId,
+        onCancel:
+            requestId != null && _capabilities?.supportsCancellation == true
+            ? () => _backend.cancel(requestId)
+            : null,
+        onSuccess: (_) {
+          _state = successState;
+          if (phase == ModelRuntimeState.loading) {
+            _loadMs = clock.elapsedMilliseconds;
+          }
+          if (phase == ModelRuntimeState.generating) {
+            _completionMs = clock.elapsedMilliseconds;
+          }
+        },
+        onFailure: (_) {
+          _state = ModelRuntimeState.error;
+        },
+      );
       return result;
     } catch (error) {
-      _state = ModelRuntimeState.error;
       if (error is RuntimeFailure) rethrow;
-      throw RuntimeFailure(
-        failureCode,
-      ); // never expose prompt/native exception text
-    } finally {
-      timer.cancel();
-      logicalSettled.complete();
-      // An asynchronous native cancel can itself hang after generation stops.
-      // Keep that lane occupied, but settle the logical interrupted caller.
-      if (actualDone && cancelDrain == null) await drain;
+      throw RuntimeFailure(failureCode);
     }
   }
 
   @override
   Future<void> cancel(String requestId) async {
-    if (requestId == _activeRequestId) _activeCancellation?.cancel();
+    _operations.cancel(requestId);
   }
 
   @override

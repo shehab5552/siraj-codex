@@ -8,6 +8,7 @@ enum RuntimeErrorCode {
   incompatible,
   loadFailed,
   generationFailed,
+  embeddingFailed,
   cancelled,
   busy,
   outOfMemory,
