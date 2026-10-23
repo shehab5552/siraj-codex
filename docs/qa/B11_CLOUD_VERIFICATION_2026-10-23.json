@@ -1,0 +1,80 @@
+{
+  "task": "B-11 / TK-10 — Quiz UI and RAM session (bounded Flutter scope)",
+  "base": "306b3a69bb855a49b3bf01bbb1b6bd30a1c087f5",
+  "branch": "codex/b11-quiz-session-ui",
+  "timezone": "Asia/Aden",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "validation": {
+    "finished_utc": "2026-10-23T20:19:57.183893+00:00",
+    "results": [
+      {
+        "name": "pub-enforced-final",
+        "command": [
+          "flutter",
+          "pub",
+          "get",
+          "--enforce-lockfile"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.605
+      },
+      {
+        "name": "analyze-final",
+        "command": [
+          "flutter",
+          "analyze",
+          "--no-pub"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 1.936
+      },
+      {
+        "name": "full-final",
+        "command": [
+          "flutter",
+          "test",
+          "--no-pub",
+          "--machine"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 18.255
+      }
+    ]
+  },
+  "tests": {
+    "passed": 246,
+    "failed": 0,
+    "skipped": 0,
+    "done": [
+      {
+        "success": true,
+        "type": "done",
+        "time": 17364
+      }
+    ]
+  },
+  "new_focused_tests": 49,
+  "baseline_tests": 197,
+  "independent_review_tree": "0cb6c3e55ba068fafa2d7c97af28d50776e7a490",
+  "review_findings_fixed": [
+    "reviewed numeric precision metadata and fail-closed evaluator",
+    "question-bound asynchronous source display",
+    "app-scoped retryable cleanup after disposal"
+  ],
+  "sqlite_native_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
+  "android": "CI requested on push; no device or emulator test; no G2/G3",
+  "remaining": [
+    "real A/C Quiz generation and QuestionValidator",
+    "reviewed numeric precision adapter",
+    "reviewed LLM/Embedding/Dataset/index resources and native runtime",
+    "Android offline/scientific acceptance"
+  ],
+  "logs_sha256": {
+    "pub-enforced-final.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92",
+    "analyze-final.log": "a803dab32771f93b7aee315677dd829b45caed978670574968c7e6d80ff30087",
+    "full-final.log": "4a9cc6487d83f651c9155f9111609da242c2136faad9cbc56d72d782c226ebea",
+    "review-regressions-red.log": "5b6765b5115a5592ead2da12f5164b2a78f1f8d007e0d3029c7e04a291602338",
+    "review-fixes-focused-final.log": "bc75bea0cc7564a81a9b3ad07913446b396326c0e244660a234eb6d748d3b40f"
+  }
+}
