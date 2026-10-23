@@ -20,6 +20,12 @@ import '../features/home/home_page.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
 import '../integrations/ai/tutor_port.dart';
+import '../integrations/ai/quiz_port.dart';
+import '../data/quiz_session_access.dart';
+import '../features/quiz/quiz_controller.dart';
+import '../features/quiz/quiz_cleanup_owner.dart';
+import '../features/quiz/quiz_scorer.dart';
+import '../features/quiz/quiz_page.dart';
 import 'app_routes.dart';
 
 /// B-06 Step 1: fail-closed startup. No test-only/weak KDF is connected.
@@ -31,24 +37,31 @@ class AppBootstrap extends StatefulWidget {
     this.loadStartupForTesting,
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
+    this.quiz = const UnavailableQuizPort(),
+    this.numericPrecision = const UnavailableNumericPrecision(),
   });
 
   final bool debugPreview;
   final Future<StartupDecision> Function()? loadStartupForTesting;
   final TutorPort tutor;
   final SourceResolverPort sources;
+  final QuizPort quiz;
+  final NumericPrecisionPort numericPrecision;
 
   @override
   State<AppBootstrap> createState() => _AppBootstrapState();
 }
 
-class _AppBootstrapState extends State<AppBootstrap> {
+class _AppBootstrapState extends State<AppBootstrap>
+    with WidgetsBindingObserver {
+  final _quizCleanup = QuizCleanupOwner();
   DatabaseRuntime? _runtime;
   late Future<StartupDecision> _startup;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startup = _resolve();
   }
 
@@ -119,7 +132,13 @@ class _AppBootstrapState extends State<AppBootstrap> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_quizCleanup.retry());
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     final runtime = _runtime;
     if (runtime != null) unawaited(runtime.close());
     super.dispose();
@@ -151,6 +170,24 @@ class _AppBootstrapState extends State<AppBootstrap> {
               return _statusScreen(context, 'تعذّر استعادة الجلسة بأمان.');
             }
             return HomePage(
+              onOpenQuiz: () {
+                final controller = QuizController(
+                  session: session,
+                  access: SqliteQuizSessionAccess(
+                    database: runtime.database,
+                    session: session,
+                  ),
+                  port: widget.quiz,
+                  sources: widget.sources,
+                  scorer: QuizScorer(precision: widget.numericPrecision),
+                  cleanup: _quizCleanup,
+                );
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => QuizPage(controller: controller),
+                  ),
+                );
+              },
               onOpenHistory: () {
                 final history = ConversationHistoryController(
                   session: session,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'app_bootstrap.dart';
 import 'app_routes.dart';
 import '../integrations/ai/tutor_port.dart';
+import '../integrations/ai/quiz_port.dart';
 
 class SirajApp extends StatelessWidget {
   const SirajApp({
@@ -11,12 +12,16 @@ class SirajApp extends StatelessWidget {
     this.debugPreview = false,
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
+    this.quiz = const UnavailableQuizPort(),
+    this.numericPrecision = const UnavailableNumericPrecision(),
   });
 
   /// Only explicitly used in debug widget tests; never in release/profile.
   final bool debugPreview;
   final TutorPort tutor;
   final SourceResolverPort sources;
+  final QuizPort quiz;
+  final NumericPrecisionPort numericPrecision;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +40,8 @@ class SirajApp extends StatelessWidget {
         debugPreview: debugPreview && kDebugMode,
         tutor: tutor,
         sources: sources,
+        quiz: quiz,
+        numericPrecision: numericPrecision,
       ),
       onGenerateRoute: AppRoutes.onGenerateRoute,
     );

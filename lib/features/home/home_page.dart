@@ -10,6 +10,7 @@ class HomePage extends StatelessWidget {
     this.onOpenChat,
     this.onOpenResources,
     this.onOpenHistory,
+    this.onOpenQuiz,
   });
 
   final VoidCallback? onOpenChat;
@@ -17,6 +18,7 @@ class HomePage extends StatelessWidget {
   /// Supplied only from an authenticated bootstrap. Never use it in preview.
   final VoidCallback? onOpenResources;
   final VoidCallback? onOpenHistory;
+  final VoidCallback? onOpenQuiz;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +89,15 @@ class HomePage extends StatelessWidget {
                 onPressed: onOpenHistory,
                 icon: const Icon(Icons.history),
                 label: const Text('محادثاتي المحفوظة'),
+              ),
+            ],
+            if (authenticated && onOpenQuiz != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                key: const Key('open-quiz'),
+                onPressed: onOpenQuiz,
+                icon: const Icon(Icons.quiz_outlined),
+                label: const Text('اختبر فهمك'),
               ),
             ],
             const SizedBox(height: 12),
