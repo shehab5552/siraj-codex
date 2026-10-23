@@ -1,0 +1,141 @@
+{
+  "task": "B-09 / TK-13 — AI Integration Core (not G2/G3 acceptance)",
+  "recorded_at": "2026-10-23T22:35:26.243373+03:00",
+  "repository": "shehab5552/siraj-codex",
+  "branch": "codex/b09-ai-integration-core",
+  "base": "306b3a69bb855a49b3bf01bbb1b6bd30a1c087f5",
+  "pr_base_branch": "codex/b08-independent-chat-tutor",
+  "main_verified": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "baseline": {
+    "passed": 197,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": [
+    {
+      "command": [
+        "flutter",
+        "pub",
+        "get",
+        "--enforce-lockfile"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T19:32:18.972631+00:00",
+      "seconds": 0.634,
+      "log": "final-0.log",
+      "log_sha256": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92"
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze",
+        "--no-pub"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T19:32:19.606372+00:00",
+      "seconds": 1.519,
+      "log": "final-1.log",
+      "log_sha256": "b11535c8683e30f93971c632cdd0659ec0cb21defc49f26308aa1c585540792f"
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T19:32:21.125109+00:00",
+      "seconds": 19.88,
+      "log": "final-2.log",
+      "log_sha256": "51b4f2ae18181fee55d4fd4613aa3522b52c8db4c760a9a24e75a7203316987c",
+      "passed": 261,
+      "failed": 0,
+      "skipped": 0,
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 19042
+        }
+      ]
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine",
+        "test/b09_model_runtime_test.dart",
+        "test/b09_pinned_retriever_test.dart",
+        "test/b09_pipeline_tutor_test.dart",
+        "test/b09_chat_pipeline_persistence_test.dart"
+      ],
+      "exit_code": 0,
+      "started_utc": "2026-10-23T19:32:41.008134+00:00",
+      "seconds": 4.379,
+      "log": "final-3.log",
+      "log_sha256": "180c9839078ea2bde86613edf02b31a05dc9964844a8b11888ce0214e4db4294",
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 3694
+        }
+      ]
+    }
+  ],
+  "focused_tests_by_file": {
+    "b09_model_runtime_test.dart": 12,
+    "b09_pinned_retriever_test.dart": 26,
+    "b09_pipeline_tutor_test.dart": 21,
+    "b09_chat_pipeline_persistence_test.dart": 5
+  },
+  "tested_source_sha256": {
+    "lib/integrations/ai/managed_model_runtime.dart": "55e3b71cbb9acbe37914b83738a8f4452aa2b8ce5f4cf0c527c06b12904efbef",
+    "lib/integrations/ai/pinned_retriever.dart": "34f3a91824653cbc15401afe4758c86a57cadba78cdc3f975d0e61ce75d2e1f3",
+    "lib/integrations/ai/pipeline_tutor_port.dart": "650e53f1f121bae8fc79712257af0291419226ee0d33a4afc12087319702c5f7",
+    "lib/integrations/ai/rag_runtime_contract.dart": "b5e14365ff920966aee836d574c2638387dee0908d2d20c97e4890f537337368",
+    "lib/integrations/ai/runtime_contract.dart": "68f4ca020e4779410b7c6b1c2c8e16651fe2dcac1e4613071f8f771e3f51e428",
+    "lib/integrations/ai/tutor_pipeline_contract.dart": "38d61ef3ed71146bf3c717cfe3eed489e0e61462e454f253590fa3740e1d9425",
+    "test/b09_chat_pipeline_persistence_test.dart": "9eea1d007d03d138299583cc0f2763bbbf87cde811be0d99e4be3c24095b2e86",
+    "test/b09_model_runtime_test.dart": "d14221c57b632b7e833cf2ed6d1231318b183084cdc5e9ebc7456e3e7ac78b48",
+    "test/b09_pinned_retriever_test.dart": "1f601f76268b28441ba8dfb08c5ad561bfffb34e30f1f9692d2e16038e4eec16",
+    "test/b09_pipeline_tutor_test.dart": "a8640832584a04fa83d8b24c3d9b24f45cdb3f51b1049004f232a69118fa839e",
+    "test/support/b09_ai_fixture.dart": "467b66ce01a660e5d7ed4174fa95cfb52c324ca3b7e75f245656642fc58e799f",
+    "test/support/b09_pipeline_fixture.dart": "9facc9dbfc9e81b81fb1d5f7eba9bffc2b3ae1ce7866a66ea5a2dc8f50518ca0"
+  },
+  "android": "NOT_RUN for B09; no native AI binding/model/index provided",
+  "g2": "PENDING REAL RUNTIME/DEVICE EVIDENCE",
+  "g3": "PENDING REVIEWED BIOLOGY/REAL RUNTIME/DEVICE EVIDENCE",
+  "production_auth_gate": "CLOSED / unchanged",
+  "rag_ready_written": false,
+  "active_pointer_written": false,
+  "schema_or_dependency_changes": false,
+  "original_or_pc_accessed": false,
+  "prs_merged": [],
+  "review": {
+    "pinned_tree": "1c84c304088c737c04b7daaaa3f17a905a1f2b5c",
+    "spec_axis": "Complete; one P2 cancellation finding",
+    "standards_axis": "Complete; no critical findings, two important lifecycle findings; no deferred minors",
+    "findings_fixed": [
+      "cancel result no longer awaits stalled backend.cancel; native lane retained",
+      "shutdown waits for source reads and lease closure"
+    ],
+    "method": "Independent read-only fresh reviewers; defects reproduced in public-seam RED→GREEN tests; final full suite rerun by author"
+  },
+  "network": {
+    "failed_url": "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-3.5.2/libsqlite3.x64.linux.so",
+    "hostname": "github.com",
+    "http_status": null,
+    "cause": "sqlite3 Dart native hook direct HTTP failed DNS before HTTP; no status obtained",
+    "recovery": "Reused cached binary after verifying exact package-expected SHA256 b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2; no package override, no TLS bypass",
+    "pub_get": "success",
+    "github_api_fetch_push": "API/fetch verified; push recorded in final delivery"
+  }
+}
