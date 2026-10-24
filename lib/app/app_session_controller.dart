@@ -129,6 +129,33 @@ class AppSessionController extends ChangeNotifier {
       _authenticate(() => _auth.login(username: username, password: password));
   void cancelPendingAuthentication() => _auth.cancelPendingAuthentication();
   Future<bool> checkSession(AuthSession session) => _auth.checkSession(session);
+  bool _sameNavigationSession(AuthSession expected) {
+    final current = _decision.session;
+    return !_disposed &&
+        _decision.status == StartupStatus.authenticated &&
+        current?.userId == expected.userId &&
+        current?.accountEpoch == expected.accountEpoch &&
+        current?.sessionNonce == expected.sessionNonce;
+  }
+
+  Future<bool> authorizeNavigation(AuthSession expected) async {
+    if (!_sameNavigationSession(expected)) return false;
+    try {
+      if (!await _auth.checkSession(expected)) {
+        if (_sameNavigationSession(expected)) await refresh();
+        return false;
+      }
+      return _sameNavigationSession(expected);
+    } catch (_) {
+      if (_sameNavigationSession(expected)) {
+        ++_version;
+        _decision = const StartupDecision(StartupStatus.databaseUnavailable);
+        _notify();
+      }
+      return false;
+    }
+  }
+
   Future<void> logout() => _revoke(delete: false);
   Future<void> deleteAccount({required bool confirmed}) {
     if (!confirmed) {

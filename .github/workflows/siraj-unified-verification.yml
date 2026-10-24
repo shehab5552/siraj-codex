@@ -76,6 +76,16 @@ jobs:
         run: tool/android_test_with_evidence.sh integration_test/unified_native_kdf_test.dart dist/android-native-kdf.log
       - name: Actual unified Android application flow
         run: tool/android_test_with_evidence.sh integration_test/unified_application_test.dart dist/android-application.log
+      - name: Collect isolated Android UI evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p dist/screenshots
+          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark; do
+            if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell run-as com.example.siraj.unifiedtest test -f "cache/$name.png"; then
+              "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 exec-out run-as com.example.siraj.unifiedtest cat "cache/$name.png" > "dist/screenshots/$name.png"
+            fi
+          done
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

@@ -9,7 +9,7 @@ if flutter test "$target" -d emulator-5554 --reporter expanded > "$log" 2>&1; th
 from pathlib import Path
 import re,sys
 text=Path(sys.argv[1]).read_text(errors='replace')
-lines=[line for line in text.splitlines() if 'All tests passed' in line or 'SIRAJ_NATIVE_KDF_METRICS' in line or 'SIRAJ_UNIFIED_ANDROID' in line]
+lines=[line for line in text.splitlines() if 'All tests passed' in line or 'SIRAJ_NATIVE_' in line or 'SIRAJ_UNIFIED_ANDROID' in line]
 for line in lines:
     safe=re.sub(r'\x1b\[[0-9;]*m','',line)
     print('::notice title=SIRAJ Android evidence::'+safe.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))

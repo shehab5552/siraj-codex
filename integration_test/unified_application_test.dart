@@ -7,11 +7,24 @@ import 'package:siraj/app/siraj_app.dart';
 /// Normal main.dart composition, isolated by com.example.siraj.unifiedtest.
 /// No Fake Tutor, KDF, Keystore or database is injected into this test.
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
     'unified real Android startup auth navigation and fail-closed AI',
     (tester) async {
       expect(Platform.isAndroid, isTrue);
+      bool converted = false;
+      Future<void> screenshot(String name) async {
+        if (!converted) {
+          await binding.convertFlutterSurfaceToImage();
+          converted = true;
+        }
+        await tester.pumpAndSettle();
+        final bytes = await binding.takeScreenshot(name);
+        await File(
+          '${Directory.systemTemp.path}/$name.png',
+        ).writeAsBytes(bytes, flush: true);
+      }
+
       Future<void> until(Finder finder) async {
         final watch = Stopwatch()..start();
         while (finder.evaluate().isEmpty &&
@@ -48,6 +61,7 @@ void main() {
       await tester.tap(find.byKey(const Key('signup-submit')));
       await until(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
+      await screenshot('siraj-unified-home');
       await tester.ensureVisible(find.byKey(const Key('open-resource-status')));
       await tester.tap(find.byKey(const Key('open-resource-status')));
       await tester.pumpAndSettle();
@@ -70,11 +84,31 @@ void main() {
         find.textContaining('موارد الذكاء الاصطناعي غير جاهزة'),
         findsOneWidget,
       );
+      await screenshot('siraj-unified-chat-unavailable');
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text('الرئيسية').last);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('open-settings')));
+      await tester.pumpAndSettle();
+      // Exercise the real account-scoped SQLite appearance writer on Android.
+      await tester.tap(find.byKey(const Key('settings-theme')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('داكن').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('settings-language')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('الإنجليزية').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Settings'), findsOneWidget);
+      await screenshot('siraj-unified-settings-en-dark');
+      await tester.tap(find.byKey(const Key('settings-language')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Arabic').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('settings-theme')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('حسب النظام').last);
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byKey(const Key('settings-logout')));
       await tester.tap(find.byKey(const Key('settings-logout')));

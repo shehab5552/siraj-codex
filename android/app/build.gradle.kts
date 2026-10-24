@@ -23,7 +23,8 @@ android {
         // Both normal debug and unsigned evaluation release are isolated from
         // any original SIRAJ installation. Production identity is a separate gate.
         applicationId = "com.example.siraj.unifiedtest"
-        minSdk = flutter.minSdkVersion
+        // PBKDF2WithHmacSHA256 requires Android API 26 or later.
+        minSdk = maxOf(flutter.minSdkVersion, 26)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

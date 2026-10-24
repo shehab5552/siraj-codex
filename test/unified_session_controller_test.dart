@@ -67,4 +67,54 @@ void main() {
     c.dispose();
     await runtime.close();
   });
+  test(
+    'protected navigation fails closed on database loss without throwing',
+    () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final runtime = DatabaseRuntime(createDatabase: () => db);
+      final c = AppSessionController(
+        runtime: runtime,
+        markerStore: ControlledMarker(),
+        passwordHasher: PasswordHasher(iterations: 2),
+      );
+      await c.initialize();
+      await c.createAccount(
+        username: 's',
+        password: 'synthetic',
+        confirmation: 'synthetic',
+      );
+      final expected = c.decision.session!;
+      await runtime.close();
+      expect(await c.authorizeNavigation(expected), isFalse);
+      expect(c.decision.status, StartupStatus.databaseUnavailable);
+      c.dispose();
+    },
+  );
+  test(
+    'stale route callback cannot authorize or revoke a newer session',
+    () async {
+      final db = AppDatabase.forTesting(NativeDatabase.memory());
+      final runtime = DatabaseRuntime(createDatabase: () => db);
+      final c = AppSessionController(
+        runtime: runtime,
+        markerStore: ControlledMarker(),
+        passwordHasher: PasswordHasher(iterations: 2),
+      );
+      await c.initialize();
+      await c.createAccount(
+        username: 's',
+        password: 'synthetic',
+        confirmation: 'synthetic',
+      );
+      final old = c.decision.session!;
+      await c.logout();
+      await c.login(username: 's', password: 'synthetic');
+      final current = c.decision.session!;
+      expect(await c.authorizeNavigation(old), isFalse);
+      expect(c.decision.session?.sessionNonce, current.sessionNonce);
+      expect(await c.authorizeNavigation(current), isTrue);
+      c.dispose();
+      await runtime.close();
+    },
+  );
 }

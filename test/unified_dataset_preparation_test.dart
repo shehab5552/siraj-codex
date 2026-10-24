@@ -10,7 +10,8 @@ import 'support/b12_dataset_fixture.dart';
 import 'support/download_server.dart';
 
 class _Downloads implements ApprovedDatasetDownloads {
-  _Downloads(this.server);
+  _Downloads(this.server, {this.artifactRevision});
+  final String? artifactRevision;
   final DownloadTestServer server;
   @override
   Future<List<DatasetDownloadPart>?> resolve(DatasetReleasePlan plan) async => [
@@ -19,7 +20,7 @@ class _Downloads implements ApprovedDatasetDownloads {
         componentId: c.id,
         spec: DownloadSpec(
           resourceId: c.id,
-          artifactRevision: plan.revision,
+          artifactRevision: artifactRevision ?? plan.revision,
           kind: c.kind,
           url: server.url.replace(path: '/${plan.revision}/${c.id}'),
           destinationKey: '${plan.revision}-${c.id}',
@@ -212,6 +213,26 @@ void main() {
         ),
         'r1',
       );
+      c.dispose();
+    },
+  );
+  test(
+    'approved artifact version can differ from the dataset revision',
+    () async {
+      final c = DatasetPreparationCoordinator(
+        downloads: download,
+        manager: f.manager,
+        catalog: _Downloads(server, artifactRevision: 'artifact-build-7'),
+      );
+      expect(
+        await c.prepareAndActivate(
+          revision: 'r1',
+          candidateId: 'independent-artifact',
+          consented: true,
+        ),
+        'r1',
+      );
+      expect(server.requests.length, 6);
       c.dispose();
     },
   );

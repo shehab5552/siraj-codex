@@ -1,3 +1,4 @@
+import '../features/library/library_contracts.dart';
 import 'app_session_controller.dart';
 import '../features/quiz/quiz_curriculum.dart';
 import 'resource_preparation_binding.dart';
@@ -21,6 +22,7 @@ class SirajApp extends StatefulWidget {
     this.resourcePreparation,
     this.sessionController,
     this.curriculum = const UnavailableQuizCurriculum(),
+    this.library = const LibraryIntegration(),
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
     this.quiz = const UnavailableQuizPort(),
@@ -33,6 +35,7 @@ class SirajApp extends StatefulWidget {
   final ResourcePreparationBinding? resourcePreparation;
   final AppSessionController? sessionController;
   final QuizCurriculumPort curriculum;
+  final LibraryIntegration library;
   final TutorPort tutor;
   final SourceResolverPort sources;
   final QuizPort quiz;
@@ -79,6 +82,7 @@ class _SirajAppState extends State<SirajApp> {
           sessionController: widget.sessionController,
           resourcePreparation: widget.resourcePreparation,
           curriculum: widget.curriculum,
+          library: widget.library,
           debugPreview: widget.debugPreview && kDebugMode,
           tutor: widget.tutor,
           sources: widget.sources,

@@ -87,6 +87,24 @@ class SettingsPage extends StatelessWidget {
     }
   }
 
+  Widget _selector<T>({
+    required Key key,
+    required String label,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) => InputDecorator(
+    decoration: InputDecoration(labelText: label),
+    child: DropdownButtonHideUnderline(
+      child: DropdownButton<T>(
+        key: key,
+        value: value,
+        isExpanded: true,
+        items: items,
+        onChanged: onChanged,
+      ),
+    ),
+  );
   @override
   Widget build(BuildContext context) {
     final prefs = AppPreferencesScope.maybeOf(context);
@@ -108,12 +126,10 @@ class SettingsPage extends StatelessWidget {
                   SirajCard(
                     child: Column(
                       children: [
-                        DropdownButtonFormField<ThemeMode>(
+                        _selector<ThemeMode>(
                           key: const Key('settings-theme'),
-                          initialValue: prefs.value.themeMode,
-                          decoration: InputDecoration(
-                            labelText: context.tr('المظهر'),
-                          ),
+                          value: prefs.value.themeMode,
+                          label: context.tr('المظهر'),
                           items: [
                             for (final mode in ThemeMode.values)
                               DropdownMenuItem(
@@ -132,12 +148,10 @@ class SettingsPage extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 16),
-                        DropdownButtonFormField<String>(
+                        _selector<String>(
                           key: const Key('settings-language'),
-                          initialValue: prefs.value.locale.languageCode,
-                          decoration: InputDecoration(
-                            labelText: context.tr('اللغة'),
-                          ),
+                          value: prefs.value.locale.languageCode,
+                          label: context.tr('اللغة'),
                           items: [
                             DropdownMenuItem(
                               value: 'ar',

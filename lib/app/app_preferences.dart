@@ -1,9 +1,10 @@
+import '../features/settings/account_appearance.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// Device appearance/onboarding only. Never stores credentials or authorizes
-/// access to account data. Kept separate from account-owned SQLite settings.
+/// Presentation preferences. Account appearance is persisted in guarded SQLite;
+/// only onboarding is device-scoped. Preferences never authorize account access.
 class AppPreferences {
   const AppPreferences({
     this.locale = const Locale('ar'),
@@ -51,15 +52,20 @@ class AndroidAppPreferencesStore implements AppPreferencesStore {
   const AndroidAppPreferencesStore();
   static const _channel = MethodChannel('siraj/appearance');
   @override
-  Future<AppPreferences> read() async => AppPreferences.decode(
-    await _channel
+  Future<AppPreferences> read() async {
+    final raw = await _channel
         .invokeMethod<Object?>('read')
-        .timeout(const Duration(seconds: 5)),
-  );
+        .timeout(const Duration(seconds: 5));
+    // Ignore legacy device-scoped account preferences; SQLite owns them.
+    return AppPreferences(
+      onboardingComplete: raw is Map && raw['onboarding'] == true,
+    );
+  }
+
   @override
   Future<void> write(AppPreferences next) async {
     await _channel
-        .invokeMethod<void>('write', next.encode())
+        .invokeMethod<void>('write', {'onboarding': next.onboardingComplete})
         .timeout(const Duration(seconds: 5));
   }
 }
@@ -76,6 +82,58 @@ class AppPreferencesController extends ChangeNotifier {
   bool loaded = false;
   bool _disposed = false;
   Future<void> _tail = Future.value();
+  AccountAppearanceStore? _accountStore;
+  Object? _accountIdentity;
+  bool _hasBinding = false;
+  int _scopeVersion = 0;
+  bool accountLoading = false;
+  Future<void> bindAccount({
+    required Object identity,
+    required AccountAppearanceStore? store,
+  }) {
+    if (_disposed || (_hasBinding && _accountIdentity == identity)) {
+      return Future.value();
+    }
+    _hasBinding = true;
+    _accountIdentity = identity;
+    _accountStore = store;
+    final version = ++_scopeVersion;
+    accountLoading = true;
+    final done = Completer<void>();
+    _tail = _tail.then((_) async {
+      await ready;
+      try {
+        final value = await store?.read() ?? const AccountAppearance();
+        if (!_disposed && version == _scopeVersion) {
+          final decoded = AppPreferences.decode({
+            'language': value.language,
+            'theme': value.theme,
+          });
+          _value = _value.copyWith(
+            locale: decoded.locale,
+            themeMode: decoded.themeMode,
+          );
+          persistenceFailed = false;
+        }
+      } catch (_) {
+        if (!_disposed && version == _scopeVersion) {
+          _value = _value.copyWith(
+            locale: const Locale('ar'),
+            themeMode: ThemeMode.system,
+          );
+          persistenceFailed = true;
+        }
+      } finally {
+        if (!_disposed && version == _scopeVersion) {
+          accountLoading = false;
+          notifyListeners();
+        }
+        done.complete();
+      }
+    });
+    return done.future;
+  }
+
   Future<void> _load() async {
     try {
       _value = await _store.read();
@@ -88,23 +146,41 @@ class AppPreferencesController extends ChangeNotifier {
 
   Future<bool> _update(AppPreferences Function(AppPreferences) change) {
     final result = Completer<bool>();
+    final version = _scopeVersion;
     _tail = _tail.then((_) async {
       await ready;
-      if (_disposed) {
+      if (_disposed || version != _scopeVersion) {
         result.complete(false);
         return;
       }
       final next = change(_value);
       try {
-        await _store.write(next);
+        final appearanceChanged =
+            next.locale != _value.locale || next.themeMode != _value.themeMode;
+        final onboardingChanged =
+            next.onboardingComplete != _value.onboardingComplete;
+        if (appearanceChanged && _accountStore != null) {
+          await _accountStore!.write(
+            AccountAppearance(
+              language: next.locale.languageCode,
+              theme: next.themeMode.name,
+            ),
+          );
+        } else if (appearanceChanged || onboardingChanged) {
+          await _store.write(next);
+        }
+        if (_disposed || version != _scopeVersion) {
+          result.complete(false);
+          return;
+        }
         _value = next;
         persistenceFailed = false;
         result.complete(true);
       } catch (_) {
-        persistenceFailed = true;
+        if (!_disposed && version == _scopeVersion) persistenceFailed = true;
         result.complete(false);
       }
-      if (!_disposed) notifyListeners();
+      if (!_disposed && version == _scopeVersion) notifyListeners();
     });
     return result.future;
   }
@@ -120,6 +196,7 @@ class AppPreferencesController extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
+    _scopeVersion++;
     super.dispose();
   }
 }

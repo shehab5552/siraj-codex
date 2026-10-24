@@ -1,3 +1,4 @@
+import '../../features/library/library_contracts.dart';
 import '../../features/chat/chat_models.dart';
 import '../../features/chat/chat_copy.dart';
 import '../../features/quiz/quiz_copy.dart';
@@ -31,6 +32,20 @@ class SirajProblem {
   }) {
     SirajProblem message(ProblemAction action, String ar, String en) =>
         SirajProblem(area: area, action: action, arabic: ar, english: en);
+    if (error is LibraryFailure) {
+      return SirajProblem(
+        area: ProblemArea.pdf,
+        action: error.code == LibraryFailureCode.readerUnavailable
+            ? ProblemAction.resources
+            : ProblemAction.retry,
+        arabic: error.code == LibraryFailureCode.readerUnavailable
+            ? 'القارئ المحلي المعتمد غير متاح. لن يُفتح ملف غير متحقق منه.'
+            : 'تعذر قراءة الفهرس المعتمد أو تجهيز الكتاب. راجع المورد ثم أعد المحاولة.',
+        english: error.code == LibraryFailureCode.readerUnavailable
+            ? 'The approved local reader is unavailable. An unverified file will not be opened.'
+            : 'The approved catalog or book could not be read or prepared. Check the resource and retry.',
+      );
+    }
     if (error is ChatFailure) {
       final action = error.code == ChatFailureCode.sessionExpired
           ? ProblemAction.login

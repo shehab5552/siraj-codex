@@ -149,7 +149,6 @@ class DatasetPreparationCoordinator extends ChangeNotifier {
         );
         if (matches.length != 1 ||
             part.spec.kind != matches.single.kind ||
-            part.spec.artifactRevision != revision ||
             part.spec.expectedSize == null ||
             part.spec.expectedSha256 == null) {
           throw const DatasetFailure(DatasetFailureCode.invalidPlan);

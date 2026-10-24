@@ -1,3 +1,4 @@
+import 'package:siraj/features/auth/kdf_worker.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -52,4 +53,73 @@ void main() {
       });
     });
   }
+  testWidgets(
+    'native cancellation settles logically and drains provider before retry',
+    (tester) async {
+      await tester.runAsync(() async {
+        final worker = NativePbkdf2();
+        final cancellation = KdfCancellation();
+        final task = worker.derive(
+          password: 'synthetic-native-cancel',
+          salt: Uint8List(16),
+          iterations: 600000,
+          cancellation: cancellation,
+        );
+        final settled = task.then<Object?>(
+          (_) => null,
+          onError: (Object error) => error,
+        );
+        final watch = Stopwatch()..start();
+        cancellation.cancel();
+        final result = await settled;
+        watch.stop();
+        expect(
+          result,
+          isA<KdfFailure>().having(
+            (e) => e.code,
+            'code',
+            KdfFailureCode.cancelled,
+          ),
+        );
+        expect(watch.elapsedMilliseconds, lessThan(1000));
+        await expectLater(
+          worker.derive(
+            password: 'synthetic',
+            salt: Uint8List(16),
+            iterations: 1,
+          ),
+          throwsA(
+            isA<KdfFailure>().having(
+              (e) => e.code,
+              'code',
+              KdfFailureCode.busy,
+            ),
+          ),
+        );
+        final drain = Stopwatch()..start();
+        while (true) {
+          try {
+            final bytes = await worker.derive(
+              password: 'synthetic',
+              salt: Uint8List(16),
+              iterations: 1,
+            );
+            expect(bytes.length, 32);
+            bytes.fillRange(0, bytes.length, 0);
+            break;
+          } on KdfFailure catch (error) {
+            if (error.code != KdfFailureCode.busy) rethrow;
+            if (drain.elapsed > const Duration(seconds: 65)) {
+              fail('Native provider did not drain');
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+          }
+        }
+        debugPrint(
+          'SIRAJ_NATIVE_CANCEL logical_cancel_ms=${watch.elapsedMilliseconds} provider_drained=true; no physical-device approval',
+        );
+      });
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }

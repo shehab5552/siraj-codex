@@ -1,3 +1,5 @@
+import '../features/library/library_controller.dart';
+import '../features/library/library_contracts.dart';
 import '../features/quiz/quiz_curriculum.dart';
 import 'resource_preparation_binding.dart';
 import 'dart:async';
@@ -37,6 +39,7 @@ class AuthenticatedWorkspace extends StatefulWidget {
     required this.quizCleanup,
     this.resourcePreparation,
     this.curriculum = const UnavailableQuizCurriculum(),
+    this.library = const LibraryIntegration(),
   });
   final AppSessionController session;
   final AuthSession identity;
@@ -47,6 +50,7 @@ class AuthenticatedWorkspace extends StatefulWidget {
   final QuizCleanupOwner quizCleanup;
   final ResourcePreparationBinding? resourcePreparation;
   final QuizCurriculumPort curriculum;
+  final LibraryIntegration library;
   @override
   State<AuthenticatedWorkspace> createState() => _AuthenticatedWorkspaceState();
 }
@@ -71,6 +75,10 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
     scorer: QuizScorer(precision: widget.numericPrecision),
     cleanup: widget.quizCleanup,
   );
+  late final LibraryController _library = LibraryController(
+    catalog: widget.library.catalog,
+    actions: widget.library.actions,
+  );
   bool _opening = false;
   @override
   void initState() {
@@ -82,7 +90,8 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
     if (_opening) return;
     _opening = true;
     try {
-      if (!await widget.session.checkSession(widget.identity) || !mounted) {
+      if (!await widget.session.authorizeNavigation(widget.identity) ||
+          !mounted) {
         return;
       }
       unawaited(
@@ -109,6 +118,10 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
     if (_opening) return;
     _opening = true;
     try {
+      if (!await widget.session.authorizeNavigation(widget.identity) ||
+          !mounted) {
+        return;
+      }
       final chat = id == null
           ? await _history.openDraft()
           : await _history.openConversation(id);
@@ -165,7 +178,10 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
           ? null
           : () => unawaited(_chat(_history.conversations.first.id)),
       assistantPage: ConversationHistoryPage(controller: _history),
-      libraryPage: LibraryPage(onOpenResources: _resources),
+      libraryPage: LibraryPage(
+        controller: _library,
+        onOpenResources: _resources,
+      ),
       quizPage: QuizPage(controller: _quiz, curriculum: widget.curriculum),
     ),
   );

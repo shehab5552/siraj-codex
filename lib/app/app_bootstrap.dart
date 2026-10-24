@@ -1,3 +1,5 @@
+import '../features/settings/account_appearance.dart';
+import '../features/library/library_contracts.dart';
 import '../features/quiz/quiz_curriculum.dart';
 import 'resource_preparation_binding.dart';
 import 'dart:async';
@@ -32,6 +34,7 @@ class AppBootstrap extends StatefulWidget {
     this.sessionController,
     this.resourcePreparation,
     this.curriculum = const UnavailableQuizCurriculum(),
+    this.library = const LibraryIntegration(),
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
     this.quiz = const UnavailableQuizPort(),
@@ -42,6 +45,7 @@ class AppBootstrap extends StatefulWidget {
   final AppSessionController? sessionController;
   final ResourcePreparationBinding? resourcePreparation;
   final QuizCurriculumPort curriculum;
+  final LibraryIntegration library;
   final TutorPort tutor;
   final SourceResolverPort sources;
   final QuizPort quiz;
@@ -57,6 +61,7 @@ class _AppBootstrapState extends State<AppBootstrap>
   DatabaseRuntime? _ownedRuntime;
   Future<StartupDecision>? _testStartup;
   bool _initializationFailed = false;
+  AppPreferencesController? _preferences;
   @override
   void initState() {
     super.initState();
@@ -82,6 +87,39 @@ class _AppBootstrapState extends State<AppBootstrap>
     unawaited(_initialize());
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _preferences = AppPreferencesScope.maybeOf(context);
+    _syncAppearance();
+  }
+
+  void _syncAppearance() {
+    final preferences = _preferences, session = _session;
+    if (preferences == null ||
+        session == null ||
+        !session.initialized ||
+        widget.debugPreview) {
+      return;
+    }
+    final decision = session.decision;
+    final identity = (session.navigationIdentity, decision.status);
+    final AccountAppearanceStore? store = switch (decision.status) {
+      StartupStatus.authenticated =>
+        decision.session == null
+            ? null
+            : SqliteAccountAppearance(
+                database: session.runtime.database,
+                session: decision.session!,
+              ),
+      StartupStatus.loginRequired => ReadOnlyCurrentAccountAppearance(
+        session.runtime.database,
+      ),
+      _ => null,
+    };
+    unawaited(preferences.bindAccount(identity: identity, store: store));
+  }
+
   Future<void> _initialize() async {
     try {
       await _session!.initialize();
@@ -92,6 +130,7 @@ class _AppBootstrapState extends State<AppBootstrap>
   }
 
   void _changed() {
+    _syncAppearance();
     if (mounted) setState(() {});
   }
 
@@ -155,6 +194,7 @@ class _AppBootstrapState extends State<AppBootstrap>
     body: SafeArea(child: Center(child: CircularProgressIndicator())),
   );
   Widget _screen(StartupDecision decision) {
+    if (_preferences?.accountLoading == true) return _loading();
     final session = _session;
     switch (decision.status) {
       case StartupStatus.authenticated:
@@ -174,6 +214,7 @@ class _AppBootstrapState extends State<AppBootstrap>
             builder: (_) => AuthenticatedWorkspace(
               resourcePreparation: widget.resourcePreparation,
               curriculum: widget.curriculum,
+              library: widget.library,
               session: session,
               identity: decision.session!,
               tutor: widget.tutor,
