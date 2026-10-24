@@ -1,3 +1,6 @@
+import 'app_session_controller.dart';
+import '../features/quiz/quiz_curriculum.dart';
+import 'resource_preparation_binding.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -15,6 +18,9 @@ class SirajApp extends StatefulWidget {
     super.key,
     this.debugPreview = false,
     this.preferences,
+    this.resourcePreparation,
+    this.sessionController,
+    this.curriculum = const UnavailableQuizCurriculum(),
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
     this.quiz = const UnavailableQuizPort(),
@@ -24,6 +30,9 @@ class SirajApp extends StatefulWidget {
   /// Only explicitly used in debug widget tests; never in release/profile.
   final bool debugPreview;
   final AppPreferencesController? preferences;
+  final ResourcePreparationBinding? resourcePreparation;
+  final AppSessionController? sessionController;
+  final QuizCurriculumPort curriculum;
   final TutorPort tutor;
   final SourceResolverPort sources;
   final QuizPort quiz;
@@ -67,6 +76,9 @@ class _SirajAppState extends State<SirajApp> {
           GlobalCupertinoLocalizations.delegate,
         ],
         home: AppBootstrap(
+          sessionController: widget.sessionController,
+          resourcePreparation: widget.resourcePreparation,
+          curriculum: widget.curriculum,
           debugPreview: widget.debugPreview && kDebugMode,
           tutor: widget.tutor,
           sources: widget.sources,

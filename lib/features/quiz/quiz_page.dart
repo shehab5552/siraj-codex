@@ -1,3 +1,5 @@
+import '../../app/presentation/siraj_problem.dart';
+import '../../integrations/ai/quiz_port.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -224,7 +226,10 @@ class _QuizPageState extends State<QuizPage> {
                     child: Semantics(
                       liveRegion: true,
                       child: Text(
-                        context.tr(quizErrorText(error)),
+                        context.copy(
+                          SirajProblem.from(QuizFailure(error)).arabic,
+                          SirajProblem.from(QuizFailure(error)).english,
+                        ),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                         ),

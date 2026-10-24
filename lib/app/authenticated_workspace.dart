@@ -1,3 +1,5 @@
+import '../features/quiz/quiz_curriculum.dart';
+import 'resource_preparation_binding.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../data/conversation_repository.dart';
@@ -33,6 +35,8 @@ class AuthenticatedWorkspace extends StatefulWidget {
     required this.quiz,
     required this.numericPrecision,
     required this.quizCleanup,
+    this.resourcePreparation,
+    this.curriculum = const UnavailableQuizCurriculum(),
   });
   final AppSessionController session;
   final AuthSession identity;
@@ -41,6 +45,8 @@ class AuthenticatedWorkspace extends StatefulWidget {
   final QuizPort quiz;
   final NumericPrecisionPort numericPrecision;
   final QuizCleanupOwner quizCleanup;
+  final ResourcePreparationBinding? resourcePreparation;
+  final QuizCurriculumPort curriculum;
   @override
   State<AuthenticatedWorkspace> createState() => _AuthenticatedWorkspaceState();
 }
@@ -79,9 +85,11 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
       if (!await widget.session.checkSession(widget.identity) || !mounted) {
         return;
       }
-      unawaited(Navigator.of(
-        context,
-      ).push<void>(MaterialPageRoute(builder: (_) => page())));
+      unawaited(
+        Navigator.of(
+          context,
+        ).push<void>(MaterialPageRoute(builder: (_) => page())),
+      );
     } finally {
       _opening = false;
     }
@@ -90,6 +98,7 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
   void _resources() => unawaited(
     _push(
       () => ResourceStatusPage(
+        preparation: widget.resourcePreparation,
         reader: ResourceStatusReader(
           ResourceRepository(widget.session.runtime.database),
         ),
@@ -157,7 +166,7 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
           : () => unawaited(_chat(_history.conversations.first.id)),
       assistantPage: ConversationHistoryPage(controller: _history),
       libraryPage: LibraryPage(onOpenResources: _resources),
-      quizPage: QuizPage(controller: _quiz),
+      quizPage: QuizPage(controller: _quiz, curriculum: widget.curriculum),
     ),
   );
 }

@@ -47,6 +47,7 @@ enum DownloadFailureCode {
   unsafePath,
   busy,
   candidateExists,
+  candidateUnavailable,
   insufficientStorage,
   storageUnavailable,
   ioFailure,

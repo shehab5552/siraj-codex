@@ -42,14 +42,16 @@ class NativePbkdf2 implements Pbkdf2Worker {
         })
         .then((bytes) {
           if (bytes == null || bytes.length != 32) {
-            bytes?.fillRange(0, bytes.length, 0);
             throw const KdfFailure(KdfFailureCode.failed);
           }
+          // Android's codec may return a read-only view. Own a mutable copy
+          // for verifier cleanup; never mutate a foreign platform buffer.
+          final owned = Uint8List.fromList(bytes);
           if (abandoned) {
-            bytes.fillRange(0, bytes.length, 0);
+            owned.fillRange(0, owned.length, 0);
             throw const KdfFailure(KdfFailureCode.cancelled);
           }
-          return bytes;
+          return owned;
         })
         .whenComplete(() => _busy = false);
     native.ignore();

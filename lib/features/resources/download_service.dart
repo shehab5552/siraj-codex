@@ -40,6 +40,38 @@ class DownloadService<T> {
   final HttpClient Function() _clientFactory;
   final Duration timeout;
 
+  /// Trusted assembly handoff. The same exclusive lease used by the writer is
+  /// held through integrity validation and the asynchronous consumer. No READY
+  /// or ACTIVE is written here; only the resource-specific manager may promote.
+  Future<R> withCompletedArtifact<R>(
+    DownloadSpec spec,
+    Future<R> Function(File file) consume,
+  ) async {
+    _checkSpec(spec);
+    validator.checkSpec(spec);
+    final staging = await DownloadStaging.acquire(
+      appSupportDirectory,
+      spec.destinationKey,
+    );
+    try {
+      final checkpoint = await staging.completedFor(spec);
+      if (checkpoint == null) {
+        throw const DownloadFailure(DownloadFailureCode.candidateUnavailable);
+      }
+      await validator.validate(staging.directory, spec);
+      return await consume(staging.payload);
+    } on FileSystemException catch (error) {
+      throw DownloadFailure(
+        error.osError?.errorCode == 28 || error.osError?.errorCode == 122
+            ? DownloadFailureCode.insufficientStorage
+            : DownloadFailureCode.ioFailure,
+        osErrorCode: error.osError?.errorCode,
+      );
+    } finally {
+      await staging.release();
+    }
+  }
+
   DownloadHandle<T> start(DownloadSpec spec) {
     final handle = DownloadHandle<T>._(this, spec);
     _launch(handle);

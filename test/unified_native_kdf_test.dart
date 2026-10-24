@@ -104,4 +104,23 @@ void main() {
     );
     expect(calls, 0);
   });
+  test(
+    'platform byte views are copied into owned mutable verifier memory',
+    () async {
+      messenger.setMockMessageHandler(channel.name, (message) async {
+        final envelope = const StandardMethodCodec().encodeSuccessEnvelope(
+          Uint8List.fromList(List.filled(32, 7)),
+        );
+        return envelope.buffer
+            .asUint8List()
+            .asUnmodifiableView()
+            .buffer
+            .asByteData();
+      });
+      final bytes = await derive(NativePbkdf2());
+      expect(bytes.first, 7);
+      bytes.fillRange(0, bytes.length, 0);
+      expect(bytes.every((b) => b == 0), isTrue);
+    },
+  );
 }

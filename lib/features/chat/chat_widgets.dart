@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../integrations/ai/tutor_contract.dart';
 import '../../integrations/ai/tutor_port.dart';
-import 'chat_copy.dart';
+import '../../app/presentation/siraj_problem.dart';
 import 'chat_turn_coordinator.dart';
 
 class ChatReadinessNotice extends StatelessWidget {
@@ -50,7 +50,14 @@ class ChatFailureNotice extends StatelessWidget {
               children: [
                 Icon(Icons.info_outline),
                 SizedBox(width: 10),
-                Expanded(child: Text(context.tr(chatFailureText(failure)))),
+                Expanded(
+                  child: Text(
+                    context.copy(
+                      SirajProblem.from(failure).arabic,
+                      SirajProblem.from(failure).english,
+                    ),
+                  ),
+                ),
               ],
             ),
             if (onRetry != null)

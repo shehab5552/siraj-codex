@@ -83,7 +83,14 @@ class DownloadStaging {
   Future<bool> get hasLeftovers async =>
       await payload.exists() || await _metadata.exists();
 
-  Future<DownloadCheckpoint?> checkpointFor(DownloadSpec spec) async {
+  Future<DownloadCheckpoint?> checkpointFor(DownloadSpec spec) =>
+      _checkpointFor(spec, completedOnly: false);
+  Future<DownloadCheckpoint?> completedFor(DownloadSpec spec) =>
+      _checkpointFor(spec, completedOnly: true);
+  Future<DownloadCheckpoint?> _checkpointFor(
+    DownloadSpec spec, {
+    required bool completedOnly,
+  }) async {
     await _inspect(directory);
     if (!await _metadata.exists() || !await payload.exists()) return null;
     if (await _metadata.length() > metadataLimit) return null;
@@ -101,7 +108,9 @@ class DownloadStaging {
       final data = jsonDecode(utf8.decode(bytes, allowMalformed: false));
       // Completed candidates belong to the next validation/promotion stage.
       // Even another requested identity cannot authorize their replacement.
-      if (data is Map<String, dynamic> && data['complete'] == true) {
+      if (!completedOnly &&
+          data is Map<String, dynamic> &&
+          data['complete'] == true) {
         throw const DownloadFailure(DownloadFailureCode.candidateExists);
       }
       if (data is! Map<String, dynamic> ||
@@ -122,6 +131,7 @@ class DownloadStaging {
           data['sha256'] is! String ||
           !RegExp(r'^[a-f0-9]{64}$').hasMatch(data['sha256'] as String) ||
           data['complete'] is! bool ||
+          (completedOnly && data['complete'] != true) ||
           (data['etag'] != null &&
               (data['etag'] is! String ||
                   !isStrongEtag(data['etag'] as String)))) {

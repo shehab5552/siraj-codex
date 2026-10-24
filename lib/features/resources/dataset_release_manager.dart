@@ -18,6 +18,7 @@ class StagedDatasetCandidate {
   bool _sealed = false, _promoted = false;
   int _verification = 0;
   String get revision => _plan.revision;
+  DatasetReleasePlan get plan => _plan;
 }
 
 /// Only the manager can create a receipt; it is bound to this exact candidate,

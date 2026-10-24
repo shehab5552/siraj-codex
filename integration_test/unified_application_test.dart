@@ -52,7 +52,7 @@ void main() {
       await tester.tap(find.byKey(const Key('open-resource-status')));
       await tester.pumpAndSettle();
       expect(find.text('لا توجد موارد مسجلة في هذا القسم.'), findsWidgets);
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text('المساعد').last);
       await tester.pumpAndSettle();
@@ -70,7 +70,7 @@ void main() {
         find.textContaining('موارد الذكاء الاصطناعي غير جاهزة'),
         findsOneWidget,
       );
-      await tester.pageBack();
+      await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text('الرئيسية').last);
       await tester.pumpAndSettle();

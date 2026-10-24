@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 
 import 'resource_status.dart';
 import 'resource_status_reader.dart';
+import '../../app/resource_preparation_binding.dart';
+import 'dataset_preparation_card.dart';
 
 /// B-07 Step 1: status visibility only. No download, install or activation.
 ///
 /// Integrate into the authenticated app navigation after verifying the route
 /// contract. This page does not bypass B-06's session gate.
 class ResourceStatusPage extends StatefulWidget {
-  const ResourceStatusPage({super.key, required this.reader});
+  const ResourceStatusPage({super.key, required this.reader, this.preparation});
+  final ResourcePreparationBinding? preparation;
 
   final ResourceStatusReader reader;
 
@@ -41,7 +44,7 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('حالة الموارد')),
+      appBar: AppBar(title: Text(context.tr('حالة الموارد'))),
       body: FutureBuilder<ResourceStatusSnapshot>(
         future: _snapshot,
         builder: (context, snapshot) {
@@ -53,11 +56,11 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('تعذر قراءة حالات الموارد المحلية.'),
+                  Text(context.tr('تعذر قراءة حالات الموارد المحلية.')),
                   SizedBox(height: 8),
                   TextButton(
                     onPressed: _refresh,
-                    child: Text('إعادة المحاولة'),
+                    child: Text(context.tr('إعادة المحاولة')),
                   ),
                 ],
               ),
@@ -68,8 +71,10 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
             padding: EdgeInsets.all(16),
             children: [
               Text(
-                'هذه حالات مسجلة محليًا وليست شهادة بجاهزية الملفات. '
-                'لا تُفعّل الموارد إلا بعد فحص السلامة والتوافق.',
+                context.tr(
+                  'هذه حالات مسجلة محليًا وليست شهادة بجاهزية الملفات. '
+                  'لا تُفعّل الموارد إلا بعد فحص السلامة والتوافق.',
+                ),
               ),
               SizedBox(height: 12),
               _section('النموذج المحلي (LLM)', data.llm),
@@ -78,15 +83,42 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
               Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
-                  'نموذج Embedding جزء من تجهيز Dataset، وليس تنزيلًا منفصلًا. '
-                  'لا تتحقق RAG_READY من سجلات الموارد وحدها.',
+                  context.tr(
+                    'نموذج Embedding جزء من تجهيز Dataset، وليس تنزيلًا منفصلًا. '
+                    'لا تتحقق RAG_READY من سجلات الموارد وحدها.',
+                  ),
                 ),
               ),
               _section('كتب PDF', data.pdfBooks),
+              if (widget.preparation case final binding?)
+                DatasetPreparationCard(binding: binding)
+              else
+                Card(
+                  key: const Key('resource-catalog-unavailable'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      context.copy(
+                        'لم يتوفر فهرس تنزيل معتمد وروابط وهوية موارد وفاحص Runtime متوافق. لن يُعرض تنزيل تجريبي أو حالة جاهزية وهمية.',
+                        'An approved download catalog, resource identities, URLs and compatible runtime validator have not been provided. No demo download or false readiness is offered.',
+                      ),
+                    ),
+                  ),
+                ),
+              TextButton.icon(
+                onPressed: _refresh,
+                icon: const Icon(Icons.refresh),
+                label: Text(
+                  context.copy('تحديث السجل المحلي', 'Refresh local registry'),
+                ),
+              ),
+
               Padding(
                 padding: EdgeInsets.only(top: 12),
                 child: Text(
-                  'كتب PDF مستقلة عن نموذج الذكاء الاصطناعي وبيانات RAG.',
+                  context.tr(
+                    'كتب PDF مستقلة عن نموذج الذكاء الاصطناعي وبيانات RAG.',
+                  ),
                 ),
               ),
             ],
@@ -103,10 +135,13 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              context.tr(title),
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 6),
             if (entries.isEmpty)
-              Text('لا توجد موارد مسجلة في هذا القسم.')
+              Text(context.tr('لا توجد موارد مسجلة في هذا القسم.'))
             else
               for (final entry in entries)
                 ListTile(

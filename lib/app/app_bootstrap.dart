@@ -1,3 +1,5 @@
+import '../features/quiz/quiz_curriculum.dart';
+import 'resource_preparation_binding.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -28,6 +30,8 @@ class AppBootstrap extends StatefulWidget {
     this.debugPreview = false,
     this.loadStartupForTesting,
     this.sessionController,
+    this.resourcePreparation,
+    this.curriculum = const UnavailableQuizCurriculum(),
     this.tutor = const UnavailableTutorPort(),
     this.sources = const UnavailableSourceResolver(),
     this.quiz = const UnavailableQuizPort(),
@@ -36,6 +40,8 @@ class AppBootstrap extends StatefulWidget {
   final bool debugPreview;
   final Future<StartupDecision> Function()? loadStartupForTesting;
   final AppSessionController? sessionController;
+  final ResourcePreparationBinding? resourcePreparation;
+  final QuizCurriculumPort curriculum;
   final TutorPort tutor;
   final SourceResolverPort sources;
   final QuizPort quiz;
@@ -166,6 +172,8 @@ class _AppBootstrapState extends State<AppBootstrap>
           key: ObjectKey(session.navigationIdentity),
           onGenerateRoute: (_) => MaterialPageRoute<void>(
             builder: (_) => AuthenticatedWorkspace(
+              resourcePreparation: widget.resourcePreparation,
+              curriculum: widget.curriculum,
               session: session,
               identity: decision.session!,
               tutor: widget.tutor,
