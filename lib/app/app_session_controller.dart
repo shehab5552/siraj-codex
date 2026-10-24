@@ -37,6 +37,23 @@ class AppSessionController extends ChangeNotifier {
     StartupStatus.loginRequired,
   );
   StartupDecision get decision => _decision;
+  AuthSession? _navigationSession;
+  Object _navigationIdentity = Object();
+
+  /// Opaque route key: raw session nonces must not appear in widget diagnostics.
+  /// Restoring the same nonce keeps the existing private Navigator and draft.
+  Object get navigationIdentity {
+    final next = _decision.session;
+    final previous = _navigationSession;
+    if (next?.userId != previous?.userId ||
+        next?.accountEpoch != previous?.accountEpoch ||
+        next?.sessionNonce != previous?.sessionNonce) {
+      _navigationSession = next;
+      _navigationIdentity = Object();
+    }
+    return _navigationIdentity;
+  }
+
   bool busy = false;
   bool initialized = false;
   bool revocationFailed = false;

@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_form_frame.dart';
@@ -56,7 +57,10 @@ class _LoginPageState extends State<LoginPage> {
     } catch (_) {
       // Intentionally generic to avoid exposing which credential was wrong.
       if (mounted) {
-        setState(() => _error = 'تعذّر تسجيل الدخول. تحقق من بيانات الحساب.');
+        setState(
+          () =>
+              _error = context.tr('تعذّر تسجيل الدخول. تحقق من بيانات الحساب.'),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -67,13 +71,17 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final enabled = widget.onLogin != null && !_busy;
     return AuthFormFrame(
-      title: 'تسجيل الدخول',
-      description: 'استخدم حساب سراج المحلي المسجل على هذا الجهاز.',
+      title: context.tr('تسجيل الدخول'),
+      description: context.tr('استخدم حساب سراج المحلي المسجل على هذا الجهاز.'),
       notice:
           widget.notice ??
           (widget.onLogin == null
-              ? 'تسجيل الدخول غير مفعّل مؤقتًا حتى اعتماد حماية كلمة المرور الإنتاجية.'
-              : 'الجلسة تُحفظ على هذا الجهاز بعد التحقق من بيانات الحساب.'),
+              ? context.tr(
+                  'تسجيل الدخول غير مفعّل مؤقتًا حتى اعتماد حماية كلمة المرور الإنتاجية.',
+                )
+              : context.tr(
+                  'الجلسة تُحفظ على هذا الجهاز بعد التحقق من بيانات الحساب.',
+                )),
       content: Form(
         key: _formKey,
         child: Column(
@@ -81,38 +89,38 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
-              key: const Key('login-username'),
+              key: Key('login-username'),
               controller: _username,
               enabled: enabled,
-              autofillHints: const [AutofillHints.username],
+              autofillHints: [AutofillHints.username],
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'اسم المستخدم',
+              decoration: InputDecoration(
+                labelText: context.tr('اسم المستخدم'),
                 prefixIcon: Icon(Icons.person_outline),
                 border: OutlineInputBorder(),
               ),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'اسم المستخدم مطلوب'
+                  ? context.tr('اسم المستخدم مطلوب')
                   : null,
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             TextFormField(
-              key: const Key('login-password'),
+              key: Key('login-password'),
               controller: _password,
               enabled: enabled,
               obscureText: _hidePassword,
               enableSuggestions: false,
               autocorrect: false,
-              autofillHints: const [AutofillHints.password],
+              autofillHints: [AutofillHints.password],
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'كلمة المرور',
-                prefixIcon: const Icon(Icons.lock_outline),
-                border: const OutlineInputBorder(),
+                labelText: context.tr('كلمة المرور'),
+                prefixIcon: Icon(Icons.lock_outline),
+                border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hidePassword
-                      ? 'إظهار كلمة المرور'
-                      : 'إخفاء كلمة المرور',
+                      ? context.tr('إظهار كلمة المرور')
+                      : context.tr('إخفاء كلمة المرور'),
                   onPressed: enabled
                       ? () => setState(() => _hidePassword = !_hidePassword)
                       : null,
@@ -123,40 +131,43 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'كلمة المرور مطلوبة' : null,
+              validator: (value) => value == null || value.isEmpty
+                  ? context.tr('كلمة المرور مطلوبة')
+                  : null,
             ),
             if (_error != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 _error!,
-                key: const Key('login-error'),
+                key: Key('login-error'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             FilledButton(
-              key: const Key('login-submit'),
+              key: Key('login-submit'),
               onPressed: enabled ? _submit : null,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 child: _busy
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('تسجيل الدخول'),
+                    : Text(context.tr('تسجيل الدخول')),
               ),
             ),
             if (_busy && widget.onCancel != null)
               TextButton(
                 onPressed: widget.onCancel,
-                child: const Text('إلغاء'),
+                child: Text(context.tr('إلغاء')),
               ),
-            const SizedBox(height: 16),
-            const Text(
-              'لا تتوفر استعادة كلمة المرور أو إضافة حساب ثانٍ في SIRAJ P0.',
+            SizedBox(height: 16),
+            Text(
+              context.tr(
+                'لا تتوفر استعادة كلمة المرور أو إضافة حساب ثانٍ في SIRAJ P0.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12),
             ),

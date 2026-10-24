@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_form_frame.dart';
@@ -80,14 +81,18 @@ class _SignupPageState extends State<SignupPage> {
         }
         setState(() {
           _accountStored = requiresLogin;
-          _error = 'تعذّر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.';
+          _error = context.tr(
+            'تعذّر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.',
+          );
         });
       }
     } catch (_) {
       // Do not surface platform details, hashes, account IDs or passwords.
       if (mounted) {
         setState(
-          () => _error = 'تعذّر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.',
+          () => _error = context.tr(
+            'تعذّر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.',
+          ),
         );
       }
     } finally {
@@ -102,16 +107,24 @@ class _SignupPageState extends State<SignupPage> {
         onLogin: widget.onLoginAfterCreation,
         onCompleted: widget.onCompleted,
         onCancel: widget.onCancel,
-        notice: 'حُفظ الحساب، وتعذّر إكمال الجلسة. سجّل الدخول للمتابعة.',
+        notice: context.tr(
+          'حُفظ الحساب، وتعذّر إكمال الجلسة. سجّل الدخول للمتابعة.',
+        ),
       );
     }
     final enabled = widget.onCreateAccount != null && !_busy;
     return AuthFormFrame(
-      title: 'إنشاء الحساب المحلي',
-      description: 'حساب واحد على هذا الجهاز، دون إنترنت أو خادم للحسابات.',
+      title: context.tr('إنشاء الحساب المحلي'),
+      description: context.tr(
+        'حساب واحد على هذا الجهاز، دون إنترنت أو خادم للحسابات.',
+      ),
       notice: widget.onCreateAccount == null
-          ? 'واجهة إنشاء الحساب جاهزة، لكنها غير مفعّلة حتى اعتماد حماية كلمة المرور الإنتاجية.'
-          : 'يُحفظ الحساب محليًا. لا تتوفر استعادة كلمة مرور منسية في P0.',
+          ? context.tr(
+              'واجهة إنشاء الحساب جاهزة، لكنها غير مفعّلة حتى اعتماد حماية كلمة المرور الإنتاجية.',
+            )
+          : context.tr(
+              'يُحفظ الحساب محليًا. لا تتوفر استعادة كلمة مرور منسية في P0.',
+            ),
       content: Form(
         key: _formKey,
         child: Column(
@@ -119,38 +132,38 @@ class _SignupPageState extends State<SignupPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
-              key: const Key('signup-username'),
+              key: Key('signup-username'),
               controller: _username,
               enabled: enabled,
               textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.newUsername],
-              decoration: const InputDecoration(
-                labelText: 'اسم المستخدم',
+              autofillHints: [AutofillHints.newUsername],
+              decoration: InputDecoration(
+                labelText: context.tr('اسم المستخدم'),
                 prefixIcon: Icon(Icons.person_outline),
                 border: OutlineInputBorder(),
               ),
               validator: (value) => value == null || value.trim().isEmpty
-                  ? 'اسم المستخدم مطلوب'
+                  ? context.tr('اسم المستخدم مطلوب')
                   : null,
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             TextFormField(
-              key: const Key('signup-password'),
+              key: Key('signup-password'),
               controller: _password,
               enabled: enabled,
               obscureText: _hidePassword,
               enableSuggestions: false,
               autocorrect: false,
-              autofillHints: const [AutofillHints.newPassword],
+              autofillHints: [AutofillHints.newPassword],
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'كلمة المرور',
-                prefixIcon: const Icon(Icons.lock_outline),
-                border: const OutlineInputBorder(),
+                labelText: context.tr('كلمة المرور'),
+                prefixIcon: Icon(Icons.lock_outline),
+                border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hidePassword
-                      ? 'إظهار كلمة المرور'
-                      : 'إخفاء كلمة المرور',
+                      ? context.tr('إظهار كلمة المرور')
+                      : context.tr('إخفاء كلمة المرور'),
                   onPressed: enabled
                       ? () => setState(() => _hidePassword = !_hidePassword)
                       : null,
@@ -161,27 +174,28 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                 ),
               ),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'كلمة المرور مطلوبة' : null,
+              validator: (value) => value == null || value.isEmpty
+                  ? context.tr('كلمة المرور مطلوبة')
+                  : null,
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             TextFormField(
-              key: const Key('signup-confirmation'),
+              key: Key('signup-confirmation'),
               controller: _confirmation,
               enabled: enabled,
               obscureText: _hideConfirmation,
               enableSuggestions: false,
               autocorrect: false,
-              autofillHints: const [AutofillHints.newPassword],
+              autofillHints: [AutofillHints.newPassword],
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'تأكيد كلمة المرور',
-                prefixIcon: const Icon(Icons.verified_user_outlined),
-                border: const OutlineInputBorder(),
+                labelText: context.tr('تأكيد كلمة المرور'),
+                prefixIcon: Icon(Icons.verified_user_outlined),
+                border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hideConfirmation
-                      ? 'إظهار التأكيد'
-                      : 'إخفاء التأكيد',
+                      ? context.tr('إظهار التأكيد')
+                      : context.tr('إخفاء التأكيد'),
                   onPressed: enabled
                       ? () => setState(
                           () => _hideConfirmation = !_hideConfirmation,
@@ -196,48 +210,50 @@ class _SignupPageState extends State<SignupPage> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'تأكيد كلمة المرور مطلوب';
+                  return context.tr('تأكيد كلمة المرور مطلوب');
                 }
 
                 if (value != _password.text) {
-                  return 'كلمتا المرور غير متطابقتين';
+                  return context.tr('كلمتا المرور غير متطابقتين');
                 }
 
                 return null;
               },
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'احتفظ بكلمة المرور في مكان آمن؛ لا توجد آلية لاستعادتها في هذه النسخة.',
+            SizedBox(height: 12),
+            Text(
+              context.tr(
+                'احتفظ بكلمة المرور في مكان آمن؛ لا توجد آلية لاستعادتها في هذه النسخة.',
+              ),
               style: TextStyle(fontSize: 12),
             ),
             if (_error != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 _error!,
-                key: const Key('signup-error'),
+                key: Key('signup-error'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             FilledButton(
-              key: const Key('signup-submit'),
+              key: Key('signup-submit'),
               onPressed: enabled ? _submit : null,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: 12),
                 child: _busy
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('إنشاء الحساب'),
+                    : Text(context.tr('إنشاء الحساب')),
               ),
             ),
             if (_busy && widget.onCancel != null)
               TextButton(
                 onPressed: widget.onCancel,
-                child: const Text('إلغاء'),
+                child: Text(context.tr('إلغاء')),
               ),
           ],
         ),

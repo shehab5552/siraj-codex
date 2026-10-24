@@ -17,7 +17,7 @@ abstract final class SirajSpacing {
 }
 
 abstract final class SirajRadius {
-  static const card = 20.0;
+  static const card = 16.0;
   static const field = 12.0;
 }
 
@@ -32,38 +32,69 @@ abstract final class SirajTheme {
 
   static ThemeData _create(Brightness brightness) {
     final dark = brightness == Brightness.dark;
-    final scheme = ColorScheme.fromSeed(
-      seedColor: SirajPalette.blue,
-      brightness: brightness,
-    ).copyWith(
-      primary: dark ? const Color(0xFF8CB6FF) : SirajPalette.blue,
-      secondary: dark ? const Color(0xFF55C5B8) : SirajPalette.teal,
-      surface: dark ? const Color(0xFF182A3C) : Colors.white,
-      error: dark ? const Color(0xFFFB8FA0) : const Color(0xFFBF3344),
-    );
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: SirajPalette.blue,
+          brightness: brightness,
+        ).copyWith(
+          primary: dark ? const Color(0xFF80AAFF) : SirajPalette.blue,
+          secondary: dark ? const Color(0xFF55C5B8) : SirajPalette.teal,
+          surface: dark ? const Color(0xFF182A3C) : Colors.white,
+          onSurface: dark ? const Color(0xFFEDF4FC) : const Color(0xFF172B4D),
+          onSurfaceVariant: dark
+              ? const Color(0xFFA3B4C7)
+              : const Color(0xFF697891),
+          outlineVariant: dark
+              ? const Color(0xFF2C4359)
+              : const Color(0xFFE3E9F3),
+          primaryContainer: dark
+              ? const Color(0xFF213A57)
+              : const Color(0xFFEDF3FF),
+          error: dark ? const Color(0xFFFB8FA0) : const Color(0xFFBF3344),
+        );
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'NotoSansArabic',
+      extensions: [
+        SirajSemanticColors(
+          success: dark ? const Color(0xFF55C5B8) : SirajPalette.teal,
+          warning: dark ? const Color(0xFFFFCD80) : const Color(0xFFAD721C),
+        ),
+      ],
       colorScheme: scheme,
-      scaffoldBackgroundColor: dark ? const Color(0xFF101D2B) : SirajPalette.background,
+      scaffoldBackgroundColor: dark
+          ? const Color(0xFF101D2B)
+          : SirajPalette.background,
       appBarTheme: AppBarTheme(
-        backgroundColor: dark ? const Color(0xFF182A3C) : SirajPalette.navy,
-        foregroundColor: Colors.white,
+        backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
         color: scheme.surface,
-        elevation: 1,
+        elevation: 0,
         shadowColor: Colors.black.withValues(alpha: .08),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SirajRadius.card)),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(SirajRadius.card),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(SirajRadius.field)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(SirajRadius.field),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -76,4 +107,24 @@ abstract final class SirajTheme {
       visualDensity: VisualDensity.standard,
     );
   }
+}
+
+@immutable
+class SirajSemanticColors extends ThemeExtension<SirajSemanticColors> {
+  const SirajSemanticColors({required this.success, required this.warning});
+  final Color success, warning;
+  @override
+  SirajSemanticColors copyWith({Color? success, Color? warning}) =>
+      SirajSemanticColors(
+        success: success ?? this.success,
+        warning: warning ?? this.warning,
+      );
+  @override
+  SirajSemanticColors lerp(covariant SirajSemanticColors? other, double t) =>
+      other == null
+      ? this
+      : SirajSemanticColors(
+          success: Color.lerp(success, other.success, t)!,
+          warning: Color.lerp(warning, other.warning, t)!,
+        );
 }

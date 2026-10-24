@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 import '../../integrations/ai/tutor_contract.dart';
@@ -10,8 +11,8 @@ class ChatReadinessNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     color: Theme.of(context).colorScheme.surfaceContainerHighest,
-    margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-    child: const Padding(
+    margin: EdgeInsets.fromLTRB(12, 8, 12, 0),
+    child: Padding(
       padding: EdgeInsets.all(12),
       child: Row(
         children: [
@@ -19,7 +20,9 @@ class ChatReadinessNotice extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'الذكاء الاصطناعي غير جاهز حاليًا. يمكنك حفظ أسئلتك محليًا.',
+              context.tr(
+                'الذكاء الاصطناعي غير جاهز حاليًا. يمكنك حفظ أسئلتك محليًا.',
+              ),
             ),
           ),
         ],
@@ -38,24 +41,24 @@ class ChatFailureNotice extends StatelessWidget {
     child: Card(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline),
-                const SizedBox(width: 10),
-                Expanded(child: Text(chatFailureText(failure))),
+                Icon(Icons.info_outline),
+                SizedBox(width: 10),
+                Expanded(child: Text(context.tr(chatFailureText(failure)))),
               ],
             ),
             if (onRetry != null)
               TextButton.icon(
-                key: const Key('chat-retry'),
+                key: Key('chat-retry'),
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('إعادة المحاولة'),
+                icon: Icon(Icons.refresh),
+                label: Text(context.tr('إعادة المحاولة')),
               ),
           ],
         ),
@@ -84,10 +87,10 @@ class ChatMessageBubble extends StatelessWidget {
           ? AlignmentDirectional.centerStart
           : AlignmentDirectional.centerEnd,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 580),
+        constraints: BoxConstraints(maxWidth: 580),
         child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          padding: const EdgeInsets.all(16),
+          margin: EdgeInsets.symmetric(vertical: 6),
+          padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: message.isUser
                 ? colors.primaryContainer
@@ -99,30 +102,30 @@ class ChatMessageBubble extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                message.isUser ? 'أنت' : 'سراج',
+                message.isUser ? context.tr('أنت') : context.tr('سراج'),
                 style: Theme.of(
                   context,
                 ).textTheme.labelLarge?.copyWith(color: colors.primary),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               if (partial)
-                const Padding(
+                Padding(
                   key: Key('chat-partial'),
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'إجابة جزئية',
+                    context.tr('إجابة جزئية'),
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               SelectableText(message.text),
               if (message.sourcesUnavailable)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 10),
-                  child: Text('المصادر المسجلة غير متاحة.'),
+                  child: Text(context.tr('المصادر المسجلة غير متاحة.')),
                 ),
               if (message.sources.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(top: 10),
+                  padding: EdgeInsets.only(top: 10),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 4,
@@ -130,11 +133,10 @@ class ChatMessageBubble extends StatelessWidget {
                       for (var i = 0; i < message.sources.length; i++)
                         ActionChip(
                           key: Key('chat-source-$assistantIndex-$i'),
-                          avatar: const Icon(
-                            Icons.menu_book_outlined,
-                            size: 18,
+                          avatar: Icon(Icons.menu_book_outlined, size: 18),
+                          label: Text(
+                            context.copy('المصدر ${i + 1}', 'Source ${i + 1}'),
                           ),
-                          label: Text('المصدر ${i + 1}'),
                           onPressed: () => onSource(message.sources[i]),
                         ),
                     ],
@@ -166,30 +168,34 @@ class _ChatSourceSheetState extends State<ChatSourceSheet> {
   );
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: TextDirection.rtl,
+    textDirection: SirajCopy.isArabic(context)
+        ? TextDirection.rtl
+        : TextDirection.ltr,
     child: SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: AnimatedBuilder(
           animation: widget.coordinator,
           builder: (context, _) {
             if (widget.coordinator.phase == ChatPhase.sessionExpired) {
-              return const Text('انتهت الجلسة. المصدر غير متاح.');
+              return Text(context.tr('انتهت الجلسة. المصدر غير متاح.'));
             }
             return FutureBuilder<ResolvedSource?>(
               future: _source,
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
-                  return const SizedBox(
+                  return SizedBox(
                     height: 140,
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
                 final source = snapshot.data;
                 if (source == null) {
-                  return const Padding(
+                  return Padding(
                     padding: EdgeInsets.symmetric(vertical: 24),
-                    child: Text('المصدر غير متاح لهذه الإجابة حاليًا.'),
+                    child: Text(
+                      context.tr('المصدر غير متاح لهذه الإجابة حاليًا.'),
+                    ),
                   );
                 }
                 return ConstrainedBox(
@@ -202,10 +208,10 @@ class _ChatSourceSheetState extends State<ChatSourceSheet> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'مصدر الإجابة',
+                          context.tr('مصدر الإجابة'),
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         for (final label in [
                           source.subject,
                           source.unit,
@@ -214,11 +220,17 @@ class _ChatSourceSheetState extends State<ChatSourceSheet> {
                         ])
                           if (label != null && label.trim().isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 6),
+                              padding: EdgeInsets.only(bottom: 6),
                               child: Text(label),
                             ),
-                        if (source.page != null) Text('صفحة ${source.page}'),
-                        const Divider(),
+                        if (source.page != null)
+                          Text(
+                            context.copy(
+                              'صفحة ${source.page}',
+                              'Page ${source.page}',
+                            ),
+                          ),
+                        Divider(),
                         SelectableText(source.snippet),
                       ],
                     ),

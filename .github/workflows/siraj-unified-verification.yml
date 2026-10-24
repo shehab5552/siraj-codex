@@ -47,7 +47,10 @@ jobs:
           cp build/app/outputs/flutter-apk/app-debug.apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk
           git archive --format=zip --prefix=SIRAJ_P0/ HEAD -o dist/SIRAJ_P0_FLUTTER_SOURCE.zip
           sha256sum dist/*.apk dist/*.zip > dist/SHA256SUMS
-          flutter build apk --release --no-pub --target=lib/main.dart
+          # Flutter 3.38.5 must regenerate the plugin registrant when changing
+          # build modes. --no-pub would retain the dev-only integration_test.
+          flutter build apk --release --target=lib/main.dart
+          git diff --exit-code -- pubspec.lock
       - name: Install Android runtime test image
         shell: bash
         run: |
@@ -72,7 +75,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          flutter test integration_test/unified_native_kdf_test.dart -d emulator-5554 --no-pub --reporter expanded | tee dist/android-native-kdf.log
+          flutter test integration_test/unified_native_kdf_test.dart -d emulator-5554 --reporter expanded | tee dist/android-native-kdf.log
+          flutter test integration_test/unified_application_test.dart -d emulator-5554 --reporter expanded | tee dist/android-application.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

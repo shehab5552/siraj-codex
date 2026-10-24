@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 /// Shared visual shell for B-06 account screens. Presentation only.
@@ -20,13 +21,13 @@ class AuthFormFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('سراج')),
+      appBar: AppBar(title: Text(context.tr('سراج'))),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: BoxConstraints(maxWidth: 460),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -35,7 +36,7 @@ class AuthFormFrame extends StatelessWidget {
                     size: 58,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     title,
                     textAlign: TextAlign.center,
@@ -43,22 +44,19 @@ class AuthFormFrame extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     description,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Card(
                     margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: content,
-                    ),
+                    child: Padding(padding: EdgeInsets.all(20), child: content),
                   ),
                   if (notice != null) ...[
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Text(
                       notice!,
                       textAlign: TextAlign.center,

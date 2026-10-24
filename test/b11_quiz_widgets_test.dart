@@ -205,7 +205,11 @@ void main() {
           ),
         ),
       );
-      await t.ensureVisible(find.byKey(const Key('open-quiz')));
+      await t.scrollUntilVisible(
+        find.byKey(const Key('open-quiz')),
+        180,
+        scrollable: find.byType(Scrollable).first,
+      );
       await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('open-quiz')));
       expect(openedQuiz, true);

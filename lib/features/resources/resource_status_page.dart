@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 import 'resource_status.dart';
@@ -40,23 +41,23 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حالة الموارد')),
+      appBar: AppBar(title: Text('حالة الموارد')),
       body: FutureBuilder<ResourceStatusSnapshot>(
         future: _snapshot,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError || !snapshot.hasData) {
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('تعذر قراءة حالات الموارد المحلية.'),
-                  const SizedBox(height: 8),
+                  Text('تعذر قراءة حالات الموارد المحلية.'),
+                  SizedBox(height: 8),
                   TextButton(
                     onPressed: _refresh,
-                    child: const Text('إعادة المحاولة'),
+                    child: Text('إعادة المحاولة'),
                   ),
                 ],
               ),
@@ -64,17 +65,17 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
           }
           final data = snapshot.data!;
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             children: [
-              const Text(
+              Text(
                 'هذه حالات مسجلة محليًا وليست شهادة بجاهزية الملفات. '
                 'لا تُفعّل الموارد إلا بعد فحص السلامة والتوافق.',
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _section('النموذج المحلي (LLM)', data.llm),
               _section('حزم بيانات RAG', data.ragPacks),
               _section('نموذج Query Embedding المشترك', data.ragEmbedding),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
                   'نموذج Embedding جزء من تجهيز Dataset، وليس تنزيلًا منفصلًا. '
@@ -82,7 +83,7 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
                 ),
               ),
               _section('كتب PDF', data.pdfBooks),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(top: 12),
                 child: Text(
                   'كتب PDF مستقلة عن نموذج الذكاء الاصطناعي وبيانات RAG.',
@@ -98,20 +99,20 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   Widget _section(String title, List<ResourceStatusEntry> entries) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 6),
             if (entries.isEmpty)
-              const Text('لا توجد موارد مسجلة في هذا القسم.')
+              Text('لا توجد موارد مسجلة في هذا القسم.')
             else
               for (final entry in entries)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(entry.resourceId),
-                  subtitle: Text(entry.statusLabel),
+                  subtitle: Text(context.tr(entry.statusLabel)),
                   leading: Icon(
                     entry.displayState == ResourceDisplayState.failed
                         ? Icons.error_outline

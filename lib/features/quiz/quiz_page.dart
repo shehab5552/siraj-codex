@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../integrations/ai/tutor_contract.dart';
@@ -34,9 +35,9 @@ class _QuizPageState extends State<QuizPage> {
       return;
     }
     if (source == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('المصدر غير متاح حاليًا.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('المصدر غير متاح حاليًا.'))),
+      );
       return;
     }
     await showDialog<void>(
@@ -44,10 +45,10 @@ class _QuizPageState extends State<QuizPage> {
       builder: (dialogContext) => AnimatedBuilder(
         animation: c,
         builder: (context, _) => AlertDialog(
-          title: const Text('مصدر السؤال'),
+          title: Text(context.tr('مصدر السؤال')),
           content: SingleChildScrollView(
             child: c.question?.id != questionId || c.phase != QuizPhase.question
-                ? const Text('انتهت جلسة الاختبار؛ لن يعرض المصدر.')
+                ? Text(context.tr('انتهت جلسة الاختبار؛ لن يعرض المصدر.'))
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,8 +60,14 @@ class _QuizPageState extends State<QuizPage> {
                         source.document,
                       ])
                         if (text != null && text.trim().isNotEmpty) Text(text),
-                      if (source.page != null) Text('صفحة ${source.page}'),
-                      const SizedBox(height: 12),
+                      if (source.page != null)
+                        Text(
+                          context.copy(
+                            'صفحة ${source.page}',
+                            'Page ${source.page}',
+                          ),
+                        ),
+                      SizedBox(height: 12),
                       Text(source.snippet),
                     ],
                   ),
@@ -68,7 +75,7 @@ class _QuizPageState extends State<QuizPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إغلاق'),
+              child: Text(context.tr('إغلاق')),
             ),
           ],
         ),
@@ -78,27 +85,29 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: TextDirection.rtl,
+    textDirection: SirajCopy.isArabic(context)
+        ? TextDirection.rtl
+        : TextDirection.ltr,
     child: AnimatedBuilder(
       animation: c,
       builder: (context, _) => Scaffold(
-        appBar: AppBar(title: const Text('اختبر فهمك')),
+        appBar: AppBar(title: Text(context.tr('اختبر فهمك'))),
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(20),
             children: [
               if (c.phase == QuizPhase.loading)
-                const Center(child: CircularProgressIndicator())
+                Center(child: CircularProgressIndicator())
               else if (c.phase == QuizPhase.sessionExpired)
-                const Text('انتهت صلاحية الجلسة. يلزم تسجيل الدخول.')
+                Text(context.tr('انتهت صلاحية الجلسة. يلزم تسجيل الدخول.'))
               else ...[
                 if (c.error case final error?)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: EdgeInsets.only(bottom: 16),
                     child: Semantics(
                       liveRegion: true,
                       child: Text(
-                        quizErrorText(error),
+                        context.tr(quizErrorText(error)),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.error,
                         ),
@@ -107,11 +116,11 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                 if (c.needsCleanupRetry)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: EdgeInsets.only(bottom: 12),
                     child: OutlinedButton(
-                      key: const Key('quiz-retry-cleanup'),
+                      key: Key('quiz-retry-cleanup'),
                       onPressed: () => unawaited(c.retryCleanup()),
-                      child: const Text('إعادة محاولة الإنهاء'),
+                      child: Text(context.tr('إعادة محاولة الإنهاء')),
                     ),
                   ),
                 if (c.phase == QuizPhase.idle)
@@ -126,19 +135,24 @@ class _QuizPageState extends State<QuizPage> {
                     ),
                   ),
                 if (c.phase == QuizPhase.generating) ...[
-                  const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 16),
-                  const Text('جارٍ إعداد أسئلة الاختبار والتحقق منها…'),
-                  const SizedBox(height: 16),
+                  Center(child: CircularProgressIndicator()),
+                  SizedBox(height: 16),
+                  Text(context.tr('جارٍ إعداد أسئلة الاختبار والتحقق منها…')),
+                  SizedBox(height: 16),
                   OutlinedButton(
-                    key: const Key('quiz-cancel'),
+                    key: Key('quiz-cancel'),
                     onPressed: () => unawaited(c.end()),
-                    child: const Text('إلغاء الطلب'),
+                    child: Text(context.tr('إلغاء الطلب')),
                   ),
                 ],
                 if (c.phase == QuizPhase.question && c.question != null) ...[
-                  Text('السؤال ${c.index + 1} من ${c.questionCount}'),
-                  const SizedBox(height: 16),
+                  Text(
+                    context.copy(
+                      'السؤال ${c.index + 1} من ${c.questionCount}',
+                      'Question ${c.index + 1} of ${c.questionCount}',
+                    ),
+                  ),
+                  SizedBox(height: 16),
                   QuizQuestionForm(
                     key: ValueKey(c.question!.id),
                     question: c.question!,
@@ -146,7 +160,7 @@ class _QuizPageState extends State<QuizPage> {
                     busy: c.busy,
                     onAnswer: (answer) => unawaited(c.submit(answer)),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -154,21 +168,23 @@ class _QuizPageState extends State<QuizPage> {
                       for (var i = 0; i < c.question!.sources.length; i++)
                         ActionChip(
                           key: Key('quiz-source-$i'),
-                          label: Text('المصدر ${i + 1}'),
+                          label: Text(
+                            context.copy('المصدر ${i + 1}', 'Source ${i + 1}'),
+                          ),
                           onPressed: () =>
                               unawaited(_source(c.question!.sources[i])),
                         ),
                     ],
                   ),
                   if (c.feedback != null) ...[
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     FilledButton(
-                      key: const Key('quiz-next'),
+                      key: Key('quiz-next'),
                       onPressed: c.next,
                       child: Text(
                         c.index + 1 < c.questionCount
-                            ? 'السؤال التالي'
-                            : 'عرض النتيجة',
+                            ? context.tr('السؤال التالي')
+                            : context.tr('عرض النتيجة'),
                       ),
                     ),
                   ],
@@ -177,11 +193,11 @@ class _QuizPageState extends State<QuizPage> {
                   QuizSummaryView(summary: summary),
                 if (c.phase == QuizPhase.question ||
                     c.phase == QuizPhase.summary) ...[
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   OutlinedButton(
-                    key: const Key('quiz-end'),
+                    key: Key('quiz-end'),
                     onPressed: () => unawaited(c.end()),
-                    child: const Text('إنهاء الاختبار'),
+                    child: Text(context.tr('إنهاء الاختبار')),
                   ),
                 ],
               ],

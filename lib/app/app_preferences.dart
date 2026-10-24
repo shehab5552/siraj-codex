@@ -73,6 +73,7 @@ class AppPreferencesController extends ChangeNotifier {
   AppPreferences _value = const AppPreferences();
   AppPreferences get value => _value;
   bool persistenceFailed = false;
+  bool loaded = false;
   bool _disposed = false;
   Future<void> _tail = Future.value();
   Future<void> _load() async {
@@ -81,6 +82,7 @@ class AppPreferencesController extends ChangeNotifier {
     } catch (_) {
       persistenceFailed = true;
     }
+    loaded = true;
     if (!_disposed) notifyListeners();
   }
 

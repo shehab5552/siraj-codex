@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -62,48 +63,52 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
 
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: TextDirection.rtl,
+    textDirection: SirajCopy.isArabic(context)
+        ? TextDirection.rtl
+        : TextDirection.ltr,
     child: AnimatedBuilder(
       animation: widget.controller,
       builder: (context, _) {
         final history = widget.controller;
         return Scaffold(
           appBar: AppBar(
-            title: const Text('محادثاتك'),
+            title: Text(context.tr('محادثاتك')),
             actions: [
               IconButton(
-                tooltip: 'تحديث المحادثات',
+                tooltip: context.tr('تحديث المحادثات'),
                 onPressed: history.isLoading
                     ? null
                     : () => unawaited(history.load()),
-                icon: const Icon(Icons.refresh),
+                icon: Icon(Icons.refresh),
               ),
             ],
           ),
           body: SafeArea(
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               children: [
                 Text(
-                  'تابع أسئلتك من حيث توقفت',
+                  context.tr('تابع أسئلتك من حيث توقفت'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'تُحفظ حتى عشر محادثات على هذا الجهاز. عند حفظ أول رسالة صالحة في المحادثة الحادية عشرة، تُحذف أقدم محادثة تلقائيًا.',
+                SizedBox(height: 8),
+                Text(
+                  context.tr(
+                    'تُحفظ حتى عشر محادثات على هذا الجهاز. عند حفظ أول رسالة صالحة في المحادثة الحادية عشرة، تُحذف أقدم محادثة تلقائيًا.',
+                  ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 FilledButton.icon(
-                  key: const Key('history-new-chat'),
+                  key: Key('history-new-chat'),
                   onPressed:
                       _opening || history.isLoading || history.sessionExpired
                       ? null
                       : () => unawaited(_open()),
-                  icon: const Icon(Icons.add_comment_outlined),
-                  label: const Text('محادثة جديدة'),
+                  icon: Icon(Icons.add_comment_outlined),
+                  label: Text(context.tr('محادثة جديدة')),
                 ),
                 if (history.isLoading)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.all(24),
                     child: Center(child: CircularProgressIndicator()),
                   ),
@@ -117,11 +122,11 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
                 if (!history.isLoading &&
                     history.conversations.isEmpty &&
                     !history.sessionExpired)
-                  const Padding(
+                  Padding(
                     key: Key('history-empty'),
                     padding: EdgeInsets.all(32),
                     child: Text(
-                      'لا توجد محادثات محفوظة بعد.',
+                      context.tr('لا توجد محادثات محفوظة بعد.'),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -129,13 +134,13 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
                   Card(
                     child: ListTile(
                       key: Key('history-${item.id}'),
-                      leading: const Icon(Icons.chat_bubble_outline),
+                      leading: Icon(Icons.chat_bubble_outline),
                       title: Text(
                         item.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      trailing: const Icon(Icons.chevron_left),
+                      trailing: Icon(Icons.chevron_left),
                       onTap: _opening ? null : () => unawaited(_open(item.id)),
                     ),
                   ),

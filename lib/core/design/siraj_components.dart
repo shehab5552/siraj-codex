@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'siraj_design.dart';
 
 class SirajCard extends StatelessWidget {
-  const SirajCard({super.key, required this.child, this.padding = const EdgeInsets.all(SirajSpacing.x4)});
+  const SirajCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(SirajSpacing.x4),
+  });
   final Widget child;
   final EdgeInsetsGeometry padding;
   @override
@@ -12,18 +16,32 @@ class SirajCard extends StatelessWidget {
 }
 
 class SirajButton extends StatelessWidget {
-  const SirajButton({super.key, required this.label, required this.onPressed, this.icon});
+  const SirajButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.icon,
+  });
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   @override
   Widget build(BuildContext context) => icon == null
       ? FilledButton(onPressed: onPressed, child: Text(label))
-      : FilledButton.icon(onPressed: onPressed, icon: Icon(icon), label: Text(label));
+      : FilledButton.icon(
+          onPressed: onPressed,
+          icon: Icon(icon),
+          label: Text(label),
+        );
 }
 
 class SirajTextField extends StatelessWidget {
-  const SirajTextField({super.key, required this.label, this.controller, this.enabled = true});
+  const SirajTextField({
+    super.key,
+    required this.label,
+    this.controller,
+    this.enabled = true,
+  });
   final String label;
   final TextEditingController? controller;
   final bool enabled;
@@ -37,8 +55,12 @@ class SirajTextField extends StatelessWidget {
 
 class SirajStatusView extends StatelessWidget {
   const SirajStatusView({
-    super.key, required this.title, required this.message,
-    this.icon = Icons.info_outline, this.actionLabel, this.onAction,
+    super.key,
+    required this.title,
+    required this.message,
+    this.icon = Icons.info_outline,
+    this.actionLabel,
+    this.onAction,
   });
   final String title;
   final String message;
@@ -56,7 +78,11 @@ class SirajStatusView extends StatelessWidget {
           children: [
             Icon(icon, size: 46, color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 8),
             Text(message, textAlign: TextAlign.center),
             if (actionLabel != null && onAction != null) ...[
@@ -74,14 +100,16 @@ class SirajLoadingView extends StatelessWidget {
   const SirajLoadingView({super.key, this.message = 'جارٍ التحميل…'});
   final String message;
   @override
-  Widget build(BuildContext context) => Center(child: Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      const CircularProgressIndicator(),
-      const SizedBox(height: 16),
-      Text(message),
-    ],
-  ));
+  Widget build(BuildContext context) => Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const CircularProgressIndicator(),
+        const SizedBox(height: 16),
+        Text(message),
+      ],
+    ),
+  );
 }
 
 class SirajErrorView extends StatelessWidget {
@@ -111,11 +139,18 @@ Future<bool> showSirajConfirmationDialog(
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')),
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext, false),
+          child: const Text('إلغاء'),
+        ),
         TextButton(
           onPressed: () => Navigator.pop(dialogContext, true),
-          child: Text(confirmLabel,
-              style: destructive ? TextStyle(color: Theme.of(dialogContext).colorScheme.error) : null),
+          child: Text(
+            confirmLabel,
+            style: destructive
+                ? TextStyle(color: Theme.of(dialogContext).colorScheme.error)
+                : null,
+          ),
         ),
       ],
     ),

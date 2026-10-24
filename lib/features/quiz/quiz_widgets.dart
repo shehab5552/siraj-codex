@@ -1,3 +1,4 @@
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 import '../../integrations/ai/quiz_port.dart';
 import 'quiz_controller.dart';
@@ -58,37 +59,43 @@ class _QuizRequestFormState extends State<QuizRequestForm> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'اختبر فهمك',
+        Text(
+          context.tr('اختبر فهمك'),
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
-        const Text(
-          'اطلب اختبارًا في درس أو وحدة. تُولد الأسئلة محليًا بعد جاهزية الموارد والتحقق منها. لا تُحفظ نتيجة الاختبار بعد إنهائه.',
+        SizedBox(height: 12),
+        Text(
+          context.tr(
+            'اطلب اختبارًا في درس أو وحدة. تُولد الأسئلة محليًا بعد جاهزية الموارد والتحقق منها. لا تُحفظ نتيجة الاختبار بعد إنهائه.',
+          ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         TextFormField(
-          key: const Key('quiz-request'),
+          key: Key('quiz-request'),
           controller: _request,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'ما الذي تريد التدرب عليه؟',
+          decoration: InputDecoration(
+            labelText: context.tr('ما الذي تريد التدرب عليه؟'),
             border: OutlineInputBorder(),
           ),
-          validator: (s) =>
-              s == null || s.trim().isEmpty ? 'اكتب طلب الاختبار.' : null,
+          validator: (s) => s == null || s.trim().isEmpty
+              ? context.tr('اكتب طلب الاختبار.')
+              : null,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         DropdownButtonFormField<QuizQuestionType>(
-          key: const Key('quiz-request-type'),
+          key: Key('quiz-request-type'),
           initialValue: _type,
           isExpanded: true,
-          decoration: const InputDecoration(
-            labelText: 'نوع الأسئلة',
+          decoration: InputDecoration(
+            labelText: context.tr('نوع الأسئلة'),
             border: OutlineInputBorder(),
           ),
           items: [
-            const DropdownMenuItem(value: null, child: Text('أنواع متنوعة')),
+            DropdownMenuItem(
+              value: null,
+              child: Text(context.tr('أنواع متنوعة')),
+            ),
             for (final type in QuizQuestionType.values)
               DropdownMenuItem(value: type, child: Text(_typeLabel(type))),
           ],
@@ -96,26 +103,26 @@ class _QuizRequestFormState extends State<QuizRequestForm> {
               ? null
               : (value) => setState(() => _type = value),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         TextFormField(
-          key: const Key('quiz-count'),
+          key: Key('quiz-count'),
           controller: _count,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'عدد الأسئلة (اختياري)',
+          decoration: InputDecoration(
+            labelText: context.tr('عدد الأسئلة (اختياري)'),
             border: OutlineInputBorder(),
           ),
           validator: (s) {
             if (s == null || s.trim().isEmpty) return null;
             final value = int.tryParse(_digits(s));
             return value == null || value <= 0
-                ? 'أدخل عددًا صحيحًا موجبًا.'
+                ? context.tr('أدخل عددًا صحيحًا موجبًا.')
                 : null;
           },
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: 20),
         FilledButton.icon(
-          key: const Key('quiz-start'),
+          key: Key('quiz-start'),
           onPressed: widget.busy
               ? null
               : () {
@@ -129,17 +136,17 @@ class _QuizRequestFormState extends State<QuizRequestForm> {
                     );
                   }
                 },
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: const Text('إنشاء الاختبار'),
+          icon: Icon(Icons.auto_awesome_outlined),
+          label: Text(context.tr('إنشاء الاختبار')),
         ),
       ],
     ),
   );
   String _typeLabel(QuizQuestionType type) => switch (type) {
-    QuizQuestionType.mcq => 'اختيار من متعدد',
-    QuizQuestionType.trueFalse => 'صح أو خطأ',
-    QuizQuestionType.numeric => 'مسألة عددية',
-    QuizQuestionType.shortAnswer => 'إجابة قصيرة',
+    QuizQuestionType.mcq => context.tr('اختيار من متعدد'),
+    QuizQuestionType.trueFalse => context.tr('صح أو خطأ'),
+    QuizQuestionType.numeric => context.tr('مسألة عددية'),
+    QuizQuestionType.shortAnswer => context.tr('إجابة قصيرة'),
   };
 }
 
@@ -186,7 +193,7 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Text(widget.question.stem, style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 16),
+      SizedBox(height: 16),
       switch (widget.question.type) {
         QuizQuestionType.mcq => RadioGroup<String>(
           groupValue: _choice,
@@ -213,12 +220,12 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
             children: [
               RadioListTile<bool>(
                 value: true,
-                title: const Text('صح'),
+                title: Text(context.tr('صح')),
                 enabled: _enabled,
               ),
               RadioListTile<bool>(
                 value: false,
-                title: const Text('خطأ'),
+                title: Text(context.tr('خطأ')),
                 enabled: _enabled,
               ),
             ],
@@ -227,51 +234,52 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
         QuizQuestionType.numeric => Column(
           children: [
             TextField(
-              key: const Key('quiz-number'),
+              key: Key('quiz-number'),
               controller: _value,
               enabled: _enabled,
-              keyboardType: const TextInputType.numberWithOptions(
+              keyboardType: TextInputType.numberWithOptions(
                 decimal: true,
                 signed: true,
               ),
-              decoration: const InputDecoration(
-                labelText: 'القيمة',
+              decoration: InputDecoration(
+                labelText: context.tr('القيمة'),
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
-              key: const Key('quiz-unit'),
+              key: Key('quiz-unit'),
               controller: _unit,
               enabled: _enabled,
-              decoration: const InputDecoration(
-                labelText: 'الوحدة',
-                helperText:
-                    'استخدم الوحدة المطلوبة في السؤال، أو اتركها فارغة للكمية بلا وحدة.',
+              decoration: InputDecoration(
+                labelText: context.tr('الوحدة'),
+                helperText: context.tr(
+                  'استخدم الوحدة المطلوبة في السؤال، أو اتركها فارغة للكمية بلا وحدة.',
+                ),
                 border: OutlineInputBorder(),
               ),
             ),
           ],
         ),
         QuizQuestionType.shortAnswer => TextField(
-          key: const Key('quiz-short-answer'),
+          key: Key('quiz-short-answer'),
           controller: _short,
           enabled: _enabled,
           maxLines: 3,
-          decoration: const InputDecoration(
-            labelText: 'إجابتك',
+          decoration: InputDecoration(
+            labelText: context.tr('إجابتك'),
             border: OutlineInputBorder(),
           ),
         ),
       },
-      const SizedBox(height: 16),
+      SizedBox(height: 16),
       if (widget.feedback == null)
         FilledButton(
-          key: const Key('quiz-submit'),
+          key: Key('quiz-submit'),
           onPressed: _enabled && _answer != null
               ? () => widget.onAnswer(_answer!)
               : null,
-          child: const Text('تحقق من الإجابة'),
+          child: Text(context.tr('تحقق من الإجابة')),
         ),
       if (widget.feedback case final feedback?)
         QuizFeedbackCard(feedback: feedback),
@@ -285,16 +293,16 @@ class QuizFeedbackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(switch (feedback.verdict) {
-            QuizVerdict.correct => 'إجابة صحيحة',
-            QuizVerdict.incorrect => 'إجابة غير صحيحة',
-            QuizVerdict.undetermined => 'تعذر الحكم',
-          }, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+            QuizVerdict.correct => context.tr('إجابة صحيحة'),
+            QuizVerdict.incorrect => context.tr('إجابة غير صحيحة'),
+            QuizVerdict.undetermined => context.tr('تعذر الحكم'),
+          }, style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 8),
           Text(feedback.explanation),
         ],
       ),
@@ -308,31 +316,57 @@ class QuizSummaryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'نتيجة الجلسة',
+          Text(
+            context.tr('نتيجة الجلسة'),
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text('${summary.correct} صحيحة')),
-              Chip(label: Text('${summary.incorrect} خاطئة')),
-              Chip(label: Text('${summary.undetermined} تعذر الحكم')),
+              Chip(
+                label: Text(
+                  context.copy(
+                    '${summary.correct} صحيحة',
+                    '${summary.correct} correct',
+                  ),
+                ),
+              ),
+              Chip(
+                label: Text(
+                  context.copy(
+                    '${summary.incorrect} خاطئة',
+                    '${summary.incorrect} incorrect',
+                  ),
+                ),
+              ),
+              Chip(
+                label: Text(
+                  context.copy(
+                    '${summary.undetermined} تعذر الحكم',
+                    '${summary.undetermined} undetermined',
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
-            '${summary.judgeable} أسئلة محسومة. الإجابات التي تعذر الحكم عليها ليست أخطاء.',
+            context.copy(
+              '${summary.judgeable} أسئلة محسومة. الإجابات التي تعذر الحكم عليها ليست أخطاء.',
+              '${summary.judgeable} judgeable questions. Undetermined answers are not counted as incorrect.',
+            ),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'تبقى هذه النتيجة في الجلسة الحالية فقط، وتُمحى عند إنهائها.',
+          SizedBox(height: 12),
+          Text(
+            context.tr(
+              'تبقى هذه النتيجة في الجلسة الحالية فقط، وتُمحى عند إنهائها.',
+            ),
           ),
         ],
       ),
