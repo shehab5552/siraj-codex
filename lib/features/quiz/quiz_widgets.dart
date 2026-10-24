@@ -2,6 +2,7 @@ import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 import '../../integrations/ai/quiz_port.dart';
 import 'quiz_controller.dart';
+import 'quiz_curriculum.dart';
 
 String quizErrorText(QuizErrorCode code) => switch (code) {
   QuizErrorCode.modelRequired =>
@@ -20,134 +21,170 @@ String quizErrorText(QuizErrorCode code) => switch (code) {
     'تعذر إكمال العملية بأمان. أعد المحاولة لاحقًا.',
 };
 
-class QuizRequestForm extends StatefulWidget {
-  const QuizRequestForm({super.key, required this.onStart, required this.busy});
-  final void Function(
-    String text, {
-    int? desiredCount,
-    QuizQuestionType? desiredType,
-  })
-  onStart;
+class QuizSetupForm extends StatelessWidget {
+  const QuizSetupForm({
+    super.key,
+    required this.setup,
+    required this.busy,
+    required this.onStart,
+  });
+  final QuizSetupController setup;
   final bool busy;
+  final ValueChanged<QuizSelection> onStart;
   @override
-  State<QuizRequestForm> createState() => _QuizRequestFormState();
-}
-
-class _QuizRequestFormState extends State<QuizRequestForm> {
-  final _form = GlobalKey<FormState>();
-  final _request = TextEditingController(), _count = TextEditingController();
-  QuizQuestionType? _type;
-  @override
-  void dispose() {
-    _request.dispose();
-    _count.dispose();
-    super.dispose();
-  }
-
-  String _digits(String text) => String.fromCharCodes(
-    text.trim().runes.map(
-      (c) => c >= 0x660 && c <= 0x669
-          ? c - 0x660 + 0x30
-          : c >= 0x6f0 && c <= 0x6f9
-          ? c - 0x6f0 + 0x30
-          : c,
-    ),
-  );
-  @override
-  Widget build(BuildContext context) => Form(
-    key: _form,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          context.tr('اختبر فهمك'),
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 12),
-        Text(
-          context.tr(
-            'اطلب اختبارًا في درس أو وحدة. تُولد الأسئلة محليًا بعد جاهزية الموارد والتحقق منها. لا تُحفظ نتيجة الاختبار بعد إنهائه.',
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: setup,
+    builder: (context, _) {
+      final data = setup.snapshot;
+      final subjects = data?.subjects ?? const <QuizSubject>[];
+      final selected = subjects.where((s) => s.id == setup.subjectId);
+      final units = selected.isEmpty
+          ? const <QuizUnit>[]
+          : selected.first.units;
+      String label(String ar, String en) => context.copy(ar, en);
+      Widget field<T>(
+        String name,
+        Key key,
+        T? value,
+        List<DropdownMenuItem<T>> items,
+        ValueChanged<T?>? changed,
+      ) => InputDecorator(
+        decoration: InputDecoration(labelText: name),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<T>(
+            key: key,
+            value: value,
+            isExpanded: true,
+            hint: Text(context.copy('اختر', 'Choose')),
+            items: items,
+            onChanged: changed,
           ),
         ),
-        SizedBox(height: 16),
-        TextFormField(
-          key: Key('quiz-request'),
-          controller: _request,
-          maxLines: 3,
-          decoration: InputDecoration(
-            labelText: context.tr('ما الذي تريد التدرب عليه؟'),
-            border: OutlineInputBorder(),
+      );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.tr('اختبر فهمك'),
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
-          validator: (s) => s == null || s.trim().isEmpty
-              ? context.tr('اكتب طلب الاختبار.')
-              : null,
-        ),
-        SizedBox(height: 16),
-        DropdownButtonFormField<QuizQuestionType>(
-          key: Key('quiz-request-type'),
-          initialValue: _type,
-          isExpanded: true,
-          decoration: InputDecoration(
-            labelText: context.tr('نوع الأسئلة'),
-            border: OutlineInputBorder(),
-          ),
-          items: [
-            DropdownMenuItem(
-              value: null,
-              child: Text(context.tr('أنواع متنوعة')),
+          const SizedBox(height: 12),
+          Text(
+            context.copy(
+              'اختبار محلي جديد من LLM وRAG بأدلة معتمدة. تبقى الإجابات والنتيجة في الذاكرة فقط.',
+              'A new local quiz from LLM and RAG with approved evidence. Answers and results remain in memory only.',
             ),
-            for (final type in QuizQuestionType.values)
-              DropdownMenuItem(value: type, child: Text(_typeLabel(type))),
-          ],
-          onChanged: widget.busy
-              ? null
-              : (value) => setState(() => _type = value),
-        ),
-        SizedBox(height: 16),
-        TextFormField(
-          key: Key('quiz-count'),
-          controller: _count,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: context.tr('عدد الأسئلة (اختياري)'),
-            border: OutlineInputBorder(),
           ),
-          validator: (s) {
-            if (s == null || s.trim().isEmpty) return null;
-            final value = int.tryParse(_digits(s));
-            return value == null || value <= 0
-                ? context.tr('أدخل عددًا صحيحًا موجبًا.')
-                : null;
-          },
-        ),
-        SizedBox(height: 20),
-        FilledButton.icon(
-          key: Key('quiz-start'),
-          onPressed: widget.busy
-              ? null
-              : () {
-                  if (_form.currentState!.validate()) {
-                    widget.onStart(
-                      _request.text,
-                      desiredCount: _count.text.trim().isEmpty
-                          ? null
-                          : int.parse(_digits(_count.text)),
-                      desiredType: _type,
-                    );
-                  }
-                },
-          icon: Icon(Icons.auto_awesome_outlined),
-          label: Text(context.tr('إنشاء الاختبار')),
-        ),
-      ],
-    ),
+          const SizedBox(height: 16),
+          if (setup.loading) const LinearProgressIndicator(),
+          if (data == null && !setup.loading)
+            Card(
+              key: const Key('quiz-catalog-unavailable'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      context.copy(
+                        'فهرس المواد والوحدات المعتمد غير متاح. لا يمكن إنشاء اختبار أو اختراع أسماء مواد وحدود للأسئلة.',
+                        'The approved subject and unit catalog is unavailable. A quiz cannot be created and subject names or question limits cannot be invented.',
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => setup.load(),
+                      child: Text(context.tr('إعادة المحاولة')),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (data != null) ...[
+            field<String>(
+              context.copy('المادة', 'Subject'),
+              const Key('quiz-subject'),
+              setup.subjectId,
+              [
+                for (final subject in subjects)
+                  DropdownMenuItem(
+                    value: subject.id,
+                    child: Text(label(subject.arabicName, subject.englishName)),
+                  ),
+              ],
+              busy ? null : setup.selectSubject,
+            ),
+            const SizedBox(height: 16),
+            field<String>(
+              context.tr('الوحدة'),
+              const Key('quiz-unit-selector'),
+              setup.unitId,
+              [
+                for (final unit in units)
+                  DropdownMenuItem(
+                    value: unit.id,
+                    child: Text(label(unit.arabicName, unit.englishName)),
+                  ),
+              ],
+              busy || units.isEmpty ? null : setup.selectUnit,
+            ),
+            const SizedBox(height: 16),
+            field<QuizQuestionType>(
+              context.tr('نوع الأسئلة'),
+              const Key('quiz-request-type'),
+              setup.type,
+              [
+                for (final type in QuizQuestionType.values)
+                  DropdownMenuItem(
+                    value: type,
+                    child: Text(
+                      context.tr(switch (type) {
+                        QuizQuestionType.mcq => 'اختيار من متعدد',
+                        QuizQuestionType.trueFalse => 'صح أو خطأ',
+                        QuizQuestionType.numeric => 'مسألة عددية',
+                        QuizQuestionType.shortAnswer => 'إجابة قصيرة',
+                      }),
+                    ),
+                  ),
+              ],
+              busy
+                  ? null
+                  : (type) {
+                      if (type != null) setup.selectType(type);
+                    },
+            ),
+            const SizedBox(height: 16),
+            field<int>(
+              context.copy('عدد الأسئلة', 'Question count'),
+              const Key('quiz-count'),
+              setup.count,
+              [
+                for (final n in data.allowedCounts[setup.type] ?? <int>[])
+                  DropdownMenuItem(value: n, child: Text('$n')),
+              ],
+              busy ? null : setup.selectCount,
+            ),
+          ],
+          const SizedBox(height: 16),
+          if (!setup.resourcesReady)
+            Text(
+              context.copy(
+                'النموذج المحلي أو RAG المتوافق غير جاهز. لن تُولّد أسئلة تجريبية.',
+                'The local model or compatible RAG is not ready. No demo questions will be generated.',
+              ),
+            ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            key: const Key('quiz-start'),
+            onPressed: busy || !setup.canStart
+                ? null
+                : () => onStart(setup.selection!),
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text(context.tr('إنشاء الاختبار')),
+          ),
+        ],
+      );
+    },
   );
-  String _typeLabel(QuizQuestionType type) => switch (type) {
-    QuizQuestionType.mcq => context.tr('اختيار من متعدد'),
-    QuizQuestionType.trueFalse => context.tr('صح أو خطأ'),
-    QuizQuestionType.numeric => context.tr('مسألة عددية'),
-    QuizQuestionType.shortAnswer => context.tr('إجابة قصيرة'),
-  };
 }
 
 class QuizQuestionForm extends StatefulWidget {
@@ -157,7 +194,11 @@ class QuizQuestionForm extends StatefulWidget {
     required this.feedback,
     required this.onAnswer,
     required this.busy,
+    this.initialAnswer,
+    this.onDraftChanged,
   });
+  final QuizAnswer? initialAnswer;
+  final ValueChanged<QuizAnswer?>? onDraftChanged;
   final QuizQuestionView question;
   final QuizFeedback? feedback;
   final ValueChanged<QuizAnswer> onAnswer;
@@ -172,6 +213,32 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
   final _value = TextEditingController(),
       _unit = TextEditingController(),
       _short = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    switch (widget.initialAnswer) {
+      case ChoiceAnswer a:
+        _choice = a.optionId;
+      case BooleanAnswer a:
+        _boolean = a.value;
+      case NumericAnswer a:
+        _value.text = a.value;
+        _unit.text = a.unit;
+      case ShortAnswer a:
+        _short.text = a.text;
+      case null:
+        break;
+    }
+    for (final input in [_value, _unit, _short]) {
+      input.addListener(_changed);
+    }
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+    widget.onDraftChanged?.call(_answer);
+  }
+
   @override
   void dispose() {
     _value.dispose();
@@ -198,7 +265,10 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
         QuizQuestionType.mcq => RadioGroup<String>(
           groupValue: _choice,
           onChanged: (value) {
-            if (_enabled) setState(() => _choice = value);
+            if (_enabled) {
+              setState(() => _choice = value);
+              widget.onDraftChanged?.call(_answer);
+            }
           },
           child: Column(
             children: [
@@ -214,7 +284,10 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
         QuizQuestionType.trueFalse => RadioGroup<bool>(
           groupValue: _boolean,
           onChanged: (value) {
-            if (_enabled) setState(() => _boolean = value);
+            if (_enabled) {
+              setState(() => _boolean = value);
+              widget.onDraftChanged?.call(_answer);
+            }
           },
           child: Column(
             children: [
@@ -273,7 +346,7 @@ class _QuizQuestionFormState extends State<QuizQuestionForm> {
         ),
       },
       SizedBox(height: 16),
-      if (widget.feedback == null)
+      if (widget.feedback == null && widget.onDraftChanged == null)
         FilledButton(
           key: Key('quiz-submit'),
           onPressed: _enabled && _answer != null
@@ -303,7 +376,7 @@ class QuizFeedbackCard extends StatelessWidget {
             QuizVerdict.undetermined => context.tr('تعذر الحكم'),
           }, style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(height: 8),
-          Text(feedback.explanation),
+          Text(context.tr(feedback.explanation)),
         ],
       ),
     ),

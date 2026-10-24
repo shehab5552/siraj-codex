@@ -4,9 +4,15 @@ import 'package:flutter/material.dart';
 import '../../integrations/ai/tutor_contract.dart';
 import 'quiz_controller.dart';
 import 'quiz_widgets.dart';
+import 'quiz_curriculum.dart';
 
 class QuizPage extends StatefulWidget {
-  const QuizPage({super.key, required this.controller});
+  const QuizPage({
+    super.key,
+    required this.controller,
+    this.curriculum = const UnavailableQuizCurriculum(),
+  });
+  final QuizCurriculumPort curriculum;
   final QuizController controller;
   @override
   State<QuizPage> createState() => _QuizPageState();
@@ -14,14 +20,20 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   QuizController get c => widget.controller;
+  late final QuizSetupController _setup = QuizSetupController(
+    catalog: widget.curriculum,
+    availability: () => c.availability,
+  );
   @override
   void initState() {
     super.initState();
     unawaited(c.initialize());
+    unawaited(_setup.load());
   }
 
   @override
   void dispose() {
+    _setup.dispose();
     c.dispose();
     super.dispose();
   }
@@ -83,6 +95,111 @@ class _QuizPageState extends State<QuizPage> {
     );
   }
 
+  Widget _questionContent(QuizQuestionView question, int index) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        context.copy(
+          'السؤال ${index + 1} من ${c.questionCount}',
+          'Question ${index + 1} of ${c.questionCount}',
+        ),
+      ),
+      const SizedBox(height: 16),
+      QuizQuestionForm(
+        key: ValueKey(question.id),
+        question: question,
+        feedback: null,
+        initialAnswer: c.draftAnswer,
+        onDraftChanged: (answer) => c.setDraftAnswerFor(question.id, answer),
+        busy: c.busy,
+        onAnswer: (answer) => c.setDraftAnswerFor(question.id, answer),
+      ),
+      const SizedBox(height: 16),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var i = 0; i < question.sources.length; i++)
+            ActionChip(
+              key: Key('quiz-source-$i'),
+              label: Text(context.copy('المصدر ${i + 1}', 'Source ${i + 1}')),
+              onPressed: () {
+                if (c.question?.id == question.id) {
+                  unawaited(_source(question.sources[i]));
+                }
+              },
+            ),
+        ],
+      ),
+      const SizedBox(height: 16),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          if (index > 0)
+            OutlinedButton(
+              key: const Key('quiz-previous'),
+              onPressed: () {
+                if (c.question?.id == question.id) {
+                  unawaited(c.goToQuestion(index - 1));
+                }
+              },
+              child: Text(context.tr('السابق')),
+            ),
+          FilledButton(
+            key: const Key('quiz-next'),
+            onPressed: () {
+              if (c.question?.id == question.id) {
+                unawaited(
+                  index + 1 < c.questionCount
+                      ? c.goToQuestion(index + 1)
+                      : c.enterReview(),
+                );
+              }
+            },
+            child: Text(
+              index + 1 < c.questionCount
+                  ? context.tr('السؤال التالي')
+                  : context.copy('مراجعة الإجابات', 'Review answers'),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+  Future<void> _confirmSubmit() async {
+    final expected = c.sessionIdentity;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.copy('تأكيد التسليم', 'Confirm submission')),
+        content: Text(
+          context.copy(
+            'ستُقيّم الإجابات وفق المعيار المراجَع. لن تُحفظ المحاولة خارج هذه الجلسة.',
+            'Answers will be graded against the reviewed criteria. This attempt will not be saved outside this session.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.tr('إلغاء')),
+          ),
+          FilledButton(
+            key: const Key('quiz-final-confirm'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.tr('تأكيد')),
+          ),
+        ],
+      ),
+    );
+    if (mounted &&
+        confirmed == true &&
+        c.phase == QuizPhase.review &&
+        identical(expected, c.sessionIdentity)) {
+      await c.finishReview();
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Directionality(
     textDirection: SirajCopy.isArabic(context)
@@ -124,15 +241,11 @@ class _QuizPageState extends State<QuizPage> {
                     ),
                   ),
                 if (c.phase == QuizPhase.idle)
-                  QuizRequestForm(
+                  QuizSetupForm(
+                    setup: _setup,
                     busy: c.busy,
-                    onStart: (text, {desiredCount, desiredType}) => unawaited(
-                      c.start(
-                        text,
-                        desiredCount: desiredCount,
-                        desiredType: desiredType,
-                      ),
-                    ),
+                    onStart: (selection) =>
+                        unawaited(c.startSelection(selection)),
                   ),
                 if (c.phase == QuizPhase.generating) ...[
                   Center(child: CircularProgressIndicator()),
@@ -146,52 +259,53 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                 ],
                 if (c.phase == QuizPhase.question && c.question != null) ...[
+                  _questionContent(c.question!, c.index),
+                ],
+                if (c.phase == QuizPhase.review) ...[
+                  Text(
+                    context.copy('مراجعة الاختبار', 'Review quiz'),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   Text(
                     context.copy(
-                      'السؤال ${c.index + 1} من ${c.questionCount}',
-                      'Question ${c.index + 1} of ${c.questionCount}',
+                      '${c.answeredCount} من ${c.questionCount} إجابات صالحة للتسليم',
+                      '${c.answeredCount} of ${c.questionCount} answers are valid for submission',
                     ),
                   ),
-                  SizedBox(height: 16),
-                  QuizQuestionForm(
-                    key: ValueKey(c.question!.id),
-                    question: c.question!,
-                    feedback: c.feedback,
-                    busy: c.busy,
-                    onAnswer: (answer) => unawaited(c.submit(answer)),
-                  ),
-                  SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (var i = 0; i < c.question!.sources.length; i++)
-                        ActionChip(
-                          key: Key('quiz-source-$i'),
-                          label: Text(
-                            context.copy('المصدر ${i + 1}', 'Source ${i + 1}'),
-                          ),
-                          onPressed: () =>
-                              unawaited(_source(c.question!.sources[i])),
+                  for (var i = 0; i < c.reviewQuestions.length; i++)
+                    Card(
+                      child: ListTile(
+                        title: Text(c.reviewQuestions[i].stem),
+                        subtitle: Text(
+                          c.answerAt(i) == null
+                              ? context.copy('لم تُجب بعد', 'Not answered')
+                              : context.copy(
+                                  'إجابة محفوظة في الجلسة',
+                                  'Answer saved in this session',
+                                ),
                         ),
-                    ],
-                  ),
-                  if (c.feedback != null) ...[
-                    SizedBox(height: 16),
-                    FilledButton(
-                      key: Key('quiz-next'),
-                      onPressed: c.next,
-                      child: Text(
-                        c.index + 1 < c.questionCount
-                            ? context.tr('السؤال التالي')
-                            : context.tr('عرض النتيجة'),
+                        trailing: TextButton(
+                          key: Key('quiz-edit-$i'),
+                          onPressed: () => unawaited(c.goToQuestion(i)),
+                          child: Text(context.copy('تعديل', 'Edit')),
+                        ),
                       ),
                     ),
-                  ],
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    key: const Key('quiz-confirm-submit'),
+                    onPressed: c.busy
+                        ? null
+                        : () => unawaited(_confirmSubmit()),
+                    child: Text(
+                      context.copy('تسليم الإجابات', 'Submit answers'),
+                    ),
+                  ),
                 ],
                 if (c.summary case final summary?)
                   QuizSummaryView(summary: summary),
                 if (c.phase == QuizPhase.question ||
+                    c.phase == QuizPhase.review ||
                     c.phase == QuizPhase.summary) ...[
                   SizedBox(height: 16),
                   OutlinedButton(

@@ -167,6 +167,12 @@ class QuizSession {
   final List<QuizQuestion> questions;
 }
 
+/// IDs from the trusted curriculum catalog, not LLM-generated labels.
+class QuizScope {
+  const QuizScope({required this.subjectId, required this.unitId});
+  final String subjectId, unitId;
+}
+
 class QuizRequest {
   const QuizRequest({
     required this.requestId,
@@ -177,9 +183,11 @@ class QuizRequest {
     required this.cancellation,
     this.desiredCount,
     this.desiredType,
+    this.scope,
   });
   final String requestId, userId, accountEpoch, text, datasetRevision;
   final TutorCancellation cancellation;
+  final QuizScope? scope;
   final int? desiredCount;
   final QuizQuestionType? desiredType;
 }

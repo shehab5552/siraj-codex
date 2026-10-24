@@ -51,6 +51,7 @@ jobs:
           # build modes. --no-pub would retain the dev-only integration_test.
           flutter build apk --release --target=lib/main.dart
           git diff --exit-code -- pubspec.lock
+          while read -r hash filename; do echo "::notice title=SIRAJ artifact SHA256::$hash $filename"; done < dist/SHA256SUMS
       - name: Install Android runtime test image
         shell: bash
         run: |
@@ -72,11 +73,9 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
       - name: Actual Android native KDF compatibility
-        shell: bash
-        run: |
-          set -euo pipefail
-          flutter test integration_test/unified_native_kdf_test.dart -d emulator-5554 --reporter expanded | tee dist/android-native-kdf.log
-          flutter test integration_test/unified_application_test.dart -d emulator-5554 --reporter expanded | tee dist/android-application.log
+        run: tool/android_test_with_evidence.sh integration_test/unified_native_kdf_test.dart dist/android-native-kdf.log
+      - name: Actual unified Android application flow
+        run: tool/android_test_with_evidence.sh integration_test/unified_application_test.dart dist/android-application.log
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

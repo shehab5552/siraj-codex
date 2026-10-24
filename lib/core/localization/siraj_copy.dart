@@ -14,6 +14,10 @@ abstract final class SirajCopy {
   static String text(BuildContext context, String arabic) =>
       isArabic(context) ? arabic : (_english[arabic] ?? arabic);
   static const _english = <String, String>{
+    'إجابة صحيحة وفق المفتاح المراجَع.':'Correct according to the reviewed answer key.',
+    'الإجابة لا تطابق المعيار المراجَع.':'The answer does not match the reviewed criteria.',
+    'تعذر الحكم بثقة وفق المعيار المراجَع المتاح.':'A confident verdict is not possible with the available reviewed criteria.',
+
     "آخر سؤال محفوظ بلا إجابة. يمكنك إعادة المحاولة.":
         "Your last question is saved without an answer. You can retry.",
     "أدخل عددًا صحيحًا موجبًا.": "Enter a positive whole number.",

@@ -22,7 +22,7 @@ void main() {
       }
 
       await tester.pumpWidget(const SirajApp());
-      await until(find.byKey(const Key('onboarding-next')));
+      await until(find.text('تخطي'));
       await tester.tap(find.text('تخطي'));
       await tester.pumpAndSettle();
       await until(find.byKey(const Key('signup-username')));

@@ -82,14 +82,22 @@ void main() {
     await t.pumpAndSettle();
   }
 
+  // Synthetic sessions are started directly by the existing controller fixture.
+  // Production scope selection is covered by unified_quiz_flow_widget_test.
   Future<void> generate(WidgetTester t) async {
-    await t.enterText(
-      find.byKey(const Key('quiz-request')),
-      'طلب اختبار اصطناعي',
-    );
-    await t.ensureVisible(find.byKey(const Key('quiz-start')));
+    unawaited(opened.last.start('طلب اختبار اصطناعي'));
     await t.pumpAndSettle();
-    await t.tap(find.byKey(const Key('quiz-start')));
+  }
+
+  Future<void> submitReviewed(WidgetTester t) async {
+    await t.scrollUntilVisible(
+      find.byKey(const Key('quiz-confirm-submit')),
+      180,
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('quiz-confirm-submit')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('quiz-final-confirm')));
     await t.pumpAndSettle();
   }
 
@@ -99,40 +107,36 @@ void main() {
       final c = create();
       await render(t, c);
       expect(
-        Directionality.of(t.element(find.byKey(const Key('quiz-request')))),
+        Directionality.of(
+          t.element(find.byKey(const Key('quiz-catalog-unavailable'))),
+        ),
         TextDirection.rtl,
       );
       await generate(t);
       expect(find.text('SYNTHETIC MCQ'), findsOneWidget);
       await t.tap(find.text('Synthetic A'));
       await t.pumpAndSettle();
-      await t.tap(find.byKey(const Key('quiz-submit')));
-      await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('quiz-next')));
       await t.pumpAndSettle();
       expect(find.text('SYNTHETIC BOOLEAN'), findsOneWidget);
       await t.tap(find.text('خطأ'));
-      await t.pumpAndSettle();
-      await t.tap(find.byKey(const Key('quiz-submit')));
       await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('quiz-next')));
       await t.pumpAndSettle();
       expect(find.byKey(const Key('quiz-number')), findsOneWidget);
       await t.enterText(find.byKey(const Key('quiz-number')), '1.25');
       await t.enterText(find.byKey(const Key('quiz-unit')), 'm');
-      await t.tap(find.byKey(const Key('quiz-submit')));
-      await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('quiz-next')));
       await t.pumpAndSettle();
       await t.enterText(
         find.byKey(const Key('quiz-short-answer')),
         'صياغة غير مراجعة',
       );
-      await t.tap(find.byKey(const Key('quiz-submit')));
-      await t.pumpAndSettle();
-      expect(find.textContaining('تعذر الحكم'), findsWidgets);
+      expect(c.summary, isNull, reason: 'review precedes final scoring');
       await t.tap(find.byKey(const Key('quiz-next')));
       await t.pumpAndSettle();
+      expect(c.phase, QuizPhase.review);
+      await submitReviewed(t);
       expect(find.text('2 صحيحة'), findsOneWidget);
       expect(find.text('1 خاطئة'), findsOneWidget);
       expect(find.text('1 تعذر الحكم'), findsOneWidget);
@@ -260,8 +264,6 @@ void main() {
     await generate(t);
     await t.tap(find.text('Synthetic A'));
     await t.pumpAndSettle();
-    await t.tap(find.byKey(const Key('quiz-submit')));
-    await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('quiz-source-0')));
     await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('quiz-next')));
@@ -285,8 +287,6 @@ void main() {
     await generate(t);
     await t.tap(find.text('Synthetic A'));
     await t.pumpAndSettle();
-    await t.tap(find.byKey(const Key('quiz-submit')));
-    await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('quiz-source-0')));
     await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('quiz-next')));
@@ -295,6 +295,7 @@ void main() {
       const ResolvedSource(reference: quizRef, snippet: 'STALE SUMMARY SOURCE'),
     );
     await t.pumpAndSettle();
+    await submitReviewed(t);
     expect(find.text('1 صحيحة'), findsOneWidget);
     expect(find.text('STALE SUMMARY SOURCE'), findsNothing);
     expect(find.byType(AlertDialog), findsNothing);

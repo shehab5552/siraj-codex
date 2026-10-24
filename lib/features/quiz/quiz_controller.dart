@@ -8,8 +8,17 @@ import '../../integrations/ai/tutor_port.dart';
 import 'quiz_access.dart';
 import 'quiz_cleanup_owner.dart';
 import 'quiz_scorer.dart';
+import 'quiz_curriculum.dart';
 
-enum QuizPhase { loading, idle, generating, question, summary, sessionExpired }
+enum QuizPhase {
+  loading,
+  idle,
+  generating,
+  question,
+  review,
+  summary,
+  sessionExpired,
+}
 
 class QuizSummary {
   const QuizSummary({
@@ -92,6 +101,114 @@ class QuizController extends ChangeNotifier {
               .where((f) => f.verdict == QuizVerdict.undetermined)
               .length,
         );
+  List<QuizQuestionView> get reviewQuestions => List.unmodifiable(
+    _session?.questions.map(QuizQuestionView.new) ?? const <QuizQuestionView>[],
+  );
+  QuizAnswer? get draftAnswer =>
+      question == null ? null : _answers[question!.id];
+  QuizAnswer? answerAt(int index) =>
+      _session == null || index < 0 || index >= questionCount
+      ? null
+      : _answers[_session!.questions[index].id];
+  QuizFeedback? feedbackAt(int index) =>
+      _session == null || index < 0 || index >= questionCount
+      ? null
+      : _feedback[_session!.questions[index].id];
+  bool _answerIsValid(QuizQuestion question, QuizAnswer? answer) {
+    if (answer == null) return false;
+    try {
+      _scorer.grade(question, answer);
+      return true;
+    } on QuizFailure {
+      return false;
+    }
+  }
+
+  int get answeredCount =>
+      _session?.questions
+          .where((q) => _answerIsValid(q, _answers[q.id]))
+          .length ??
+      0;
+  Object? get sessionIdentity => _session;
+  void setDraftAnswerFor(String questionId, QuizAnswer? answer) {
+    if (question?.id != questionId) return;
+    setDraftAnswer(answer);
+  }
+
+  void setDraftAnswer(QuizAnswer? answer) {
+    if (_closed || busy || _phase != QuizPhase.question || question == null) {
+      return;
+    }
+    final id = question!.id;
+    if (answer == null) {
+      _answers.remove(id);
+    } else {
+      _answers[id] = answer;
+    }
+    _feedback.remove(id);
+    _error = null;
+    _notify();
+  }
+
+  Future<void> goToQuestion(int index) async {
+    if (_closed ||
+        busy ||
+        ![QuizPhase.question, QuizPhase.review].contains(_phase) ||
+        index < 0 ||
+        index >= questionCount) {
+      return;
+    }
+    final version = _version;
+    if (!await _current(version)) return;
+    _index = index;
+    _phase = QuizPhase.question;
+    _error = null;
+    _notify();
+  }
+
+  Future<void> enterReview() async {
+    if (_closed || busy || _phase != QuizPhase.question || _session == null) {
+      return;
+    }
+    final version = _version;
+    if (!await _current(version)) return;
+    _phase = QuizPhase.review;
+    _error = null;
+    _notify();
+  }
+
+  /// No score or answer key is published before explicit confirmed submission.
+  /// All inputs must validate; unanswered/invalid inputs are never scored wrong
+  /// or silently converted to UNDETERMINED.
+  Future<void> finishReview() async {
+    final value = _session;
+    if (_closed || busy || _phase != QuizPhase.review || value == null) return;
+    _submitting = true;
+    final version = _version;
+    try {
+      if (!await _current(version)) return;
+      final results = <String, QuizFeedback>{};
+      for (final question in value.questions) {
+        final answer = _answers[question.id];
+        if (answer == null) throw const QuizFailure(QuizErrorCode.invalidInput);
+        results[question.id] = _scorer.grade(question, answer);
+      }
+      if (!await _current(version)) return;
+      _feedback
+        ..clear()
+        ..addAll(results);
+      _phase = QuizPhase.summary;
+      _error = null;
+    } on QuizFailure catch (e) {
+      if (!_closed && version == _version) _error = e.code;
+    } catch (_) {
+      if (!_closed && version == _version) _error = QuizErrorCode.runtimeFailed;
+    } finally {
+      _submitting = false;
+      _notify();
+    }
+  }
+
   void _notify() {
     if (!_closed) notifyListeners();
   }
@@ -205,10 +322,29 @@ class QuizController extends ChangeNotifier {
     await _cleanup.drain();
   }
 
+  QuizAvailability get availability => _port.availability;
+  Future<void> startSelection(QuizSelection selection) async {
+    if (!selection.isValid ||
+        !_port.availability.isReady ||
+        selection.catalog.datasetRevision !=
+            _port.availability.datasetRevision) {
+      _error = QuizErrorCode.notAvailable;
+      _notify();
+      return;
+    }
+    await start(
+      'Subject: ${selection.scope.subjectId}\nUnit: ${selection.scope.unitId}',
+      desiredCount: selection.count,
+      desiredType: selection.type,
+      scope: selection.scope,
+    );
+  }
+
   Future<void> start(
     String text, {
     int? desiredCount,
     QuizQuestionType? desiredType,
+    QuizScope? scope,
   }) async {
     if (_closed ||
         busy ||
@@ -248,6 +384,7 @@ class QuizController extends ChangeNotifier {
         cancellation: TutorCancellation(),
         desiredCount: desiredCount,
         desiredType: desiredType,
+        scope: scope,
       );
       _request = r;
       final value = await _port.create(r);
