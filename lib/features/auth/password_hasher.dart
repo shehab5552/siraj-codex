@@ -23,7 +23,7 @@ class PasswordCredential {
 /// The production iteration count MUST be selected after Android benchmarking
 /// and security review. There is deliberately no production default here.
 class PasswordHasher {
-  PasswordHasher({required this.iterations, IsolatePbkdf2? worker})
+  PasswordHasher({required this.iterations, Pbkdf2Worker? worker})
     : _worker = worker ?? IsolatePbkdf2() {
     if (iterations <= 0 || iterations > maxSupportedIterations) {
       throw RangeError.range(
@@ -46,7 +46,7 @@ class PasswordHasher {
   static const maxParametersLength = 4096;
 
   final int iterations;
-  final IsolatePbkdf2 _worker;
+  final Pbkdf2Worker _worker;
 
   Future<PasswordCredential> hashPassword(
     String password, {

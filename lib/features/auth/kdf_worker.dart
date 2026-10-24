@@ -24,11 +24,21 @@ class KdfCancellation {
 
 /// One bounded, disposable CPU worker per derivation. No platform channel,
 /// password logging or unbounded isolate queue. Cancellation kills the worker.
-class IsolatePbkdf2 {
+abstract interface class Pbkdf2Worker {
+  Future<Uint8List> derive({
+    required String password,
+    required Uint8List salt,
+    required int iterations,
+    KdfCancellation? cancellation,
+  });
+}
+
+class IsolatePbkdf2 implements Pbkdf2Worker {
   IsolatePbkdf2({this.deadline = const Duration(seconds: 60)});
   final Duration deadline;
   bool _busy = false;
 
+  @override
   Future<Uint8List> derive({
     required String password,
     required Uint8List salt,
