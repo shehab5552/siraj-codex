@@ -56,6 +56,7 @@ class _QuizPageState extends State<QuizPage> {
     }
     await showDialog<void>(
       context: context,
+      useRootNavigator: false,
       builder: (dialogContext) => AnimatedBuilder(
         animation: c,
         builder: (context, _) => AlertDialog(
@@ -173,6 +174,7 @@ class _QuizPageState extends State<QuizPage> {
     final expected = c.sessionIdentity;
     final confirmed = await showDialog<bool>(
       context: context,
+      useRootNavigator: false,
       builder: (dialogContext) => AlertDialog(
         title: Text(context.copy('تأكيد التسليم', 'Confirm submission')),
         content: Text(
@@ -307,8 +309,22 @@ class _QuizPageState extends State<QuizPage> {
                     ),
                   ),
                 ],
-                if (c.summary case final summary?)
+                if (c.summary case final summary?) ...[
                   QuizSummaryView(summary: summary),
+                  for (var i = 0; i < c.reviewQuestions.length; i++)
+                    if (c.feedbackAt(i) case final feedback?)
+                      Padding(
+                        key: ValueKey('quiz-result-$i'),
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(c.reviewQuestions[i].stem),
+                            QuizFeedbackCard(feedback: feedback),
+                          ],
+                        ),
+                      ),
+                ],
                 if (c.phase == QuizPhase.question ||
                     c.phase == QuizPhase.review ||
                     c.phase == QuizPhase.summary) ...[

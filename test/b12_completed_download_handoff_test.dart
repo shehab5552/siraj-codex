@@ -78,6 +78,16 @@ void main() {
         (await downloads.start(spec).result).failure?.code,
         DownloadFailureCode.busy,
       );
+      await expectLater(
+        downloads.discardCorruptCompletedArtifact(spec),
+        throwsA(
+          isA<DownloadFailure>().having(
+            (e) => e.code,
+            'code',
+            DownloadFailureCode.busy,
+          ),
+        ),
+      );
       finish.complete();
       expect(await reading, bytes);
     },
@@ -112,6 +122,7 @@ void main() {
         downloads.withCompletedArtifact(foreign, (file) => file.readAsBytes()),
         throwsA(isA<DownloadFailure>()),
       );
+      expect(await downloads.discardCorruptCompletedArtifact(foreign), isFalse);
       expect(
         await downloads.withCompletedArtifact(
           spec,
@@ -139,6 +150,8 @@ void main() {
         throwsA(isA<DownloadFailure>()),
       );
       expect(reached, false);
+      expect(await downloads.discardCorruptCompletedArtifact(spec), isFalse);
+      expect(await metadata.exists(), isTrue);
       expect(server.requests.length, 1);
     });
   }
@@ -158,6 +171,35 @@ void main() {
           (file) => file.readAsBytes(),
         ),
         bytes,
+      );
+    },
+  );
+  test('explicit recovery preserves a valid completed artifact', () async {
+    await downloads.start(spec).result;
+    expect(await downloads.discardCorruptCompletedArtifact(spec), isFalse);
+    expect(
+      await downloads.withCompletedArtifact(spec, (f) => f.readAsBytes()),
+      bytes,
+    );
+    expect(server.requests, hasLength(1));
+  });
+  test(
+    'explicit recovery refuses completed metadata with a forged identity',
+    () async {
+      final result = await downloads.start(spec).result;
+      final metadata = File(
+        '${root.path}/downloads-staging-v1/test/provenance.json',
+      );
+      final data =
+          jsonDecode(await metadata.readAsString()) as Map<String, dynamic>;
+      data['identity'] = '0' * 64;
+      await metadata.writeAsString(jsonEncode(data));
+      await result.stagedFile!.writeAsString('damaged');
+      expect(await downloads.discardCorruptCompletedArtifact(spec), isFalse);
+      expect(await result.stagedFile!.readAsString(), 'damaged');
+      expect(
+        (await downloads.start(spec).result).failure?.code,
+        DownloadFailureCode.candidateExists,
       );
     },
   );

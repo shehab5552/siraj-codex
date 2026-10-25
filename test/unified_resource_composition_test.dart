@@ -85,6 +85,22 @@ void main() {
         await t.tap(find.text('الاختبارات').last);
         await t.pumpAndSettle();
         expect(find.byKey(const Key('quiz-subject')), findsOneWidget);
+        await t.tap(find.text('الرئيسية').last);
+        await t.pumpAndSettle();
+        await t.ensureVisible(find.byKey(const Key('open-resource-status')));
+        await t.tap(find.byKey(const Key('open-resource-status')));
+        await t.pumpAndSettle();
+        await t.scrollUntilVisible(find.text('بدء تجهيز Dataset'), 160);
+        await t.ensureVisible(find.text('بدء تجهيز Dataset'));
+        await t.pumpAndSettle();
+        await t.tap(find.text('بدء تجهيز Dataset'));
+        await t.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await t.runAsync(() => auth.logout());
+        await t.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.byKey(const Key('login-submit')), findsOneWidget);
+        expect(c.phase, DatasetPreparationPhase.idle);
       } finally {
         await t.pumpWidget(const SizedBox());
         await t.pumpAndSettle();

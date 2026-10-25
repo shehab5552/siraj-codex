@@ -142,6 +142,9 @@ void main() {
       expect(find.text('1 تعذر الحكم'), findsOneWidget);
       expect(find.textContaining('3 أسئلة محسومة'), findsOneWidget);
       expect(find.text('2/4'), findsNothing);
+      await t.scrollUntilVisible(find.byKey(const Key('quiz-end')), 180);
+      await t.ensureVisible(find.byKey(const Key('quiz-end')));
+      await t.pumpAndSettle();
       await t.tap(find.byKey(const Key('quiz-end')));
       await t.pumpAndSettle();
       expect(c.summary, null);
@@ -237,6 +240,86 @@ void main() {
     expect(find.text('SYNTHETIC QUIZ SOURCE'), findsOneWidget);
     expect(find.textContaining('صفحة'), findsNothing);
   });
+  quizWidgetTest(
+    'confirmed summary shows question verdicts and neutral undetermined explanation',
+    (t) async {
+      t.view.physicalSize = const Size(800, 1400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      port.questions = [quizQuestions().last];
+      final c = create();
+      await render(t, c);
+      await generate(t);
+      await t.enterText(
+        find.byKey(const Key('quiz-short-answer')),
+        'unreviewed expression',
+      );
+      await t.tap(find.byKey(const Key('quiz-next')));
+      await t.pumpAndSettle();
+      expect(
+        find.text('تعذر الحكم بثقة وفق المعيار المراجَع المتاح.'),
+        findsNothing,
+      );
+      await submitReviewed(t);
+      expect(find.text('SYNTHETIC SHORT'), findsOneWidget);
+      expect(
+        find.text('تعذر الحكم بثقة وفق المعيار المراجَع المتاح.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('quiz-edit-0')), findsNothing);
+    },
+  );
+  for (final sourceDialog in [true, false]) {
+    quizWidgetTest(
+      'private navigator teardown removes quiz modal source=$sourceDialog',
+      (t) async {
+        port.questions = [quizQuestions().first];
+        final c = create(
+          sources: FakeSourceResolver()
+            ..respond = (ref) => ResolvedSource(
+              reference: ref,
+              snippet: 'PRIVATE NESTED SOURCE',
+            ),
+        );
+        final signedIn = ValueNotifier(true);
+        addTearDown(signedIn.dispose);
+        await t.pumpWidget(
+          MaterialApp(
+            home: ValueListenableBuilder<bool>(
+              valueListenable: signedIn,
+              builder: (_, valid, _) => valid
+                  ? Navigator(
+                      onGenerateRoute: (_) => MaterialPageRoute<void>(
+                        builder: (_) => QuizPage(controller: c),
+                      ),
+                    )
+                  : const Scaffold(body: Text('SIGNED OUT')),
+            ),
+          ),
+        );
+        await t.pumpAndSettle();
+        await generate(t);
+        if (sourceDialog) {
+          await t.ensureVisible(find.byKey(const Key('quiz-source-0')));
+          await t.tap(find.byKey(const Key('quiz-source-0')));
+        } else {
+          await t.tap(find.text('Synthetic A'));
+          await t.tap(find.byKey(const Key('quiz-next')));
+          await t.pumpAndSettle();
+          await t.tap(find.byKey(const Key('quiz-confirm-submit')));
+        }
+        await t.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+        signedIn.value = false;
+        await t.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.text('PRIVATE NESTED SOURCE'), findsNothing);
+        expect(find.text('SIGNED OUT'), findsOneWidget);
+        expect(port.requests, hasLength(1));
+      },
+    );
+  }
   quizWidgetTest(
     'logout removes a source snippet even while its dialog is open',
     (t) async {

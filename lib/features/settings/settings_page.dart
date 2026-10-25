@@ -20,6 +20,7 @@ class SettingsPage extends StatelessWidget {
     var checked = false;
     final confirmed = await showDialog<bool>(
       context: context,
+      useRootNavigator: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           icon: Icon(

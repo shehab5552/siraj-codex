@@ -135,6 +135,7 @@ Future<bool> showSirajConfirmationDialog(
 }) async {
   final answer = await showDialog<bool>(
     context: context,
+    useRootNavigator: false,
     builder: (dialogContext) => AlertDialog(
       title: Text(title),
       content: Text(message),

@@ -93,19 +93,8 @@ class DownloadStaging {
   }) async {
     await _inspect(directory);
     if (!await _metadata.exists() || !await payload.exists()) return null;
-    if (await _metadata.length() > metadataLimit) return null;
-    final input = await _metadata.open();
-    late List<int> bytes;
     try {
-      bytes = await input.read(metadataLimit + 1);
-    } finally {
-      await input.close();
-    }
-    if (bytes.length > metadataLimit) return null;
-    try {
-      // Decode raw, bounded bytes explicitly; malformed UTF-8 is never a
-      // File.readAsString fallback or accepted as replacement characters.
-      final data = jsonDecode(utf8.decode(bytes, allowMalformed: false));
+      final data = await _readMetadata();
       // Completed candidates belong to the next validation/promotion stage.
       // Even another requested identity cannot authorize their replacement.
       if (!completedOnly &&
@@ -113,40 +102,14 @@ class DownloadStaging {
           data['complete'] == true) {
         throw const DownloadFailure(DownloadFailureCode.candidateExists);
       }
-      if (data is! Map<String, dynamic> ||
-          data.keys.toSet().difference({
-            'version',
-            'identity',
-            'etag',
-            'total',
-            'bytes',
-            'sha256',
-            'complete',
-          }).isNotEmpty ||
-          data.length != 7 ||
-          data['version'] is! int ||
-          data['version'] != 1 ||
-          data['identity'] != await identity(spec) ||
-          data['bytes'] is! int ||
-          data['sha256'] is! String ||
-          !RegExp(r'^[a-f0-9]{64}$').hasMatch(data['sha256'] as String) ||
-          data['complete'] is! bool ||
-          (completedOnly && data['complete'] != true) ||
-          (data['etag'] != null &&
-              (data['etag'] is! String ||
-                  !isStrongEtag(data['etag'] as String)))) {
+      if (!await _validProvenance(data, spec) ||
+          data is! Map<String, dynamic> ||
+          (completedOnly && data['complete'] != true)) {
         return null;
       }
       final length = data['bytes'] as int;
       final total = data['total'];
-      if (length < 0 ||
-          length > spec.maxBytes ||
-          length != await payload.length() ||
-          (total != null &&
-              (total is! int ||
-                  total < length ||
-                  total > spec.maxBytes ||
-                  (spec.expectedSize != null && total != spec.expectedSize))) ||
+      if (length != await payload.length() ||
           data['sha256'] != await hashFile(payload)) {
         return null;
       }
@@ -159,6 +122,84 @@ class DownloadStaging {
     } on FormatException {
       return null;
     }
+  }
+
+  Future<Object?> _readMetadata() async {
+    if (!await _metadata.exists() || await _metadata.length() > metadataLimit) {
+      return null;
+    }
+    final input = await _metadata.open();
+    late List<int> bytes;
+    try {
+      bytes = await input.read(metadataLimit + 1);
+    } finally {
+      await input.close();
+    }
+    if (bytes.length > metadataLimit) return null;
+    try {
+      return jsonDecode(utf8.decode(bytes, allowMalformed: false));
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// Recovery is explicit, exclusive, and restricted to byte damage whose
+  /// completed provenance still exactly identifies the approved artifact.
+  /// Foreign or malformed metadata never authorizes deleting a candidate.
+  Future<bool> discardCorruptCompletedFor(DownloadSpec spec) async {
+    await _inspect(directory);
+    final data = await _readMetadata();
+    if (!await _validProvenance(data, spec) ||
+        data is! Map<String, dynamic> ||
+        data['complete'] != true ||
+        spec.expectedSize == null ||
+        spec.expectedSha256 == null ||
+        data['bytes'] != spec.expectedSize ||
+        data['sha256'] != spec.expectedSha256!.toLowerCase()) {
+      return false;
+    }
+    if (await payload.exists() &&
+        await payload.length() == spec.expectedSize &&
+        await hashFile(payload) == spec.expectedSha256!.toLowerCase()) {
+      return false;
+    }
+    await discard();
+    return true;
+  }
+
+  Future<bool> _validProvenance(Object? data, DownloadSpec spec) async {
+    if (data is! Map<String, dynamic> ||
+        data.keys.toSet().difference({
+          'version',
+          'identity',
+          'etag',
+          'total',
+          'bytes',
+          'sha256',
+          'complete',
+        }).isNotEmpty ||
+        data.length != 7 ||
+        data['version'] is! int ||
+        data['version'] != 1 ||
+        data['identity'] != await identity(spec) ||
+        data['bytes'] is! int ||
+        data['sha256'] is! String ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(data['sha256'] as String) ||
+        data['complete'] is! bool ||
+        (data['etag'] != null &&
+            (data['etag'] is! String ||
+                !isStrongEtag(data['etag'] as String)))) {
+      return false;
+    }
+    final length = data['bytes'] as int;
+    final total = data['total'];
+    return length >= 0 &&
+        length <= spec.maxBytes &&
+        (total == null ||
+            (total is int &&
+                total >= length &&
+                total <= spec.maxBytes &&
+                (spec.expectedSize == null || total == spec.expectedSize)));
   }
 
   Future<void> saveCheckpoint(

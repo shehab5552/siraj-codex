@@ -11,6 +11,53 @@ import 'support/auth_test_marker.dart';
 import 'package:siraj/features/resources/resource_status_page.dart';
 
 void main() {
+  for (final delete in [false, true]) {
+    testWidgets(
+      'external revocation destroys an open account dialog delete=$delete',
+      (tester) async {
+        final runtime = DatabaseRuntime(
+          createDatabase: () => AppDatabase.forTesting(NativeDatabase.memory()),
+        );
+        final session = AppSessionController(
+          runtime: runtime,
+          markerStore: ControlledMarker(),
+          passwordHasher: PasswordHasher(iterations: 2),
+        );
+        addTearDown(() async {
+          await tester.pumpWidget(const SizedBox());
+          await tester.pumpAndSettle();
+          session.dispose();
+          await tester.runAsync(() => runtime.close());
+        });
+        await tester.runAsync(() async {
+          await session.initialize();
+          await session.createAccount(
+            username: 'Student',
+            password: 'synthetic',
+            confirmation: 'synthetic',
+          );
+        });
+        await tester.pumpWidget(
+          MaterialApp(home: AppBootstrap(sessionController: session)),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('open-settings')));
+        await tester.pumpAndSettle();
+        final action = find.byKey(
+          Key(delete ? 'settings-delete' : 'settings-logout'),
+        );
+        await tester.scrollUntilVisible(action, 160);
+        await tester.ensureVisible(action);
+        await tester.tap(action);
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await tester.runAsync(() => session.logout());
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.byKey(const Key('login-submit')), findsOneWidget);
+      },
+    );
+  }
   testWidgets('logout destroys nested private routes and preserves account', (
     tester,
   ) async {

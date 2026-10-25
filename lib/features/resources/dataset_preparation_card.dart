@@ -22,6 +22,7 @@ class _DatasetPreparationCardState extends State<DatasetPreparationCard> {
       _confirming = true;
       final accepted = await showDialog<bool>(
         context: context,
+        useRootNavigator: false,
         builder: (dialogContext) => AlertDialog(
           title: Text(context.tr('تجهيز الموارد')),
           content: SingleChildScrollView(

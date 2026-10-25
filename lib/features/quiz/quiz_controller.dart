@@ -337,6 +337,7 @@ class QuizController extends ChangeNotifier {
       desiredCount: selection.count,
       desiredType: selection.type,
       scope: selection.scope,
+      expectedDatasetRevision: selection.catalog.datasetRevision,
     );
   }
 
@@ -345,6 +346,7 @@ class QuizController extends ChangeNotifier {
     int? desiredCount,
     QuizQuestionType? desiredType,
     QuizScope? scope,
+    String? expectedDatasetRevision,
   }) async {
     if (_closed ||
         busy ||
@@ -374,6 +376,10 @@ class QuizController extends ChangeNotifier {
       final availability = _port.availability;
       if (!availability.isReady) {
         throw QuizFailure(availability.error ?? QuizErrorCode.notAvailable);
+      }
+      if (expectedDatasetRevision != null &&
+          availability.datasetRevision != expectedDatasetRevision) {
+        throw const QuizFailure(QuizErrorCode.notAvailable);
       }
       final r = QuizRequest(
         requestId: _newId(),

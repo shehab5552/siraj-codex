@@ -216,6 +216,55 @@ void main() {
       c.dispose();
     },
   );
+  for (final damage in ['size', 'hash', 'missing']) {
+    test(
+      'retry replaces only damaged completed staging payload ($damage) and preserves active release',
+      () async {
+        await f.activate('r1');
+        final active = await f.releasedFile('r1').readAsBytes();
+        f.validator.failure = const DatasetFailure(
+          DatasetFailureCode.validationFailed,
+        );
+        final c = coordinator();
+        addTearDown(c.dispose);
+        await expectLater(
+          c.prepareAndActivate(
+            revision: 'r2',
+            candidateId: 'damaged-first',
+            consented: true,
+          ),
+          throwsA(isA<DatasetFailure>()),
+        );
+        expect(server.requests, hasLength(6));
+        final plan = f.plans.plans['r2']!;
+        final part = (await _Downloads(server).resolve(plan))!.first;
+        final payload = File(
+          '${f.support.path}/downloads-staging-v1/${part.spec.destinationKey}/payload.part',
+        );
+        if (damage == 'missing') {
+          await payload.delete();
+        } else if (damage == 'hash') {
+          final bytes = await payload.readAsBytes();
+          bytes[0] ^= 0xff;
+          await payload.writeAsBytes(bytes);
+        } else {
+          await payload.writeAsBytes([1]);
+        }
+        f.validator.failure = null;
+        expect(
+          await c.prepareAndActivate(
+            revision: 'r2',
+            candidateId: 'damaged-retry',
+            consented: true,
+          ),
+          'r2',
+        );
+        expect(server.requests, hasLength(7));
+        expect(await f.releasedFile('r1').readAsBytes(), active);
+        expect((await f.manager.recover()).activeRevision, 'r2');
+      },
+    );
+  }
   test(
     'approved artifact version can differ from the dataset revision',
     () async {

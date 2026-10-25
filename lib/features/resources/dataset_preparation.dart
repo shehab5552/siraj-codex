@@ -188,6 +188,8 @@ class DatasetPreparationCoordinator extends ChangeNotifier {
           reused = true;
         } on DownloadFailure catch (error) {
           if (error.code != DownloadFailureCode.candidateUnavailable) rethrow;
+          _cancellation!.check();
+          await downloads.discardCorruptCompletedArtifact(part.spec);
         }
         if (!reused) {
           _cancellation!.check();

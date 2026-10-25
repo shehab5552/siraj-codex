@@ -25,7 +25,9 @@ class DownloadHandle<T> {
 
 /// HTTPS transport into an exclusive, app-private staging namespace.
 /// All callers must use the app's single coordinator isolate. A completed
-/// candidate is immutable to this API; activation belongs to ResourceManager.
+/// Valid completed candidates remain immutable; explicit recovery can discard
+/// damaged staging bytes with matching approved provenance under a lease.
+/// Activation belongs to ResourceManager.
 class DownloadService<T> {
   DownloadService({
     required this.appSupportDirectory,
@@ -39,6 +41,29 @@ class DownloadService<T> {
   final StagedDownloadValidator<T> validator;
   final HttpClient Function() _clientFactory;
   final Duration timeout;
+
+  /// Never touches release/model/book paths, valid candidates or untrusted
+  /// completed identities. A consumer holding the staging lease blocks repair.
+  Future<bool> discardCorruptCompletedArtifact(DownloadSpec spec) async {
+    _checkSpec(spec);
+    validator.checkSpec(spec);
+    final staging = await DownloadStaging.acquire(
+      appSupportDirectory,
+      spec.destinationKey,
+    );
+    try {
+      return await staging.discardCorruptCompletedFor(spec);
+    } on FileSystemException catch (error) {
+      throw DownloadFailure(
+        error.osError?.errorCode == 28 || error.osError?.errorCode == 122
+            ? DownloadFailureCode.insufficientStorage
+            : DownloadFailureCode.ioFailure,
+        osErrorCode: error.osError?.errorCode,
+      );
+    } finally {
+      await staging.release();
+    }
+  }
 
   /// Trusted assembly handoff. The same exclusive lease used by the writer is
   /// held through integrity validation and the asynchronous consumer. No READY
