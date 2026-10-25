@@ -69,6 +69,11 @@ class NativePbkdf2 implements Pbkdf2Worker {
     } on KdfFailure {
       abandoned = true;
       rethrow;
+    } on PlatformException catch (error) {
+      abandoned = true;
+      throw KdfFailure(
+        error.code == 'KDF_BUSY' ? KdfFailureCode.busy : KdfFailureCode.failed,
+      );
     } catch (_) {
       abandoned = true;
       throw const KdfFailure(KdfFailureCode.failed);

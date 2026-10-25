@@ -31,11 +31,19 @@ void main() {
             for (var i = 0; i < hex.length; i += 2)
               int.parse(hex.substring(i, i + 2), radix: 16),
           ]);
-          final result = await NativePbkdf2().derive(
-            password: v['password'] as String,
-            salt: salt,
-            iterations: v['iterations'] as int,
-          );
+          late Uint8List result;
+          try {
+            result = await NativePbkdf2().derive(
+              password: v['password'] as String,
+              salt: salt,
+              iterations: v['iterations'] as int,
+            );
+          } on KdfFailure catch (error) {
+            debugPrint(
+              'SIRAJ_NATIVE_KDF_FAILURE vector=${v['id']} code=${error.code.name}',
+            );
+            rethrow;
+          }
           expect(
             result.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
             v['expected_hex'],
@@ -53,6 +61,68 @@ void main() {
       });
     });
   }
+  testWidgets(
+    'observing native completion permits back-to-back derives across workers',
+    (tester) async {
+      await tester.runAsync(() async {
+        final workers = [NativePbkdf2(), NativePbkdf2()];
+        for (var i = 0; i < 64; i++) {
+          final result = await workers[i % 2].derive(
+            password: 'password',
+            salt: Uint8List.fromList(List.generate(16, (i) => i)),
+            iterations: 1,
+          );
+          expect(
+            result.map((b) => b.toRadixString(16).padLeft(2, '0')).join(),
+            vectors.first['expected_hex'],
+          );
+          result.fillRange(0, result.length, 0);
+        }
+        debugPrint(
+          'SIRAJ_NATIVE_COMPLETION sequential_calls=64 workers=2 PASS',
+        );
+      });
+    },
+  );
+  testWidgets(
+    'native global lane rejects concurrent worker and recovers after completion',
+    (tester) async {
+      await tester.runAsync(() async {
+        final first = NativePbkdf2().derive(
+          password: 'synthetic-native-contention',
+          salt: Uint8List(16),
+          iterations: 600000,
+        );
+        final drained = first.then((bytes) {
+          bytes.fillRange(0, bytes.length, 0);
+        });
+        final second = NativePbkdf2();
+        await expectLater(
+          second.derive(
+            password: 'synthetic-native-contention',
+            salt: Uint8List(16),
+            iterations: 1,
+          ),
+          throwsA(
+            isA<KdfFailure>().having(
+              (e) => e.code,
+              'code',
+              KdfFailureCode.busy,
+            ),
+          ),
+        );
+        await drained;
+        final bytes = await second.derive(
+          password: 'synthetic-native-contention',
+          salt: Uint8List(16),
+          iterations: 1,
+        );
+        expect(bytes, hasLength(32));
+        bytes.fillRange(0, bytes.length, 0);
+        debugPrint('SIRAJ_NATIVE_GLOBAL_LANE busy_then_recovered=true PASS');
+      });
+    },
+  );
   testWidgets(
     'native cancellation settles logically and drains provider before retry',
     (tester) async {

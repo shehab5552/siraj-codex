@@ -44,18 +44,15 @@ internal class SirajPasswordKdfChannel(messenger: BinaryMessenger) {
             executor.execute {
                 var spec: PBEKeySpec? = null
                 var derived: ByteArray? = null
+                var output: ByteArray? = null
+                var failed = false
                 try {
                     spec = PBEKeySpec(chars, nonce, iterations, 256)
                     derived = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
                         .generateSecret(spec).encoded
-                    val output = derived.copyOf()
-                    main.post {
-                        try {
-                            if (!disposed) result.success(output)
-                        } finally { output.fill(0) }
-                    }
+                    output = derived.copyOf()
                 } catch (_: Exception) {
-                    main.post { if (!disposed) result.error("KDF_FAILED", null, null) }
+                    failed = true
                 } finally {
                     spec?.clearPassword()
                     chars.fill('\u0000')
@@ -63,6 +60,18 @@ internal class SirajPasswordKdfChannel(messenger: BinaryMessenger) {
                     derived?.fill(0)
                     occupied.set(false)
                 }
+                // Completion is observable only after provider cleanup and
+                // global lane release. Posting earlier races the next derive.
+                val response = output
+                val posted = main.post {
+                    try {
+                        if (!disposed) {
+                            if (failed) result.error("KDF_FAILED", null, null)
+                            else result.success(response)
+                        }
+                    } finally { response?.fill(0) }
+                }
+                if (!posted) response?.fill(0)
             }
         }
     }

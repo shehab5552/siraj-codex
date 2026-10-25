@@ -27,6 +27,23 @@ void main() {
     );
   });
   test(
+    'native global occupancy is a typed busy failure without platform detail',
+    () async {
+      messenger.setMockMethodCallHandler(channel, (_) async {
+        throw PlatformException(
+          code: 'KDF_BUSY',
+          message: 'synthetic sensitive detail',
+        );
+      });
+      await expectLater(
+        derive(NativePbkdf2()),
+        throwsA(
+          isA<KdfFailure>().having((e) => e.code, 'code', KdfFailureCode.busy),
+        ),
+      );
+    },
+  );
+  test(
     'cancel releases caller but keeps lane until native completion',
     () async {
       final response = Completer<Uint8List>();
