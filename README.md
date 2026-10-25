@@ -70,4 +70,6 @@ flutter test integration_test/unified_application_test.dart -d <ANDROID_DEVICE_I
 
 Workflow `SIRAJ unified integration verification` يبني Debug من main ويصدر ZIP للسورس مع Commit SHA وSHA-256، ويختبر محاكي API33 عند نجاح متطلبات Android. راجع نتائج التشغيل والتقرير المرتبط بالالتزام؛ لا تستنتج النجاح من مجرد وجود ملف Artifact جزئي.
 
+[تقرير التسليم الموحد وحدوده ونتائج القبول والتنزيل](docs/reports/SIRAJ_UNIFIED_V2_INTEGRATION_AR.md) يجيب عن حالة Auth وAI وQuiz وPDF وmain، ويضم إجراءات اختبار Android المعزولة ومصفوفة المدخلات المتبقية. الأدلة المقروءة آليًا وجرد الملفات والمراجعتان في [docs/qa/unified_2026-10-25](docs/qa/unified_2026-10-25).
+
 الخط المضمّن Noto Sans Arabic مرخص بـSIL OFL 1.1؛ المصدر وبصماته في `assets/fonts/PROVENANCE.md` والترخيص بجواره. رموز Material من Flutter. لا تُحمّل الخطوط عبر الشبكة أثناء تشغيل التطبيق.
