@@ -83,10 +83,11 @@ jobs:
       - name: Force-stop the isolated Android application
         shell: bash
         run: |
-          adb -s emulator-5554 shell svc wifi disable
-          adb -s emulator-5554 shell svc data disable
-          adb -s emulator-5554 shell am force-stop com.example.siraj.unifiedtest
-          if adb -s emulator-5554 shell pidof com.example.siraj.unifiedtest; then
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell svc wifi disable
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell svc data disable
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell am force-stop com.example.siraj.unifiedtest
+          if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell pidof com.example.siraj.unifiedtest; then
             echo 'Application process still running after force-stop' >&2
             exit 1
           fi

@@ -25,7 +25,16 @@ void main() {
       await flow.tap(find.text(UnifiedFlow.question));
       await flow.until(find.byKey(const Key('chat-saved-question')));
       expect(find.text(UnifiedFlow.question), findsOneWidget);
-      expect(find.textContaining('AI resources are not ready'), findsWidgets);
+      // Operational Tutor errors are not persisted. A reopened unanswered USER
+      // is reconstructed as retryable, then retry must reuse that same USER.
+      expect(find.byKey(const Key('chat-no-ai-answer')), findsOneWidget);
+      expect(
+        find.textContaining('Your last question is saved without an answer'),
+        findsOneWidget,
+      );
+      await flow.tap(find.byKey(const Key('chat-retry')));
+      await flow.until(find.textContaining('AI resources are not ready'));
+      expect(find.text(UnifiedFlow.question), findsOneWidget);
       await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
       final png = await binding.takeScreenshot('siraj-force-stop-restored');

@@ -183,3 +183,13 @@ self-referential report/Commit/hash loop and old test counts in a pre-test ZIP.
 Cost if wrong: packaging fails closed; unit-host summary was exercised on actual
 591-pass JSON, and incomplete native inputs must be rejected. No fabricated
 positive counts or production gates. Final CI proves the complete package path.
+
+CI40784279549: IME fix verified; restart setup PASSED with real native account,
+USER/EN-dark persistence. Next shell step exited127 because bare adb was outside
+this step's PATH (SDK path was exported only inside the image step). Use and
+check "$ANDROID_HOME/platform-tools/adb" explicitly; do not alter application
+logic. Native13 cases now pass; force-stop/restore not claimed. Inspection of
+ChatTurnCoordinator.initialize also corrected restore's expected state: a
+reopened unanswered USER becomes unansweredMessage, not a persisted operational
+Tutor error. Restore now checks the availability notice and reconstructed retry,
+then actually retries and verifies exactly one USER with resourceNotReady.
