@@ -44,14 +44,7 @@ jobs:
           PY
           sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - name: Build isolated unified Android debug APK
-        run: |
-          flutter build apk --debug --no-pub --target=lib/main.dart
-          mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-debug.apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk
-          # Flutter 3.38.5 must regenerate the plugin registrant when changing
-          # build modes. --no-pub would retain the dev-only integration_test.
-          flutter build apk --release --target=lib/main.dart
-          git diff --exit-code -- pubspec.lock
+        run: tool/build_android_with_evidence.sh
       - name: Install Android runtime test image
         shell: bash
         run: |

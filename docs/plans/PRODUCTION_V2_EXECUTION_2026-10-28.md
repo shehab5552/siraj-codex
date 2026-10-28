@@ -201,3 +201,10 @@ History title and actual USER bubble. This was not evidence of two persisted
 messages. Scope the finder to chat-message-list, settle the route, assert one
 actual USER in the real coordinator and retain its ID across actual retry.
 Do not weaken to findsWidgets or alter persistence to fit the test.
+
+CI40787872795 (13892aa): host/analyze passed; Android build step exited1 before
+native execution. Cause not available in ordinary annotations. Official gh log
+download was attempted and blocked by results-receiver.actions.githubusercontent.com
+HTTP403 (CONNECT/Forbidden); no signed URL or credentials printed. Add bounded
+build-log annotations using a fail-fast subshell and preserve exact exit status,
+then rerun to identify the actual cause. No application rewrite based on a guess.
