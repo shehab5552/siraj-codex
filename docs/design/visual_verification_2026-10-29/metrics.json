@@ -1,0 +1,168 @@
+{
+  "reference_sha256": "e7f434b02410dbdc1cd01a5baff4ac13b9012e8cf3a6301f127678282b881183",
+  "font_sha256": "63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e",
+  "comparisons": [
+    {
+      "screen": "onboard",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 21.903,
+      "panel": "onboard-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "auth",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 14.838,
+      "panel": "auth-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "home",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 12.247,
+      "panel": "home-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "chat",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 12.782,
+      "panel": "chat-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "history",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 20.869,
+      "panel": "history-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "library",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 23.365,
+      "panel": "library-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "quiz",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 10.636,
+      "panel": "quiz-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "resources",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 11.345,
+      "panel": "resources-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "settings",
+      "theme": "light",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 7.499,
+      "panel": "settings-light-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "onboard",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 31.009,
+      "panel": "onboard-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "auth",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 19.613,
+      "panel": "auth-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "home",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 12.074,
+      "panel": "home-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "chat",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 17.264,
+      "panel": "chat-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "history",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 27.793,
+      "panel": "history-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "library",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 23.709,
+      "panel": "library-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "quiz",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 14.503,
+      "panel": "quiz-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "resources",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 15.809,
+      "panel": "resources-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    },
+    {
+      "screen": "settings",
+      "theme": "dark",
+      "viewport": "380x737@1",
+      "mae_rgb_0_255": 11.751,
+      "panel": "settings-dark-comparison.png",
+      "same_production_data": false,
+      "note": "Descriptive metric only. No approved pass threshold. Reference includes demo data."
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 تطبيق تعلم محلي بنظام حساب واحد. هذه شجرة التكامل الجاري في PR #12؛ لا تعني جاهزية إنتاجية أو نجاح Biology G2/G3. لا توجد إجابات أو كتب أو أسئلة تجريبية في التطبيق العادي.
 
+تقارير الدفعة الأحدث، 29 أكتوبر 2026: [التنفيذ وQA](docs/reports/SIRAJ_PRODUCTION_COMPLETION_2026-10-29_AR.md)، [مصفوفة المطابقة البصرية](docs/design/visual_verification_2026-10-29/README_AR.md)، [جاهزية الإصدار](docs/reports/SIRAJ_RELEASE_READINESS_2026-10-29_AR.md). قارئ PDF الأصلي والتثبيت الموثوق موجودان؛ الكتالوج الرسمي والهوية البصرية الأصلية وموارد AI وقبول الجهاز ما تزال لها بوابات مستقلة.
+
 ## فتح المشروع على Windows باستخدام VS Code
 
 1. ثبّت Git، وFlutter **3.38.5** (يتضمن Dart **3.10.4**) وأضف `flutter/bin` إلى PATH.
@@ -62,9 +64,12 @@ flutter build apk --release
 ## الاختبارات والتسليمات
 
 ```powershell
-flutter test integration_test/unified_native_kdf_test.dart -d <ANDROID_DEVICE_ID>
-flutter test integration_test/unified_application_test.dart -d <ANDROID_DEVICE_ID>
+flutter drive --driver=test_driver/unified_driver.dart --target=integration_test/unified_native_kdf_test.dart -d <ANDROID_DEVICE_ID> --keep-app-running
+flutter drive --driver=test_driver/unified_driver.dart --target=integration_test/unified_pdf_reader_test.dart -d <ANDROID_DEVICE_ID> --keep-app-running
+flutter drive --driver=test_driver/unified_driver.dart --target=integration_test/unified_application_test.dart -d <ANDROID_DEVICE_ID> --keep-app-running
 ```
+
+في Flutter3.38.5 يحذف `flutter test` تثبيت تطبيق التكامل عند النهاية. لا تستخدمه لإثبات حفظ البيانات بين عمليتي تشغيل. المسار الرسمي `flutter drive --keep-app-running` يبقي التثبيت، ويحفظ الـDriver صور PNG وعدادات التنفيذ في `dist/`. Workflow يشغّل setup ثم `adb force-stop` والتحقق من انعدام PID ثم restore، دون نسخ قاعدة بيانات أو Keystore.
 
 شغّل اختبارات التكامل فقط على تثبيت **معزول مخصص للاختبار**؛ اختبار التطبيق ينشئ حسابًا اصطناعيًا ويحذفه داخل هذه الهوية، ولا يقرأ التطبيق الأصلي. أول اختبار واجهة يفترض بيانات تثبيت نظيفة لهذه الهوية المعزولة.
 

@@ -4,12 +4,23 @@ import 'package:siraj/core/design/siraj_design.dart';
 import 'package:siraj/features/home/home_page.dart';
 
 void main() {
-  testWidgets('home uses reference hero copy and 15px content gutters', (t) async {
+  testWidgets('home uses reference hero copy and 15px content gutters', (
+    t,
+  ) async {
     t.view.physicalSize = const Size(380, 737);
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
-    await t.pumpWidget(MaterialApp(theme: SirajTheme.light(), home: HomePage(onOpenChat: () {}, onOpenResources: () {}, onOpenSettings: () {})));
+    await t.pumpWidget(
+      MaterialApp(
+        theme: SirajTheme.light(),
+        home: HomePage(
+          onOpenChat: () {},
+          onOpenResources: () {},
+          onOpenSettings: () {},
+        ),
+      ),
+    );
     await t.pumpAndSettle();
     expect(find.text('كل سؤال يقربك\nمن الفهم'), findsOneWidget);
     expect(t.getSize(find.byKey(const Key('v2-home-hero'))).width, 350);

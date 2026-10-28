@@ -168,3 +168,10 @@ actual binding.results counts for all5targets and saves only the small count
 summary plus PNG screenshots (no full byte-array logging). Expected case count
 is checked so missing execution cannot silently report success. Corrected
 native lifecycle execution remains a CI requirement, not an assumption.
+
+CI40782077658 (990b247): official keep-installed driver verified, actual result
+maps10KDF+1PDF+1App all pass and host screenshots saved. Restart setup reached
+Signup but hitTestable assertion failed after entering credentials. IME/focus
+still covered target; verification helper now unfocuses and waits for actual
+viewInsets.bottom==0 before ensureVisible/layout and retains hit-test assertion.
+No AuthService, KDF, or assertion bypass. Restore not run in that failed job.

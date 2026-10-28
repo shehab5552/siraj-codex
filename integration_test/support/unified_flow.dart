@@ -19,6 +19,20 @@ class UnifiedFlow {
 
   Future<void> tap(Finder finder) async {
     await until(finder);
+    // A real Android IME can cover a form button after enterText. Close it
+    // through focus, then wait for the actual view inset before scrolling.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    final keyboard = Stopwatch()..start();
+    while (tester.view.viewInsets.bottom > 0 &&
+        keyboard.elapsed < const Duration(seconds: 3)) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+      tester.view.viewInsets.bottom,
+      0,
+      reason: 'IME must close before target geometry is measured',
+    );
     await tester.ensureVisible(finder);
     await tester.pumpAndSettle();
     expect(finder.hitTestable(), findsWidgets);
