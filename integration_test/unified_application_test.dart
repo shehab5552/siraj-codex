@@ -134,6 +134,12 @@ void main() {
         find.byKey(const Key('settings-delete')),
         150,
       );
+      await tester.ensureVisible(find.byKey(const Key('settings-delete')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('settings-delete')).hitTestable(),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('settings-delete')));
       await tester.pumpAndSettle();
       expect(

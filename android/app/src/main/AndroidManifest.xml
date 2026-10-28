@@ -4,7 +4,7 @@
         android:allowBackup="false"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:label="siraj"
+        android:label="SIRAJ"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

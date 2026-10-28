@@ -1,3 +1,14 @@
+import 'dart:io';
+import '../core/runtime/resource_cleanup_owner.dart';
+import '../features/library/native_pdf_reader.dart';
+import '../features/library/pdf_install_store.dart';
+import '../features/library/pdf_reader_contracts.dart';
+import '../features/library/pdf_reader_controller.dart';
+import '../features/library/pdf_reader_page.dart';
+import '../features/library/verified_library_actions.dart';
+import '../features/resources/download_service.dart';
+import '../features/resources/download_storage_space.dart';
+import '../features/resources/resource_download_validator.dart';
 import '../core/design/siraj_navigation.dart';
 import '../features/library/library_controller.dart';
 import '../features/library/library_contracts.dart';
@@ -38,6 +49,7 @@ class AuthenticatedWorkspace extends StatefulWidget {
     required this.quiz,
     required this.numericPrecision,
     required this.quizCleanup,
+    required this.pdfCleanup,
     this.resourcePreparation,
     this.curriculum = const UnavailableQuizCurriculum(),
     this.library = const LibraryIntegration(),
@@ -49,6 +61,7 @@ class AuthenticatedWorkspace extends StatefulWidget {
   final QuizPort quiz;
   final NumericPrecisionPort numericPrecision;
   final QuizCleanupOwner quizCleanup;
+  final ResourceCleanupOwner pdfCleanup;
   final ResourcePreparationBinding? resourcePreparation;
   final QuizCurriculumPort curriculum;
   final LibraryIntegration library;
@@ -78,8 +91,50 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
   );
   late final LibraryController _library = LibraryController(
     catalog: widget.library.catalog,
-    actions: widget.library.actions,
+    actions: _libraryActions,
   );
+  late final LibraryBookActions _libraryActions =
+      widget.library.actions is UnavailableLibraryActions && Platform.isAndroid
+      ? VerifiedLibraryActions(
+          storage: () async {
+            final support = await NativePdfReader.appSupport();
+            const space = AndroidDownloadSpaceProbe();
+            return PdfLibraryStorage(
+              PdfInstallStore(support, space),
+              DownloadService(
+                appSupportDirectory: support,
+                spaceProbe: space,
+                validator: const ResourceDownloadValidator(),
+              ),
+            );
+          },
+          reader: const NativePdfReader(),
+          cleanup: widget.pdfCleanup,
+          present: (controller, book) => _readPdf(controller, book),
+        )
+      : widget.library.actions;
+  Future<void> _readPdf(
+    PdfReaderController controller,
+    LibraryBook book,
+  ) async {
+    if (!mounted ||
+        !await widget.session.authorizeNavigation(widget.identity) ||
+        !mounted ||
+        controller.closed) {
+      throw const PdfFailure(PdfFailureCode.sessionExpired);
+    }
+    SirajTabScope.maybeOf(context)?.setContext(2);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => PdfReaderPage(
+          controller: controller,
+          arabicTitle: book.arabicTitle,
+          englishTitle: book.englishTitle,
+        ),
+      ),
+    );
+  }
+
   bool _opening = false;
   @override
   void initState() {

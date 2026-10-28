@@ -56,3 +56,42 @@ Navigation RED: an existing real-auth/SQLite test proved four destinations vanis
 First full run567 passed/2 failed: Home's intentional reference copy change required updating the existing English expectation (direction/theme assertions retained), and resource-consent rebuild during revocation referenced a deactivated source context. Reproduced error fixed using the live dialog context; the same defensive correction applies to Quiz submit dialog. Small-screen200% tests also reproduced unbounded status/caption rows; bounded Flexible children fixed all8 matrices. Removed an unsupported decorative text glyph after inspecting the updated goldens. Golden images were deliberately regenerated for the specified V2 change and visually inspected; this is not a claim that reference-diff acceptance has passed.
 
 Checkpoint1 final: analyze no issues; full569 passed/0 failed/0 skipped (76013ms), plus updated/inspected2 Home goldens and focused16 cases. Task1 visual foundation is delivered; detailed all-screen comparison, official brand extraction, reader and release gates remain open. No change to Auth release approval or AI availability. Ruling: PDF must promote verified .part to a safe final PDF namespace per DD-13/UJ-07; an initial staging-only read approach was rejected before implementing PDF code.
+
+### PDF implementation checkpoint (28 October)
+
+- Added a real Android framework `PdfRenderer` adapter (API 21+, current minSdk
+  26), serial background native worker, bounded PNG rendering, typed failures,
+  no-follow descriptor open, canonical app-private allowlist, explicit close.
+- Reused B07 `withCompletedArtifact` under its provenance/writer lease. PDF
+  requires trusted SHA-256 and size, a second verified copy, native first-page
+  parse/render and close, then a same-filesystem rename into
+  `pdf-books-v1/<full transport identity>/book.pdf`. No SQL readiness writes.
+- Installed-file reader/installer leases stay held until native close succeeds;
+  failed close is retained by the shared app-scoped cleanup owner and retried
+  explicitly/on resume. Quiz retains its existing cleanup behavior through a
+  compatibility class. Cancelled/stale UI never resurrects rendered pixels.
+- Normal Android composition selects this real adapter lazily when no custom
+  library actions are injected. The official catalog is still unavailable;
+  no sample textbook, URL, title or model is added to production.
+- Host test groups added: real temporary-file installation, local TLS B07 to
+  installation, parser refusal, cancellation during proof, close failure pin,
+  controller concurrency, typed channel boundary, RTL/LTR 200% reader controls.
+- Android integration target uses an isolated two-page synthetic test document,
+  real native parser/PNG/page navigation/offline reopen/path denial/malformed
+  rejection. Execution is pending CI; host fakes do not prove native success.
+- `SIRAJ` Android label normalized. Official launcher/adaptive/splash artwork
+  still requires the standalone original PNG/SVG, absent from this ZIP.
+- Engine choice: framework PDF avoids a new third-party Flutter engine/plugin,
+  ABI binary matrix and additional runtime license. AOSP PdfRenderer API source
+  (android-13.0.0_r1) was inspected: seekable owned descriptor, ARGB_8888 bitmap,
+  one open page, non-thread-safe renderer. Android framework PDFium is supplied
+  by the OS. This selection is not official textbook/device acceptance.
+
+PDF host checkpoint: enforced lockfile resolved without dependency changes;
+`flutter analyze` no issues; full585 passed/0 failed/0 skipped (82636ms).
+CI40769379925 for UI checkpointca2c0fc: host/analyze/debug+release build and10
+native tests passed; application integration failed at delete tap after scroll.
+Annotation proved the attempted center605 was covered by the global footer;
+no delete dialog existed. Integration now awaits final ensureVisible/layout and
+asserts hitTestable before tapping (no warning suppression or skipped action).
+Native PDF and corrected complete application execution require the next CI.

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../resources/download_contracts.dart';
 import 'library_contracts.dart';
+import 'pdf_reader_contracts.dart';
 
 class LibraryController extends ChangeNotifier {
   LibraryController({
@@ -155,7 +156,10 @@ class LibraryController extends ChangeNotifier {
       }
     } catch (error) {
       if (!_closed && version == _version) {
-        failure = error is LibraryFailure || error is DownloadFailure
+        failure =
+            error is LibraryFailure ||
+                error is DownloadFailure ||
+                error is PdfFailure
             ? error
             : const LibraryFailure(LibraryFailureCode.ioFailure);
       }

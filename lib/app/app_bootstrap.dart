@@ -1,4 +1,5 @@
 import 'authenticated_navigation.dart';
+import '../core/runtime/resource_cleanup_owner.dart';
 import '../features/settings/account_appearance.dart';
 import '../features/library/library_contracts.dart';
 import '../features/quiz/quiz_curriculum.dart';
@@ -58,6 +59,7 @@ class AppBootstrap extends StatefulWidget {
 class _AppBootstrapState extends State<AppBootstrap>
     with WidgetsBindingObserver {
   final _quizCleanup = QuizCleanupOwner();
+  final _pdfCleanup = ResourceCleanupOwner();
   AppSessionController? _session;
   DatabaseRuntime? _ownedRuntime;
   Future<StartupDecision>? _testStartup;
@@ -139,6 +141,7 @@ class _AppBootstrapState extends State<AppBootstrap>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_quizCleanup.retry());
+      unawaited(_pdfCleanup.retry());
       if (_session?.busy == false) unawaited(_refresh());
     }
   }
@@ -224,6 +227,7 @@ class _AppBootstrapState extends State<AppBootstrap>
             quiz: widget.quiz,
             numericPrecision: widget.numericPrecision,
             quizCleanup: _quizCleanup,
+            pdfCleanup: _pdfCleanup,
           ),
         );
       case StartupStatus.accountRequired:

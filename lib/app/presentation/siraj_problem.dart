@@ -1,4 +1,5 @@
 import '../../features/library/library_contracts.dart';
+import '../../features/library/pdf_reader_contracts.dart';
 import '../../features/chat/chat_models.dart';
 import '../../features/chat/chat_copy.dart';
 import '../../features/quiz/quiz_copy.dart';
@@ -32,6 +33,53 @@ class SirajProblem {
   }) {
     SirajProblem message(ProblemAction action, String ar, String en) =>
         SirajProblem(area: area, action: action, arabic: ar, english: en);
+    if (error is PdfFailure) {
+      final (action, ar, en) = switch (error.code) {
+        PdfFailureCode.unavailable => (
+          ProblemAction.resources,
+          'قارئ PDF المحلي غير متاح على هذا الجهاز.',
+          'The local PDF reader is unavailable on this device.',
+        ),
+        PdfFailureCode.invalidFile ||
+        PdfFailureCode.missingFile ||
+        PdfFailureCode.unsafePath => (
+          ProblemAction.redownload,
+          'تعذر التحقق من الكتاب أو قراءته. أعد تنزيله من الفهرس المعتمد.',
+          'The book could not be verified or read. Download it again from the approved catalog.',
+        ),
+        PdfFailureCode.resourceLimit => (
+          ProblemAction.retry,
+          'تتجاوز الصفحة حدود ذاكرة القارئ الآمنة. أعد المحاولة أو افتح صفحة أخرى.',
+          'The page exceeds the reader memory limits. Retry or open another page.',
+        ),
+        PdfFailureCode.cancelled || PdfFailureCode.closed => (
+          ProblemAction.back,
+          'أُغلقت عملية الكتاب بأمان.',
+          'The book operation was closed safely.',
+        ),
+        PdfFailureCode.sessionExpired => (
+          ProblemAction.login,
+          'انتهت الجلسة. سجّل الدخول مجددًا.',
+          'Session expired. Log in again.',
+        ),
+        PdfFailureCode.busy => (
+          ProblemAction.retry,
+          'الكتاب قيد الاستخدام أو إغلاق القارئ. انتظر ثم أعد المحاولة.',
+          'The book is in use or the reader is closing. Wait and retry.',
+        ),
+        _ => (
+          ProblemAction.retry,
+          'تعذر إكمال عملية القارئ. أعد المحاولة.',
+          'The reader operation could not finish. Please retry.',
+        ),
+      };
+      return SirajProblem(
+        area: ProblemArea.pdf,
+        action: action,
+        arabic: ar,
+        english: en,
+      );
+    }
     if (error is LibraryFailure) {
       return SirajProblem(
         area: ProblemArea.pdf,

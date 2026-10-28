@@ -45,7 +45,7 @@ jobs:
           flutter build apk --debug --no-pub --target=lib/main.dart
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-debug.apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk
-          git archive --format=zip --prefix=SIRAJ_P0/ HEAD -o dist/SIRAJ_P0_FLUTTER_SOURCE.zip
+          git archive --format=zip --prefix=SIRAJ_P0/ HEAD -o dist/SIRAJ_P0_FINAL_FLUTTER_SOURCE.zip
           sha256sum dist/*.apk dist/*.zip > dist/SHA256SUMS
           # Flutter 3.38.5 must regenerate the plugin registrant when changing
           # build modes. --no-pub would retain the dev-only integration_test.
@@ -74,6 +74,8 @@ jobs:
           adb shell settings put global animator_duration_scale 0
       - name: Actual Android native KDF compatibility
         run: tool/android_test_with_evidence.sh integration_test/unified_native_kdf_test.dart dist/android-native-kdf.log
+      - name: Actual Android PDF engine and offline reader
+        run: tool/android_test_with_evidence.sh integration_test/unified_pdf_reader_test.dart dist/android-pdf.log
       - name: Actual unified Android application flow
         run: tool/android_test_with_evidence.sh integration_test/unified_application_test.dart dist/android-application.log
       - name: Collect isolated Android UI evidence
@@ -81,7 +83,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist/screenshots
-          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark; do
+          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark siraj-native-pdf-reader; do
             if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell run-as com.example.siraj.unifiedtest test -f "cache/$name.png"; then
               "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 exec-out run-as com.example.siraj.unifiedtest cat "cache/$name.png" > "dist/screenshots/$name.png"
             fi
