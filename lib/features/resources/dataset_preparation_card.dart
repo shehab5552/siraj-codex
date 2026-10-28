@@ -24,10 +24,10 @@ class _DatasetPreparationCardState extends State<DatasetPreparationCard> {
         context: context,
         useRootNavigator: false,
         builder: (dialogContext) => AlertDialog(
-          title: Text(context.tr('تجهيز الموارد')),
+          title: Text(dialogContext.tr('تجهيز الموارد')),
           content: SingleChildScrollView(
             child: Text(
-              context.copy(
+              dialogContext.copy(
                 'تجهيز Dataset عملية واحدة تشمل الحزم الخمس ونموذج Embedding المشترك. يلزم التخزين والاتصال للتنزيل الأول. يبقى الإصدار السابق محميًا حتى اكتمال فحص الإصدار الجديد وتفعيله.',
                 'Dataset preparation is one operation for five packs and the shared Embedding model. The first download requires storage and connectivity. The previous revision remains protected until the new one is verified and activated.',
               ),
@@ -36,11 +36,11 @@ class _DatasetPreparationCardState extends State<DatasetPreparationCard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(context.tr('إلغاء')),
+              child: Text(dialogContext.tr('إلغاء')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(context.tr('متابعة')),
+              child: Text(dialogContext.tr('متابعة')),
             ),
           ],
         ),

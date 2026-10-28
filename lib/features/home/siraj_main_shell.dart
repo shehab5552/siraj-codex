@@ -1,7 +1,6 @@
+import '../../core/design/siraj_navigation.dart';
 import 'package:flutter/material.dart';
 import '../../core/design/siraj_components.dart';
-import '../../core/design/siraj_design.dart';
-import '../../core/localization/siraj_copy.dart';
 import 'home_page.dart';
 
 enum SirajMainTab { home, assistant, library, quiz }
@@ -35,6 +34,11 @@ class _SirajMainShellState extends State<SirajMainShell> {
   SirajMainTab _selected = SirajMainTab.home;
 
   void _select(int index) {
+    final scope = SirajTabScope.maybeOf(context);
+    if (scope != null) {
+      scope.select(index);
+      return;
+    }
     final selected = SirajMainTab.values[index];
     setState(() => _selected = selected);
     if (selected == SirajMainTab.quiz &&
@@ -53,7 +57,8 @@ class _SirajMainShellState extends State<SirajMainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _selected.index;
+    final scope = SirajTabScope.maybeOf(context);
+    final selectedIndex = scope?.index ?? _selected.index;
     final pages = <Widget>[
       HomePage(
         onOpenChat: widget.onOpenChat,
@@ -89,63 +94,12 @@ class _SirajMainShellState extends State<SirajMainShell> {
             icon: Icons.quiz_outlined,
           ),
     ];
-    final width = MediaQuery.sizeOf(context).width;
-    final navigation = <NavigationDestination>[
-      NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        selectedIcon: Icon(Icons.home),
-        label: context.tr('الرئيسية'),
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.chat_bubble_outline),
-        selectedIcon: Icon(Icons.chat_bubble),
-        label: context.tr('المساعد'),
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.menu_book_outlined),
-        selectedIcon: Icon(Icons.menu_book),
-        label: context.tr('المكتبة'),
-      ),
-      NavigationDestination(
-        icon: Icon(Icons.quiz_outlined),
-        selectedIcon: Icon(Icons.quiz),
-        label: context.tr('الاختبارات'),
-      ),
-    ];
-    // Keep exactly one selected destination, even for unavailable features.
     final body = IndexedStack(index: selectedIndex, children: pages);
-    if (width >= SirajBreakpoints.expanded) {
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: _select,
-              labelType: NavigationRailLabelType.all,
-              destinations: navigation
-                  .map(
-                    (tab) => NavigationRailDestination(
-                      icon: tab.icon,
-                      selectedIcon: tab.selectedIcon,
-                      label: Text(tab.label),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const VerticalDivider(width: 1),
-            Expanded(child: body),
-          ],
-        ),
-      );
-    }
-    return Scaffold(
+    if (scope != null) return body;
+    return SirajAdaptiveNavigation(
+      index: selectedIndex,
+      onSelect: _select,
       body: body,
-      bottomNavigationBar: NavigationBar(
-        key: const Key('siraj-bottom-navigation'),
-        selectedIndex: selectedIndex,
-        onDestinationSelected: _select,
-        destinations: navigation,
-      ),
     );
   }
 }

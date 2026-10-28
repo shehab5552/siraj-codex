@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../app/app_routes.dart';
 import '../../core/design/siraj_components.dart';
 import '../../core/design/siraj_design.dart';
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 
-/// Presentation only. The composition root supplies guarded navigation and
-/// actual history; no conversation or resource status is fabricated here.
+/// Actual callbacks/history are supplied by the guarded composition root.
 class HomePage extends StatelessWidget {
   const HomePage({
     super.key,
@@ -30,22 +30,27 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authenticated = onOpenChat != null;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('سراج')),
+      appBar: SirajAppBar(
+        title: context.tr('سراج'),
+        subtitle: context.copy(
+          'مساعدك الدراسي — تعلم محلي موثوق',
+          'Your study companion — trusted local learning',
+        ),
+        showBack: false,
         actions: [
           if (onOpenHistory != null)
             IconButton(
               key: const Key('open-chat-history'),
               tooltip: context.tr('محادثاتي المحفوظة'),
               onPressed: onOpenHistory,
-              icon: const Icon(Icons.history),
+              icon: const Icon(Icons.history, size: 20),
             ),
           if (onOpenSettings != null)
             IconButton(
               key: const Key('open-settings'),
               tooltip: context.tr('الإعدادات'),
               onPressed: onOpenSettings,
-              icon: const Icon(Icons.settings_outlined),
+              icon: const Icon(Icons.settings_outlined, size: 20),
             ),
         ],
       ),
@@ -54,164 +59,291 @@ class HomePage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
               children: [
-                Text(
-                  context.tr('مرحبًا بك في سراج'),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Container(
+                  key: const Key('v2-home-hero'),
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: SirajPalette.navy,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      colors: [SirajPalette.navy, Color(0xFF1D537B)],
+                    ),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  child: Stack(
                     children: [
-                      const Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Icon(
-                          Icons.auto_awesome_outlined,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        context.tr('تعلّم بثقة، حتى دون اتصال بالإنترنت'),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        authenticated
-                            ? context.copy(
-                                'مساحتك المحلية للمحادثات والمراجعة والمصادر المعتمدة.',
-                                'Your local space for conversations, revision and approved sources.',
-                              )
-                            : context.copy(
-                                'معاينة تصميمية فقط. لا توجد جلسة أو إجابات تجريبية.',
-                                'Design preview only. No authenticated session or demo answers.',
+                      Positioned(
+                        left: -32,
+                        top: -64,
+                        child: ExcludeSemantics(
+                          child: Container(
+                            width: 165,
+                            height: 165,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: .13),
                               ),
-                        style: const TextStyle(color: Color(0xFFDFE9F7)),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton.icon(
-                        key: const Key('open-chat'),
-                        onPressed:
-                            onOpenChat ??
-                            () =>
-                                Navigator.of(context).pushNamed(AppRoutes.chat),
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        label: Text(
-                          context.tr(
-                            authenticated
-                                ? 'فتح المحادثة'
-                                : 'فتح معاينة المحادثة',
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: .04),
+                                  spreadRadius: 28,
+                                ),
+                                BoxShadow(
+                                  color: Colors.white.withValues(alpha: .02),
+                                  spreadRadius: 56,
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.copy(
+                                'مرحبًا بك في عالم التعلّم',
+                                'Welcome to a world of learning',
+                              ),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFFDAE8F6),
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              context.copy(
+                                'كل سؤال يقربك\nمن الفهم',
+                                'Every question brings\nyou closer to understanding',
+                              ),
+                              style: const TextStyle(
+                                fontSize: 22,
+                                height: 1.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 270),
+                              child: Text(
+                                authenticated
+                                    ? context.copy(
+                                        'سراج يساعدك على المذاكرة، ويعرض مصادر التفسير حين تتوفر الموارد المعتمدة.',
+                                        'SIRAJ helps you study and shows supporting sources when approved resources are available.',
+                                      )
+                                    : context.copy(
+                                        'معاينة تصميمية فقط. لا توجد جلسة أو إجابات تجريبية.',
+                                        'Design preview only. No authenticated session or demo answers.',
+                                      ),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  height: 1.9,
+                                  color: Color(0xFFDAE8F6),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            FilledButton.icon(
+                              key: const Key('open-chat'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF123C62),
+                              ),
+                              onPressed:
+                                  onOpenChat ??
+                                  () => Navigator.of(
+                                    context,
+                                  ).pushNamed(AppRoutes.chat),
+                              icon: const Icon(
+                                Icons.chat_bubble_outline,
+                                size: 16,
+                              ),
+                              label: Text(
+                                context.tr(
+                                  authenticated
+                                      ? 'فتح المحادثة'
+                                      : 'فتح معاينة المحادثة',
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 15),
                 SirajCard(
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              context.tr('جاهزية الموارد'),
+                              context.copy('حالة المساعد', 'Assistant status'),
                               style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          Flexible(
+                            child: SirajStatusPill(
+                              text: context.copy(
+                                'لم تثبت الجاهزية',
+                                'Readiness not established',
+                              ),
+                              warning: true,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         context.copy(
                           'لم تثبت جاهزية LLM وRAG بعد. راجع الملفات والتوافق قبل التوليد.',
                           'LLM and RAG readiness is not yet established. Check files and compatibility before generation.',
                         ),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       if (authenticated && onOpenResources != null)
-                        OutlinedButton.icon(
-                          key: const Key('open-resource-status'),
-                          onPressed: onOpenResources,
-                          icon: const Icon(Icons.tune),
-                          label: Text(context.tr('حالة الموارد')),
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: TextButton.icon(
+                            key: const Key('open-resource-status'),
+                            onPressed: onOpenResources,
+                            icon: const Icon(Icons.tune, size: 16),
+                            label: Text(context.tr('حالة الموارد')),
+                          ),
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
                 if (authenticated) ...[
-                  Text(
-                    context.tr('الوصول السريع'),
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15, bottom: 10),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            context.copy('إلى أين نذهب؟', 'Where shall we go?'),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            context.copy(
+                              'اختر ما تريد',
+                              'Choose your next step',
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 700;
                       final columns =
                           MediaQuery.textScalerOf(context).scale(14) > 21
                           ? 1
-                          : wide
+                          : constraints.maxWidth >= 700
                           ? 4
                           : 2;
-                      final entries = <(IconData, String, VoidCallback?)>[
-                        (Icons.chat_bubble_outline, 'المساعد', onOpenChat),
-                        (Icons.menu_book_outlined, 'المكتبة', onOpenLibrary),
-                        (Icons.quiz_outlined, 'الاختبارات', onOpenQuiz),
-                        (
-                          Icons.download_outlined,
-                          'تجهيز الموارد',
-                          onOpenResources,
-                        ),
-                      ];
+                      final entries =
+                          <
+                            (
+                              IconData,
+                              String,
+                              String,
+                              String,
+                              VoidCallback?,
+                              bool,
+                              Key?,
+                            )
+                          >[
+                            (
+                              Icons.chat_bubble_outline,
+                              'المساعد',
+                              'اسأل، افهم، وتابع الشرح',
+                              'Ask, understand and follow up',
+                              onOpenChat,
+                              false,
+                              null,
+                            ),
+                            (
+                              Icons.menu_book_outlined,
+                              'المكتبة',
+                              'مواد وكتب PDF محلية',
+                              'Local books and PDF resources',
+                              onOpenLibrary,
+                              true,
+                              null,
+                            ),
+                            (
+                              Icons.school_outlined,
+                              'الاختبارات',
+                              'راجع فهمك بالدروس',
+                              'Review your understanding',
+                              onOpenQuiz,
+                              false,
+                              const Key('open-quiz'),
+                            ),
+                            (
+                              Icons.download_outlined,
+                              'تجهيز الموارد',
+                              'تنزيل وتحقق وجاهزية',
+                              'Downloads, checks and readiness',
+                              onOpenResources,
+                              true,
+                              null,
+                            ),
+                          ];
                       return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: 9,
+                        runSpacing: 9,
                         children: [
-                          for (final entry in entries)
-                            if (entry.$3 != null)
+                          for (final e in entries)
+                            if (e.$5 != null)
                               SizedBox(
                                 width:
-                                    (constraints.maxWidth - 8 * (columns - 1)) /
+                                    (constraints.maxWidth - 9 * (columns - 1)) /
                                     columns,
                                 child: Card(
-                                  margin: EdgeInsets.zero,
                                   child: InkWell(
+                                    key: e.$7,
+                                    onTap: e.$5,
                                     borderRadius: BorderRadius.circular(16),
-                                    onTap: entry.$3,
                                     child: Padding(
-                                      padding: const EdgeInsets.all(16),
+                                      padding: const EdgeInsets.all(13),
                                       child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Icon(
-                                            entry.$1,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
+                                          SirajIconTile(
+                                            icon: e.$1,
+                                            teal: e.$6,
+                                            size: 38,
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            context.tr(entry.$2),
-                                            textAlign: TextAlign.center,
+                                            context.tr(e.$2),
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            context.copy(e.$3, e.$4),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(fontSize: 9),
                                           ),
                                         ],
                                       ),
@@ -223,25 +355,19 @@ class HomePage extends StatelessWidget {
                       );
                     },
                   ),
-                  if (onOpenQuiz != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: TextButton(
-                        key: const Key('open-quiz'),
-                        onPressed: onOpenQuiz,
-                        child: Text(context.tr('اختبر فهمك')),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 15, bottom: 10),
+                    child: Text(
+                      context.tr('أحدث محادثة محفوظة'),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
-                  const SizedBox(height: 16),
-                  Text(
-                    context.tr('أحدث محادثة محفوظة'),
-                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
                   if (latestConversationTitle != null && onOpenLatest != null)
-                    Card(
+                    SirajCard(
+                      padding: const EdgeInsets.all(12),
                       child: ListTile(
-                        leading: const Icon(Icons.history),
+                        contentPadding: EdgeInsets.zero,
+                        leading: const SirajIconTile(icon: Icons.history),
                         title: Text(
                           latestConversationTitle!,
                           maxLines: 2,
@@ -252,7 +378,13 @@ class HomePage extends StatelessWidget {
                       ),
                     )
                   else
-                    Text(context.tr('لا توجد محادثات محفوظة بعد.')),
+                    SirajCard(
+                      padding: const EdgeInsets.all(14),
+                      child: Text(
+                        context.tr('لا توجد محادثات محفوظة بعد.'),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
                 ],
               ],
             ),

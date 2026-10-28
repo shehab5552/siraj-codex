@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../app/presentation/siraj_problem.dart';
@@ -44,8 +45,12 @@ class _LibraryPageState extends State<LibraryPage> {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: c,
     builder: (context, _) => Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('المكتبة')),
+      appBar: SirajAppBar(
+        title: context.tr('المكتبة'),
+        subtitle: context.copy(
+          'كتب PDF مستقلة ومحلية',
+          'Independent, local PDF books',
+        ),
         actions: [
           IconButton(
             tooltip: context.tr('حالة الموارد'),

@@ -65,13 +65,67 @@ abstract final class SirajTheme {
       scaffoldBackgroundColor: dark
           ? const Color(0xFF101D2B)
           : SirajPalette.background,
+      textTheme: const TextTheme(
+        headlineMedium: TextStyle(
+          fontSize: 22,
+          height: 1.5,
+          fontWeight: FontWeight.w800,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 21,
+          height: 1.5,
+          fontWeight: FontWeight.w800,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 17,
+          height: 1.6,
+          fontWeight: FontWeight.w800,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 12,
+          height: 1.7,
+          fontWeight: FontWeight.w800,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 11,
+          height: 1.7,
+          fontWeight: FontWeight.w700,
+        ),
+        bodyLarge: TextStyle(fontSize: 14, height: 1.9),
+        bodyMedium: TextStyle(fontSize: 13, height: 1.9),
+        bodySmall: TextStyle(fontSize: 10.5, height: 1.9),
+        labelLarge: TextStyle(
+          fontSize: 11,
+          height: 1.6,
+          fontWeight: FontWeight.w800,
+        ),
+        labelMedium: TextStyle(
+          fontSize: 10,
+          height: 1.6,
+          fontWeight: FontWeight.w700,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 9,
+          height: 1.6,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       appBarTheme: AppBarTheme(
+        toolbarHeight: 68,
+        titleTextStyle: TextStyle(
+          fontFamily: 'NotoSansArabic',
+          fontSize: 14,
+          height: 1.5,
+          fontWeight: FontWeight.w800,
+          color: scheme.onSurface,
+        ),
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
+        margin: EdgeInsets.zero,
         color: scheme.surface,
         elevation: 0,
         shadowColor: Colors.black.withValues(alpha: .08),
@@ -81,26 +135,64 @@ abstract final class SirajTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surface,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: scheme.primary, width: 1.5),
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(SirajRadius.field),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 14,
+          vertical: 12,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(13),
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: scheme.onSurface,
+          side: BorderSide(color: scheme.outlineVariant),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(13),
+          ),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 19, vertical: 24),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: scheme.surface,
+        selectedColor: scheme.primaryContainer,
+        side: BorderSide(color: scheme.outlineVariant),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+        space: 1,
+      ),
       navigationBarTheme: NavigationBarThemeData(
+        height: 66,
         backgroundColor: scheme.surface,
         indicatorColor: scheme.primaryContainer,
       ),

@@ -1,3 +1,4 @@
+import '../core/design/siraj_navigation.dart';
 import '../features/library/library_controller.dart';
 import '../features/library/library_contracts.dart';
 import '../features/quiz/quiz_curriculum.dart';
@@ -130,6 +131,7 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
         return;
       }
       if (chat != null) {
+        SirajTabScope.maybeOf(context)?.setContext(1);
         await Navigator.of(context).push<void>(
           MaterialPageRoute(builder: (_) => ChatPage(coordinator: chat)),
         );

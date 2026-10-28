@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'siraj_design.dart';
 
 class SirajCard extends StatelessWidget {
   const SirajCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(SirajSpacing.x4),
+    this.padding = const EdgeInsets.all(14),
   });
   final Widget child;
   final EdgeInsetsGeometry padding;
   @override
   Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 10),
     child: Padding(padding: padding, child: child),
   );
 }

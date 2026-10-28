@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../app/app_preferences.dart';
@@ -110,7 +111,13 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final prefs = AppPreferencesScope.maybeOf(context);
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('الإعدادات'))),
+      appBar: SirajAppBar(
+        title: context.tr('الإعدادات'),
+        subtitle: context.copy(
+          'الحساب والمظهر وإدارة الموارد',
+          'Account, appearance and resources',
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

@@ -97,12 +97,15 @@ class ChatMessageBubble extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: 580),
         child: Container(
           margin: EdgeInsets.symmetric(vertical: 6),
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(13),
           decoration: BoxDecoration(
-            color: message.isUser
-                ? colors.primaryContainer
-                : colors.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(20),
+            color: message.isUser ? colors.primaryContainer : colors.surface,
+            borderRadius: BorderRadiusDirectional.only(
+              topStart: const Radius.circular(16),
+              topEnd: const Radius.circular(16),
+              bottomStart: Radius.circular(message.isUser ? 5 : 16),
+              bottomEnd: Radius.circular(message.isUser ? 16 : 5),
+            ),
             border: Border.all(color: colors.outlineVariant),
           ),
           child: Column(
@@ -124,7 +127,10 @@ class ChatMessageBubble extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-              SelectableText(message.text),
+              SelectableText(
+                message.text,
+                style: const TextStyle(fontSize: 11, height: 2),
+              ),
               if (message.sourcesUnavailable)
                 Padding(
                   padding: EdgeInsets.only(top: 10),

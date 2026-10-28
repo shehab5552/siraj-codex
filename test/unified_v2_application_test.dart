@@ -32,7 +32,7 @@ void main() {
     );
     final homeContext = tester.element(find.byKey(const Key('open-chat')));
     expect(Directionality.of(homeContext), TextDirection.ltr);
-    expect(find.text('Welcome to SIRAJ'), findsOneWidget);
+    expect(find.text('Welcome to a world of learning'), findsOneWidget);
     await prefs.setTheme(ThemeMode.system);
     await tester.pumpAndSettle();
     expect(

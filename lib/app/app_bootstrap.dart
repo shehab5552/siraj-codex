@@ -1,3 +1,4 @@
+import 'authenticated_navigation.dart';
 import '../features/settings/account_appearance.dart';
 import '../features/library/library_contracts.dart';
 import '../features/quiz/quiz_curriculum.dart';
@@ -208,21 +209,21 @@ class _AppBootstrapState extends State<AppBootstrap>
         }
         // Destroying this Navigator on revocation removes every private route,
         // including dialogs and sources, rather than leaving Settings over Login.
-        return Navigator(
+        return AuthenticatedNavigation(
           key: ObjectKey(session.navigationIdentity),
-          onGenerateRoute: (_) => MaterialPageRoute<void>(
-            builder: (_) => AuthenticatedWorkspace(
-              resourcePreparation: widget.resourcePreparation,
-              curriculum: widget.curriculum,
-              library: widget.library,
-              session: session,
-              identity: decision.session!,
-              tutor: widget.tutor,
-              sources: widget.sources,
-              quiz: widget.quiz,
-              numericPrecision: widget.numericPrecision,
-              quizCleanup: _quizCleanup,
-            ),
+          session: session,
+          identity: decision.session!,
+          home: (_) => AuthenticatedWorkspace(
+            resourcePreparation: widget.resourcePreparation,
+            curriculum: widget.curriculum,
+            library: widget.library,
+            session: session,
+            identity: decision.session!,
+            tutor: widget.tutor,
+            sources: widget.sources,
+            quiz: widget.quiz,
+            numericPrecision: widget.numericPrecision,
+            quizCleanup: _quizCleanup,
           ),
         );
       case StartupStatus.accountRequired:

@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 
@@ -71,8 +72,12 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
       builder: (context, _) {
         final history = widget.controller;
         return Scaffold(
-          appBar: AppBar(
-            title: Text(context.tr('محادثاتك')),
+          appBar: SirajAppBar(
+            title: context.tr('محادثاتك'),
+            subtitle: context.copy(
+              'حتى عشر محادثات محفوظة',
+              'Up to ten saved conversations',
+            ),
             actions: [
               IconButton(
                 tooltip: context.tr('تحديث المحادثات'),

@@ -48,6 +48,41 @@ void main() {
         );
         await tester.scrollUntilVisible(action, 160);
         await tester.ensureVisible(action);
+        if (!delete) {
+          await tester.tap(action);
+          Navigator.of(tester.element(action)).pop();
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find
+                .descendant(
+                  of: find.byType(NavigationBar),
+                  matching: find.text('المكتبة'),
+                )
+                .last,
+          );
+          await tester.pumpAndSettle();
+          expect(
+            tester
+                .widget<NavigationBar>(find.byType(NavigationBar))
+                .selectedIndex,
+            2,
+            reason:
+                'a popup dismissed before its first frame must not leave navigation suspended',
+          );
+          await tester.tap(
+            find
+                .descendant(
+                  of: find.byType(NavigationBar),
+                  matching: find.text('الرئيسية'),
+                )
+                .last,
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('open-settings')));
+          await tester.pumpAndSettle();
+          await tester.scrollUntilVisible(action, 160);
+          await tester.ensureVisible(action);
+        }
         await tester.tap(action);
         await tester.pumpAndSettle();
         expect(find.byType(AlertDialog), findsOneWidget);
@@ -98,6 +133,11 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('open-settings')));
     await tester.pumpAndSettle();
+    expect(
+      find.byType(NavigationBar),
+      findsOneWidget,
+      reason: 'V2 keeps the four real destinations on private subroutes',
+    );
     await tester.runAsync(() => session.refresh());
     await tester.pumpAndSettle();
     expect(

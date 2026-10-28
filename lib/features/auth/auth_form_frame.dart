@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
@@ -21,21 +22,17 @@ class AuthFormFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('سراج'))),
+      appBar: SirajAppBar(title: context.tr('سراج'), showBack: false),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 22),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 460),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.school_outlined,
-                    size: 58,
-                    color: theme.colorScheme.primary,
-                  ),
+                  const Center(child: SirajBrandMark(size: 64)),
                   SizedBox(height: 16),
                   Text(
                     title,
@@ -51,10 +48,7 @@ class AuthFormFrame extends StatelessWidget {
                     style: theme.textTheme.bodyMedium,
                   ),
                   SizedBox(height: 24),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: Padding(padding: EdgeInsets.all(20), child: content),
-                  ),
+                  content,
                   if (notice != null) ...[
                     SizedBox(height: 16),
                     Text(

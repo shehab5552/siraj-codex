@@ -1,3 +1,5 @@
+import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_components.dart';
 export 'quiz_copy.dart' show quizErrorText;
 import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
@@ -48,18 +50,15 @@ class QuizSetupForm extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            context.tr('اختبر فهمك'),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            context.copy(
-              'اختبار محلي جديد من LLM وRAG بأدلة معتمدة. تبقى الإجابات والنتيجة في الذاكرة فقط.',
-              'A new local quiz from LLM and RAG with approved evidence. Answers and results remain in memory only.',
+          SirajSectionHeading(
+            title: context.tr('اختبر فهمك'),
+            description: context.copy(
+              'اختر مادة واحدة ووحدة منها، ثم نوع الأسئلة وعددها.',
+              'Choose one subject and unit, then the question type and count.',
             ),
+            icon: Icons.school_outlined,
+            teal: true,
           ),
-          const SizedBox(height: 16),
           if (setup.loading) const LinearProgressIndicator(),
           if (data == null && !setup.loading)
             Card(
@@ -84,68 +83,159 @@ class QuizSetupForm extends StatelessWidget {
               ),
             ),
           if (data != null) ...[
-            field<String>(
-              context.copy('المادة', 'Subject'),
-              const Key('quiz-subject'),
-              setup.subjectId,
-              [
-                for (final subject in subjects)
-                  DropdownMenuItem(
-                    value: subject.id,
-                    child: Text(label(subject.arabicName, subject.englishName)),
+            SirajCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    context.copy('١. اختر المادة', '1. Choose subject'),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-              ],
-              busy ? null : setup.selectSubject,
-            ),
-            const SizedBox(height: 16),
-            field<String>(
-              context.tr('الوحدة'),
-              const Key('quiz-unit-selector'),
-              setup.unitId,
-              [
-                for (final unit in units)
-                  DropdownMenuItem(
-                    value: unit.id,
-                    child: Text(label(unit.arabicName, unit.englishName)),
+                  const SizedBox(height: 8),
+                  field<String>(
+                    context.copy('المادة', 'Subject'),
+                    const Key('quiz-subject'),
+                    setup.subjectId,
+                    [
+                      for (final subject in subjects)
+                        DropdownMenuItem(
+                          value: subject.id,
+                          child: Text(
+                            label(subject.arabicName, subject.englishName),
+                          ),
+                        ),
+                    ],
+                    busy ? null : setup.selectSubject,
                   ),
-              ],
-              busy || units.isEmpty ? null : setup.selectUnit,
+                  const SizedBox(height: 16),
+                  Text(
+                    context.copy('٢. اختر الوحدة', '2. Choose unit'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  field<String>(
+                    context.tr('الوحدة'),
+                    const Key('quiz-unit-selector'),
+                    setup.unitId,
+                    [
+                      for (final unit in units)
+                        DropdownMenuItem(
+                          value: unit.id,
+                          child: Text(label(unit.arabicName, unit.englishName)),
+                        ),
+                    ],
+                    busy || units.isEmpty ? null : setup.selectUnit,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            field<QuizQuestionType>(
-              context.tr('نوع الأسئلة'),
-              const Key('quiz-request-type'),
-              setup.type,
-              [
-                for (final type in QuizQuestionType.values)
-                  DropdownMenuItem(
-                    value: type,
-                    child: Text(
-                      context.tr(switch (type) {
-                        QuizQuestionType.mcq => 'اختيار من متعدد',
-                        QuizQuestionType.trueFalse => 'صح أو خطأ',
-                        QuizQuestionType.numeric => 'مسألة عددية',
-                        QuizQuestionType.shortAnswer => 'إجابة قصيرة',
-                      }),
+            const SizedBox(height: 2),
+            SirajCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    context.copy(
+                      '٣. حدد نوع الاختبار',
+                      '3. Choose question type',
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  LayoutBuilder(
+                    builder: (context, box) => Wrap(
+                      key: const Key('quiz-request-type'),
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final type in QuizQuestionType.values)
+                          SizedBox(
+                            width:
+                                MediaQuery.textScalerOf(context).scale(14) > 21
+                                ? box.maxWidth
+                                : (box.maxWidth - 8) / 2,
+                            child: Semantics(
+                              selected: setup.type == type,
+                              button: true,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(48, 70),
+                                  backgroundColor: setup.type == type
+                                      ? Theme.of(
+                                          context,
+                                        ).colorScheme.primaryContainer
+                                      : Theme.of(context).colorScheme.surface,
+                                  side: BorderSide(
+                                    color: setup.type == type
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.outlineVariant,
+                                    width: setup.type == type ? 1.5 : 1,
+                                  ),
+                                ),
+                                onPressed: busy
+                                    ? null
+                                    : () => setup.selectType(type),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(switch (type) {
+                                        QuizQuestionType.mcq =>
+                                          Icons.school_outlined,
+                                        QuizQuestionType.trueFalse =>
+                                          Icons.check,
+                                        QuizQuestionType.numeric =>
+                                          Icons.calculate_outlined,
+                                        QuizQuestionType.shortAnswer =>
+                                          Icons.description_outlined,
+                                      }, size: 21),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        context.tr(switch (type) {
+                                          QuizQuestionType.mcq =>
+                                            'اختيار من متعدد',
+                                          QuizQuestionType.trueFalse =>
+                                            'صح أو خطأ',
+                                          QuizQuestionType.numeric =>
+                                            'مسألة عددية',
+                                          QuizQuestionType.shortAnswer =>
+                                            'إجابة قصيرة',
+                                        }),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-              ],
-              busy
-                  ? null
-                  : (type) {
-                      if (type != null) setup.selectType(type);
-                    },
-            ),
-            const SizedBox(height: 16),
-            field<int>(
-              context.copy('عدد الأسئلة', 'Question count'),
-              const Key('quiz-count'),
-              setup.count,
-              [
-                for (final n in data.allowedCounts[setup.type] ?? <int>[])
-                  DropdownMenuItem(value: n, child: Text('$n')),
-              ],
-              busy ? null : setup.selectCount,
+                  const SizedBox(height: 16),
+                  Text(
+                    context.copy('عدد الأسئلة', 'Question count'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Wrap(
+                    key: const Key('quiz-count'),
+                    spacing: 7,
+                    runSpacing: 7,
+                    children: [
+                      for (final n in data.allowedCounts[setup.type] ?? <int>[])
+                        ChoiceChip(
+                          label: Text('$n'),
+                          selected: setup.count == n,
+                          onSelected: busy ? null : (_) => setup.selectCount(n),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 16),

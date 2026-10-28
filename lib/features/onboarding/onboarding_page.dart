@@ -1,5 +1,5 @@
+import '../../core/design/siraj_v2_components.dart';
 import 'package:flutter/material.dart';
-import '../../core/design/siraj_components.dart';
 import '../../core/localization/siraj_copy.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -51,8 +51,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
       ),
     ];
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.tr('سراج')),
+      appBar: SirajAppBar(
+        title: context.tr('سراج'),
+        showBack: false,
         actions: [
           TextButton(
             onPressed: _busy ? null : _complete,
@@ -67,33 +68,88 @@ class _OnboardingPageState extends State<OnboardingPage> {
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                Semantics(
-                  label: context.copy(
-                    'الخطوة ${_step + 1} من 4',
-                    'Step ${_step + 1} of 4',
+                SizedBox(
+                  height: 227,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 202,
+                        height: 202,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [Color(0xFFE3F6F3), Color(0xFFDCEAFD)],
+                          ),
+                        ),
+                        child: const Center(child: SirajBrandMark(size: 102)),
+                      ),
+                      Positioned(
+                        top: 30,
+                        left: 38,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(9),
+                            child: Icon(
+                              Icons.auto_awesome_outlined,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 24,
+                        right: 38,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(9),
+                            child: Icon(
+                              Icons.menu_book_outlined,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: LinearProgressIndicator(value: (_step + 1) / 4),
                 ),
-                const SizedBox(height: 32),
-                Icon(
-                  [
-                    Icons.school_outlined,
-                    Icons.phonelink_lock,
-                    Icons.fact_check_outlined,
-                    Icons.auto_awesome_outlined,
-                  ][_step],
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Text(
                   titles[_step],
                   style: Theme.of(context).textTheme.headlineMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                SirajCard(
-                  child: Text(messages[_step], textAlign: TextAlign.center),
+                Text(
+                  messages[_step],
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(fontSize: 11),
+                ),
+                const SizedBox(height: 15),
+                Semantics(
+                  label: context.copy(
+                    'الخطوة ${_step + 1} من 4',
+                    'Step ${_step + 1} of 4',
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (var i = 0; i < 4; i++)
+                        Container(
+                          width: i == _step ? 24 : 7,
+                          height: 7,
+                          margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                          decoration: BoxDecoration(
+                            color: i == _step
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 if (_failed)

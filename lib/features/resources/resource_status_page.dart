@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
@@ -44,7 +45,13 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('حالة الموارد'))),
+      appBar: SirajAppBar(
+        title: context.tr('حالة الموارد'),
+        subtitle: context.copy(
+          'تنزيل وفحص الموارد المستقلة',
+          'Independent resource downloads and checks',
+        ),
+      ),
       body: FutureBuilder<ResourceStatusSnapshot>(
         future: _snapshot,
         builder: (context, snapshot) {

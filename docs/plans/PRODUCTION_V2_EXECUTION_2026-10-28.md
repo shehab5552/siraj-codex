@@ -1,0 +1,58 @@
+# SIRAJ production completion and V2 implementation plan
+
+> Implement inline with superpowers:executing-plans; tests before behavior changes, one final independent whole-change review. User explicitly requests execution, not a new approval/planning stop.
+
+Goal: close implementable V2/PDF/lifecycle gaps while retaining the verified unified application and reporting each production acceptance gate truthfully.
+Architecture: reuse the current design system, AuthService, Chat/Quiz controllers, DownloadService and DatasetReleaseManager. Add one Android PdfRenderer backend behind library ports; no second downloader or guessed AI engine/model/index policy.
+Tech stack: Flutter3.38.5/Dart3.10.4; Java17/Kotlin Android API26+; pinned dependencies.
+Spec: docs/spec/PRODUCTION_COMPLETION_USER_REQUEST_2026-10-28_AR.md; corrected official P0 and revised Team B plan. Visual reference: docs/design/reference_v2/.
+
+## Baseline
+
+GitHub verified28October2026 Asia/Aden: main651af0d, integration0b911d0, PR12 OPEN/DRAFT; prior CI40157567682 SUCCESS. No original repository/computer access. Managed network policy enforced; five allowed hosts, Actions download log hostname remains outside allowlist. No AGENTS.md found. Working tree isolated on existing integration branch.
+
+## Constraints and rulings
+
+- One main.dart/application/design/Auth/chat/download/Quiz/RAG system; no schema changes for visuals, no Quiz persistence.
+- Four approved Quiz types, trusted catalog/counts, no bank selector. Mixed mode only if documented contracts support it; current single desiredType contract does not.
+- Ruling: execute the already explicit user-approved scope without asking another design/plan approval. Implementer settles visual measurements/native-PDF adapter choice. Cost if wrong: reviewable changes remain on PR12, no merge.
+- Ruling: compare actual app content at380x737 to396x790 phone reference after excluding8px device shell,26px synthetic status and11px home indicator. Never draw fake OS chrome inside production app. Keep48dp touch minimum despite46px reference buttons. Cost: small documented accessibility/OS differences.
+- Brand board is visible inline but no standalone PNG/SVG asset exists in ZIP/cloud attachments. Do not claim exact approved logo extraction or upscale a tiny raster. Record asset blocker explicitly; keep reference monogram until correct source is available.
+- PDF engine choice: Android framework PdfRenderer (API21+, existing min26), platform implementation, no additional third-party binary/plugin. Compare with external plugins and document licensing/platform limits. Real parser/rendering proof required; approved book catalog still absent.
+- Missing approved native AI build/weights/embedding/index/science policies and physical device remain BLOCKED. Do not invent wire formats/thresholds or enable release Auth before acceptance.
+- Explicit user approval required before merging PR12 even if all gates eventually pass. Push/PR updates/CI are already authorized.
+
+## Review focus
+
+- Private route/modal lifetime and stale render/download completions after logout/delete: no private pixels or writes may reappear.
+- PDF path substitution/symlinks/truncation/huge page sizes: deny outside app staging; use descriptor ownership, bounded rendering, typed errors.
+- Completed PDF staging must remain locked through native descriptor open/read/close; never replace active readers.
+- Reference screenshots include fake science/catalog/bank options: visual resemblance must not turn those into production data.
+- 200% text/small widths and queued render/cancel/close must remain usable, memory bounded and recoverable.
+
+## Tasks
+
+1. [ ] V2 geometry/components and all existing screen layouts. Modify core/design; home/navigation/onboarding/auth/chat/history/resources/quiz/library/settings presentation only. RED: toolbar68,nav66,explicit card/dialog/field tokens and semantic sizes. Implement shared header/tiles/pills/status/segmented selection, reference hero/cards/spacing, preserving labels/keys and real callbacks. Focused tests then full regression; commit/push/CI checkpoint.
+2. [ ] Visual evidence. New controlled380x737 and370x683 actual Flutter captures for all screen groups and AR/EN/light/dark/scaled states; goldens use test-only fakes for unavailable branches. Compare supplied PNG app regions without matching fake science/OS chrome. Save matrix, actual/reference/diff artifacts and measured dimensions, no unsupported pixel-accuracy claim.
+3. [ ] Verified native PDF. New features/library/pdf_reader_contracts.dart, native_pdf_reader.dart, pdf_reader_controller.dart, pdf_reader_page.dart, verified_library_actions.dart and Android SirajPdfChannel.kt; root library factory wiring. Consume existing withCompletedArtifact and DownloadHandle, not a new service. Descriptor-backed open/page/render/close on serialized worker, bounds/pixels/path checks and no external intents/network. RED unit/controller/real TLS+file tests, widget render/navigation/zoom/cancel tests, real two-page synthetic PDF on Android (test asset only, no official book claim).
+4. [ ] Native/lifecycle/packaging. Extend normal app Android acceptance for restore/background/lifecycle as testable, retain KDF/Keystore/SQL and signing gates. Workflow produces SIRAJ_P0_FINAL_FLUTTER_SOURCE.zip, normal isolated-ID main APK, hashes, visual/QA reports. Uppercase SIRAJ app label; final branded launcher/splash blocked on source asset if unavailable.
+5. [ ] Final independent review, fix verified Important/Critical once with RED→GREEN/full suite, pub enforced/analyze/test/format/diff, push and exact-commit CI; update PR12 and Arabic Gate1..8/visual/release-readiness reports. No merge request until all mandatory gates pass; otherwise report Integration Testing and exact inputs still missing.
+
+## Interface preflight
+
+1→2: shared typography/layout tokens used by captures; golden updates are intentional evidence, not substitutes for reference comparison.
+3→1/4: LibraryBookActions.open Future lasts until private PdfReaderPage and native handle close; session scope destroys route, cleanup drains and releases B07 lease.
+3→B07: staging root and DownloadSpec identity remain owner-selected, validator hashes/sizes plus native parser prove readable; no READY from header/SQL alone.
+4→5: CI success proves emulator/build only, not physical-device or scientific acceptance. Source code and report commits are identified separately where necessary to avoid self-referential ZIP hashes.
+
+## Execution ledger
+
+Baseline rerun: enforced pub/analyze PASS;566 tests passed/0 failed/0 skipped (68766ms). Actual prior GitHub branch/PR/CI verified before editing. Package15 files read/inspected;13 PNGs viewed and HTML68,216 characters reviewed. Chromium file:// navigation was blocked by administrator; rendering the already-read HTML in an in-memory Playwright page succeeded with policy intact. Measured reference phone396x790, appbar380x68, body380x603, footer380x66, hero350x233.78125. No screenshots/prototype have been wired into production UI.
+
+Checkpoint1 foundation: RED geometry tests proved missing68/66 heights and text/field/dialog tokens; home reference text/gutters also failed before implementation. One design system now supplies explicit V2 typography, field/card/dialog themes, shared header/tiles/pills/notices, reference home hero/grid, onboarding halo/dots, four-type trusted Quiz cards and message geometry. Existing source/actions are retained. Replaced opaque generic headers across account/chat/history/quiz/resources/library/settings, preserving real service callbacks.
+
+Navigation RED: an existing real-auth/SQLite test proved four destinations vanished on Settings. App-scoped authenticated chrome now surrounds the existing single private Navigator; public tab changes are authorized by existing AppSessionController and logout/delete destroy the entire scope. A real rapid-popup regression then proved stale scheduled modal state could disable navigation after dismissal; coalescing the latest modal state fixed it. Dialogs block both route body and external navigation while open. No nonce enters keys.
+
+First full run567 passed/2 failed: Home's intentional reference copy change required updating the existing English expectation (direction/theme assertions retained), and resource-consent rebuild during revocation referenced a deactivated source context. Reproduced error fixed using the live dialog context; the same defensive correction applies to Quiz submit dialog. Small-screen200% tests also reproduced unbounded status/caption rows; bounded Flexible children fixed all8 matrices. Removed an unsupported decorative text glyph after inspecting the updated goldens. Golden images were deliberately regenerated for the specified V2 change and visually inspected; this is not a claim that reference-diff acceptance has passed.
+
+Checkpoint1 final: analyze no issues; full569 passed/0 failed/0 skipped (76013ms), plus updated/inspected2 Home goldens and focused16 cases. Task1 visual foundation is delivered; detailed all-screen comparison, official brand extraction, reader and release gates remain open. No change to Auth release approval or AI availability. Ruling: PDF must promote verified .part to a safe final PDF namespace per DD-13/UJ-07; an initial staging-only read approach was rejected before implementing PDF code.

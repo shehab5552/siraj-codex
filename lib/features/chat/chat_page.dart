@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 
@@ -156,18 +157,9 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
           ? TextDirection.rtl
           : TextDirection.ltr,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.tr('المحادثة')),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(22),
-            child: Padding(
-              padding: EdgeInsets.only(bottom: 8),
-              child: Text(
-                context.tr('سراج — المعلم المحلي'),
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-            ),
-          ),
+        appBar: SirajAppBar(
+          title: context.tr('المحادثة'),
+          subtitle: context.tr('سراج — المعلم المحلي'),
         ),
         body: SafeArea(
           child: Column(

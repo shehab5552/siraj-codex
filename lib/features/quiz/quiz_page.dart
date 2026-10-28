@@ -1,3 +1,4 @@
+import '../../core/design/siraj_v2_components.dart';
 import '../../app/presentation/siraj_problem.dart';
 import '../../integrations/ai/quiz_port.dart';
 import '../../core/localization/siraj_copy.dart';
@@ -176,9 +177,9 @@ class _QuizPageState extends State<QuizPage> {
       context: context,
       useRootNavigator: false,
       builder: (dialogContext) => AlertDialog(
-        title: Text(context.copy('تأكيد التسليم', 'Confirm submission')),
+        title: Text(dialogContext.copy('تأكيد التسليم', 'Confirm submission')),
         content: Text(
-          context.copy(
+          dialogContext.copy(
             'ستُقيّم الإجابات وفق المعيار المراجَع. لن تُحفظ المحاولة خارج هذه الجلسة.',
             'Answers will be graded against the reviewed criteria. This attempt will not be saved outside this session.',
           ),
@@ -186,12 +187,12 @@ class _QuizPageState extends State<QuizPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(context.tr('إلغاء')),
+            child: Text(dialogContext.tr('إلغاء')),
           ),
           FilledButton(
             key: const Key('quiz-final-confirm'),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(context.tr('تأكيد')),
+            child: Text(dialogContext.tr('تأكيد')),
           ),
         ],
       ),
@@ -212,7 +213,13 @@ class _QuizPageState extends State<QuizPage> {
     child: AnimatedBuilder(
       animation: c,
       builder: (context, _) => Scaffold(
-        appBar: AppBar(title: Text(context.tr('اختبر فهمك'))),
+        appBar: SirajAppBar(
+          title: context.tr('اختبر فهمك'),
+          subtitle: context.copy(
+            'حدد المادة والوحدة ونوع الأسئلة',
+            'Choose subject, unit and question type',
+          ),
+        ),
         body: SafeArea(
           child: ListView(
             padding: EdgeInsets.all(20),
