@@ -78,3 +78,6 @@ Workflow `SIRAJ unified integration verification` يبني Debug من main وي�
 [تقرير التسليم الموحد وحدوده ونتائج القبول والتنزيل](docs/reports/SIRAJ_UNIFIED_V2_INTEGRATION_AR.md) يجيب عن حالة Auth وAI وQuiz وPDF وmain، ويضم إجراءات اختبار Android المعزولة ومصفوفة المدخلات المتبقية. الأدلة المقروءة آليًا وجرد الملفات والمراجعتان في [docs/qa/unified_2026-10-25](docs/qa/unified_2026-10-25).
 
 الخط المضمّن Noto Sans Arabic مرخص بـSIL OFL 1.1؛ المصدر وبصماته في `assets/fonts/PROVENANCE.md` والترخيص بجواره. رموز Material من Flutter. لا تُحمّل الخطوط عبر الشبكة أثناء تشغيل التطبيق.
+
+
+يتضمن Source ZIP النهائي ملفي `docs/qa/CI_ACCEPTANCE_AR.md` و`CI_ACCEPTANCE.json` المولدين من التشغيل نفسه بعد اجتياز Host وNative. راجع Commit وRun داخلهما و`SHA256SUMS` في Artifact؛ أدلة CI المولدة ليست ملفات كود مُضافة إلى Git. إذا فشل هدف أو لم يُنفذ، لا يولّد المشغّل حزمة موثقة بوصفها ناجحة.

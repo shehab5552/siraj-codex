@@ -27,7 +27,10 @@ jobs:
           flutter pub get --enforce-lockfile
           flutter analyze --no-pub
       - name: Flutter tests
-        run: flutter test --no-pub
+        run: |
+          mkdir -p dist
+          flutter test --no-pub --reporter=json > dist/flutter-tests.jsonl
+          python3 tool/flutter_test_summary.py dist/flutter-tests.jsonl dist/flutter-results.json
       - name: Android SDK components
         shell: bash
         run: |
@@ -45,13 +48,10 @@ jobs:
           flutter build apk --debug --no-pub --target=lib/main.dart
           mkdir -p dist
           cp build/app/outputs/flutter-apk/app-debug.apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk
-          git archive --format=zip --prefix=SIRAJ_P0/ HEAD -o dist/SIRAJ_P0_FINAL_FLUTTER_SOURCE.zip
-          sha256sum dist/*.apk dist/*.zip > dist/SHA256SUMS
           # Flutter 3.38.5 must regenerate the plugin registrant when changing
           # build modes. --no-pub would retain the dev-only integration_test.
           flutter build apk --release --target=lib/main.dart
           git diff --exit-code -- pubspec.lock
-          while read -r hash filename; do echo "::notice title=SIRAJ artifact SHA256::$hash $filename"; done < dist/SHA256SUMS
       - name: Install Android runtime test image
         shell: bash
         run: |
@@ -103,6 +103,8 @@ jobs:
               "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 exec-out run-as com.example.siraj.unifiedtest cat "cache/$name.png" > "dist/screenshots/$name.png"
             fi
           done
+      - name: Package verified source and current acceptance report
+        run: python3 tool/package_verified_source.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

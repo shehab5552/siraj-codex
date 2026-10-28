@@ -175,3 +175,11 @@ Signup but hitTestable assertion failed after entering credentials. IME/focus
 still covered target; verification helper now unfocuses and waits for actual
 viewInsets.bottom==0 before ensureVisible/layout and retains hit-test assertion.
 No AuthService, KDF, or assertion bypass. Restore not run in that failed job.
+
+Packaging ruling: generate source ZIP only after all actual host/native result
+files pass; append an explicitly generated CI acceptance JSON/Arabic report to
+the source package, then hash it with the normal-main Debug APK. This avoids a
+self-referential report/Commit/hash loop and old test counts in a pre-test ZIP.
+Cost if wrong: packaging fails closed; unit-host summary was exercised on actual
+591-pass JSON, and incomplete native inputs must be rejected. No fabricated
+positive counts or production gates. Final CI proves the complete package path.
