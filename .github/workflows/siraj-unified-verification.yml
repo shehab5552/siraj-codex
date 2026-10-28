@@ -78,12 +78,27 @@ jobs:
         run: tool/android_test_with_evidence.sh integration_test/unified_pdf_reader_test.dart dist/android-pdf.log
       - name: Actual unified Android application flow
         run: tool/android_test_with_evidence.sh integration_test/unified_application_test.dart dist/android-application.log
+      - name: Prepare persisted account for Android force-stop
+        run: tool/android_test_with_evidence.sh integration_test/unified_restart_setup_test.dart dist/android-restart-setup.log
+      - name: Force-stop the isolated Android application
+        shell: bash
+        run: |
+          adb -s emulator-5554 shell svc wifi disable
+          adb -s emulator-5554 shell svc data disable
+          adb -s emulator-5554 shell am force-stop com.example.siraj.unifiedtest
+          if adb -s emulator-5554 shell pidof com.example.siraj.unifiedtest; then
+            echo 'Application process still running after force-stop' >&2
+            exit 1
+          fi
+          echo '::notice title=SIRAJ Android evidence::WiFi/mobile data disabled; adb force-stop verified no remaining isolated app process'
+      - name: Verify real Android restart persistence
+        run: tool/android_test_with_evidence.sh integration_test/unified_restart_restore_test.dart dist/android-restart-restore.log
       - name: Collect isolated Android UI evidence
         if: always()
         shell: bash
         run: |
           mkdir -p dist/screenshots
-          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark siraj-native-pdf-reader; do
+          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark siraj-native-pdf-reader siraj-force-stop-restored; do
             if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell run-as com.example.siraj.unifiedtest test -f "cache/$name.png"; then
               "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 exec-out run-as com.example.siraj.unifiedtest cat "cache/$name.png" > "dist/screenshots/$name.png"
             fi

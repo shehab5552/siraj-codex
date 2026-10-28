@@ -95,3 +95,43 @@ Annotation proved the attempted center605 was covered by the global footer;
 no delete dialog existed. Integration now awaits final ensureVisible/layout and
 asserts hitTestable before tapping (no warning suppression or skipped action).
 Native PDF and corrected complete application execution require the next CI.
+
+### Independent review / lifecycle fix / visual evidence (29 October Asia/Aden)
+
+Two isolated read-only reviewers (spec and architecture axes) reviewed the pinned
+0b911d0..1194527 change. Both found one Important/P2 issue: destroying the session
+Navigator does not complete the pushed PDF route future, so cancellation could
+close native state but strand the book lease. No additional concrete findings
+or deferred minors. Ruling: make operation cancellation complete independently
+of route disposal; the existing owner still joins actual native close before
+release. Cost if wrong: future cancellation could release too soon; explicit
+failed-close tests guard against it.
+
+Final: fixed PDF lease after session destruction — direct pending-presenter
+regression timed out RED; actual authenticated Navigator destruction failed RED
+for close-success and close-failure. Operation stop-completer raced against the
+presentation future makes both GREEN. Native close failure still retains the
+lease in app-scoped cleanup until retry succeeds. No second native owner.
+Host harness note: keep real TLS unit tests in a separate suite from widget
+binding (which deliberately returns HTTP400), and drain real filesystem events
+alongside widget microtasks rather than awaiting fake-zone futures in runAsync.
+No production transport/auth policy changed to accommodate tests.
+
+Visual evidence:26 new AR light/dark app goldens,380x737@1 actual content viewport,
+13 real states per theme; no demo scientific responses or book catalogs. Existing
+EN dark tablet/Home goldens and320/1024@200% RTL/LTR/light/dark tests retained.
+Nine reference/actual/absolute-diff panels expose remaining geometry/content
+changes. Descriptive MAE is not an invented acceptance threshold. Visual gate
+remains incomplete, especially official artwork, header/empty-state copy and
+selected-tab treatment. No pixel-accurate approval claim.
+
+CI40771453346 at1194527 SUCCESS:585 host tests;10 native KDF tests,1 actual native
+PDF test and1 full application test. Debug and unsigned evaluation release build
+passed. Synthetic2page PDF native parser/render/navigation/offline reopen/path
+rejection/malformed rejection/close verified on API33 emulator only. Previous
+application tap failure is fixed by waiting for layout/hit-testability.
+
+Added real force-stop persistence setup/restore Android targets with real native
+KDF/Keystore/SQLite, saved USER message, EN/dark and post-restart logout/login/delete.
+CI disables emulator WiFi/mobile data, force-stops the isolated app and verifies
+no PID before restore. These new targets are pending execution, not PASS yet.

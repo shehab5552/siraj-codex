@@ -180,4 +180,32 @@ void main() {
       await lease.release();
     },
   );
+  test(
+    'cancel ends a presenter that never completes and releases the closed book',
+    () async {
+      await actions.download(book);
+      final shown = Completer<void>();
+      final pendingRoute = Completer<void>();
+      actions = VerifiedLibraryActions(
+        storage: () => Future.value(storage),
+        reader: reader,
+        cleanup: cleanup,
+        present: (_, _) {
+          shown.complete();
+          return pendingRoute.future;
+        },
+      );
+      final job = expectLater(actions.open(book), throwsA(isA<PdfFailure>()));
+      await shown.future;
+      await actions.cancel(book);
+      try {
+        await job.timeout(const Duration(milliseconds: 200));
+      } finally {
+        if (!pendingRoute.isCompleted) pendingRoute.complete();
+      }
+      final lease = await storage.store.acquire(book.download);
+      expect(await lease.hasVerifiedBook(), isTrue);
+      await lease.release();
+    },
+  );
 }

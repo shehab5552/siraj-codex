@@ -16,6 +16,7 @@ class PdfLibraryStorage {
 
 class _Operation {
   bool cancelled = false;
+  final stopped = Completer<void>();
   DownloadHandle<ResourceDownloadEvidence>? handle;
   PdfReaderController? controller;
   void check() {
@@ -174,7 +175,7 @@ class VerifiedLibraryActions implements LibraryBookActions {
       op.check();
       controller = PdfReaderController(document);
       op.controller = controller;
-      await present(controller, book);
+      await Future.any<void>([present(controller, book), op.stopped.future]);
       op.check();
       await controller.close();
     } finally {
@@ -188,6 +189,7 @@ class VerifiedLibraryActions implements LibraryBookActions {
     final op = _operations[book.id];
     if (op == null) return;
     op.cancelled = true;
+    if (!op.stopped.isCompleted) op.stopped.complete();
     final handle = op.handle;
     if (handle != null) await (await _getStorage()).downloads.cancel(handle);
     // Closing erases pixels immediately. The operation owner retains/retries
