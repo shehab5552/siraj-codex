@@ -135,3 +135,36 @@ Added real force-stop persistence setup/restore Android targets with real native
 KDF/Keystore/SQLite, saved USER message, EN/dark and post-restart logout/login/delete.
 CI disables emulator WiFi/mobile data, force-stops the isolated app and verifies
 no PID before restore. These new targets are pending execution, not PASS yet.
+
+Visual follow-through:30 AR light/dark goldens now include Logout/Delete before
+and after acknowledgment. Public-screen dark captures initially followed System
+into light; a RED mismatch exposed the mislabeled baseline. Set actual OS dark
+in the test and assert Theme.brightness at every capture; regenerated baseline.
+No application preference/auth policy changed for the test.
+
+Ruling: correct the material selected-pill difference in the existing
+NavigationBar using a presentation-only NavigationDestination subtype, retaining
+its standard host/focus/layout contract and all guarded onSelect callbacks.
+Cost if wrong: accessibility or large-text regression; full-tile83x54@380 test
+and tap-target guidelines plus all8 responsive matrices cover it. Initial200%
+text showed3px overflow from inherited text height; explicit caption line height
+fixed it. Account content is aligned to the reference's top area rather than
+vertically centered; local P0's three real fields are retained.
+
+CI40780034725: host590/analyze/build and10native+1PDF+1App passed; restart setup
+failed waiting for Signup (0setup passes/1failure; restore skipped). Root cause
+verified in pinned Flutter SDK: IntegrationTestTestDevice.kill explicitly stops
+and UNINSTALLS the app (integration_test_device.dart:144), as does default drive
+cleanup. Separate targets therefore cannot assume persisted onboarding/account.
+Ruling: use official flutter drive --keep-app-running with integrationDriver,
+not a patched Flutter SDK or copied data, for all native targets. Cost if wrong:
+state leakage; one isolated applicationId and explicit full-app deletion/setup
+flow keep the sequence bounded. Host driver saves screenshots before teardown;
+previous post-test run-as collector alone could lose them to uninstallation.
+
+Full host after visual corrections:591 passed/0 failed/0 skipped,85390ms;
+analyze clean and enforced lockfile unchanged. Native host driver validates
+actual binding.results counts for all5targets and saves only the small count
+summary plus PNG screenshots (no full byte-array logging). Expected case count
+is checked so missing execution cannot silently report success. Corrected
+native lifecycle execution remains a CI requirement, not an assumption.

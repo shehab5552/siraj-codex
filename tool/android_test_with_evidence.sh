@@ -4,7 +4,7 @@ set -euo pipefail
 target=${1:?integration test target required}
 log=${2:?output log required}
 mkdir -p "$(dirname "$log")"
-if flutter test "$target" -d emulator-5554 --reporter expanded > "$log" 2>&1; then
+if flutter drive --driver=test_driver/unified_driver.dart --target="$target" -d emulator-5554 --keep-app-running > "$log" 2>&1; then
   python3 - "$log" <<'PY'
 from pathlib import Path
 import re,sys

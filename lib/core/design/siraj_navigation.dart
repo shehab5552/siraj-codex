@@ -98,7 +98,88 @@ class SirajAdaptiveNavigation extends StatelessWidget {
           key: const Key('siraj-bottom-navigation'),
           selectedIndex: index,
           onDestinationSelected: onSelect,
-          destinations: tabs,
+          destinations: [
+            for (var i = 0; i < tabs.length; i++)
+              _ReferenceDestination(
+                icon: tabs[i].icon,
+                label: tabs[i].label,
+                selected: index == i,
+                onTap: () => onSelect(i),
+                tileIndex: i,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Keeps NavigationBar's focus/layout contract while painting V2's full-cell
+/// selection instead of Material3's small pill. Navigation authorization stays
+/// in the host callback; this component owns no route or session behavior.
+class _ReferenceDestination extends NavigationDestination {
+  const _ReferenceDestination({
+    required super.icon,
+    required super.label,
+    required this.selected,
+    required this.onTap,
+    required this.tileIndex,
+  });
+  final bool selected;
+  final VoidCallback onTap;
+  final int tileIndex;
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final color = selected ? scheme.primary : scheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: Semantics(
+        label: label,
+        button: true,
+        selected: selected,
+        onTap: onTap,
+        excludeSemantics: true,
+        child: Tooltip(
+          message: label,
+          child: DecoratedBox(
+            key: Key('v2-nav-tile-$tileIndex'),
+            decoration: BoxDecoration(
+              color: selected ? scheme.primaryContainer : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 54,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconTheme(
+                      data: IconThemeData(color: color, size: 20),
+                      child: icon,
+                    ),
+                    const SizedBox(height: 3),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9,
+                          height: 1.2,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

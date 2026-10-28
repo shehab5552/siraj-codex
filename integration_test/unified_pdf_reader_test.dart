@@ -1,3 +1,4 @@
+import 'support/native_results.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ import '../test/support/pdf_fixture.dart';
 /// synthetic PDF is test-only. No claim about an official textbook is made.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  recordNativeResults(binding, 'native-pdf', 1);
   testWidgets(
     'real Android PDF install render navigate offline reopen and path denial',
     (tester) async {

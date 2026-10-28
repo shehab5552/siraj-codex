@@ -1,3 +1,4 @@
+import 'support/native_results.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -5,7 +6,8 @@ import 'package:siraj/app/siraj_app.dart';
 import 'support/unified_flow.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  recordNativeResults(binding, 'restart-setup', 1);
   testWidgets(
     'prepare real persisted account conversation and appearance for force-stop',
     (tester) async {

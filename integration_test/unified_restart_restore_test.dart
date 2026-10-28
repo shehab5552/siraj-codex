@@ -1,3 +1,4 @@
+import 'support/native_results.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,7 @@ import 'support/unified_flow.dart';
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  recordNativeResults(binding, 'restart-restore', 1);
   testWidgets(
     'restore actual session conversation and appearance after adb force-stop',
     (tester) async {

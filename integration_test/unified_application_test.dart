@@ -1,3 +1,4 @@
+import 'support/native_results.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,7 @@ import 'package:siraj/app/siraj_app.dart';
 /// No Fake Tutor, KDF, Keystore or database is injected into this test.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  recordNativeResults(binding, 'application', 1);
   testWidgets(
     'unified real Android startup auth navigation and fail-closed AI',
     (tester) async {

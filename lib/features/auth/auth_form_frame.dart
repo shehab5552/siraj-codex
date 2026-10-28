@@ -24,9 +24,10 @@ class AuthFormFrame extends StatelessWidget {
     return Scaffold(
       appBar: SirajAppBar(title: context.tr('سراج'), showBack: false),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 22),
+            padding: EdgeInsets.fromLTRB(15, 38, 15, 24),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 460),
               child: Column(

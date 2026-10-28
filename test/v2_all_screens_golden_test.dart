@@ -35,6 +35,10 @@ void main() {
       (t) async {
         t.view.physicalSize = const Size(380, 737);
         t.view.devicePixelRatio = 1;
+        t.platformDispatcher.platformBrightnessTestValue = dark
+            ? Brightness.dark
+            : Brightness.light;
+        addTearDown(t.platformDispatcher.clearPlatformBrightnessTestValue);
         addTearDown(t.view.resetPhysicalSize);
         addTearDown(t.view.resetDevicePixelRatio);
         final runtime = DatabaseRuntime(
@@ -76,6 +80,10 @@ void main() {
           Future<void> capture(String name) async {
             await flush();
             expect(t.takeException(), isNull);
+            expect(
+              Theme.of(t.element(find.byType(Scaffold).last)).brightness,
+              dark ? Brightness.dark : Brightness.light,
+            );
             await expectLater(
               find.byKey(const Key('reference-golden')),
               matchesGoldenFile(
@@ -160,6 +168,30 @@ void main() {
           await t.tap(find.byKey(const Key('settings-logout')));
           await flush();
           await capture('logout');
+          await t.tap(find.text('إلغاء').last);
+          await flush();
+          await t.ensureVisible(find.byKey(const Key('settings-delete')));
+          await flush();
+          await t.tap(find.byKey(const Key('settings-delete')));
+          await flush();
+          expect(
+            t
+                .widget<FilledButton>(
+                  find.byKey(const Key('confirm-account-action')),
+                )
+                .onPressed,
+            isNull,
+          );
+          await capture('delete');
+          await t.tap(find.byKey(const Key('delete-account-checkbox')));
+          await flush();
+          await capture('delete_acknowledged');
+          await t.tap(find.text('إلغاء').last);
+          await flush();
+          await t.ensureVisible(find.byKey(const Key('settings-logout')));
+          await flush();
+          await t.tap(find.byKey(const Key('settings-logout')));
+          await flush();
           await t.tap(find.byKey(const Key('confirm-account-action')));
           await until(find.byKey(const Key('login-submit')));
           await capture('login');

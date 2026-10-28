@@ -1,3 +1,4 @@
+import 'support/native_results.dart';
 import 'package:siraj/features/auth/kdf_worker.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -14,7 +15,8 @@ final vectors =
         )
         as List;
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  recordNativeResults(binding, 'native-kdf', 10);
   for (final v in vectors) {
     testWidgets('native Android PBKDF2 vector ${v['id']}', (tester) async {
       expect(Platform.isAndroid, isTrue);
