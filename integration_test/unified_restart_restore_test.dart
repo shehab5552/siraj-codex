@@ -1,3 +1,4 @@
+import 'package:siraj/features/chat/chat_page.dart';
 import 'support/native_results.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -24,7 +25,16 @@ void main() {
       await flow.until(find.text(UnifiedFlow.question));
       await flow.tap(find.text(UnifiedFlow.question));
       await flow.until(find.byKey(const Key('chat-saved-question')));
-      expect(find.text(UnifiedFlow.question), findsOneWidget);
+      final displayedQuestion = find.descendant(
+        of: find.byKey(const Key('chat-message-list')),
+        matching: find.text(UnifiedFlow.question),
+      );
+      await tester.pumpAndSettle();
+      expect(displayedQuestion, findsOneWidget);
+      final chat = tester.widget<ChatPage>(find.byType(ChatPage)).coordinator!;
+      final savedUsers = chat.messages.where((m) => m.isUser).toList();
+      expect(savedUsers, hasLength(1));
+      final persistedUserId = savedUsers.single.id;
       // Operational Tutor errors are not persisted. A reopened unanswered USER
       // is reconstructed as retryable, then retry must reuse that same USER.
       expect(find.byKey(const Key('chat-no-ai-answer')), findsOneWidget);
@@ -34,7 +44,9 @@ void main() {
       );
       await flow.tap(find.byKey(const Key('chat-retry')));
       await flow.until(find.textContaining('AI resources are not ready'));
-      expect(find.text(UnifiedFlow.question), findsOneWidget);
+      expect(displayedQuestion, findsOneWidget);
+      expect(chat.messages.where((m) => m.isUser), hasLength(1));
+      expect(chat.messages.singleWhere((m) => m.isUser).id, persistedUserId);
       await binding.convertFlutterSurfaceToImage();
       await tester.pumpAndSettle();
       final png = await binding.takeScreenshot('siraj-force-stop-restored');

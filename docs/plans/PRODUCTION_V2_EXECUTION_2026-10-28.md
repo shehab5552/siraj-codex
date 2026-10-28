@@ -193,3 +193,11 @@ ChatTurnCoordinator.initialize also corrected restore's expected state: a
 reopened unanswered USER becomes unansweredMessage, not a persisted operational
 Tutor error. Restore now checks the availability notice and reconstructed retry,
 then actually retries and verifies exactly one USER with resourceNotReady.
+
+CI40785957543: force-stop, no-PID and offline restart worked; native restore
+reached authenticated EN/dark and reopened the saved question. Test failed at a
+global find.text(...).findsOneWidget: during route transition it saw both the
+History title and actual USER bubble. This was not evidence of two persisted
+messages. Scope the finder to chat-message-list, settle the route, assert one
+actual USER in the real coordinator and retain its ID across actual retry.
+Do not weaken to findsWidgets or alter persistence to fit the test.
