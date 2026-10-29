@@ -11,6 +11,27 @@ import 'package:siraj/integrations/ai/tutor_port.dart';
 import 'support/b09_ai_fixture.dart' as rag;
 import 'support/shared_embedding_fixture.dart';
 
+/// Deterministic deadline only for the timeout test; real artifact IO remains
+/// real, while OS scheduling cannot accidentally time out its preload phase.
+class _DeadlineTimer implements Timer {
+  _DeadlineTimer(this._callback);
+  final void Function() _callback;
+  bool _active = true;
+  int _tick = 0;
+  @override
+  bool get isActive => _active;
+  @override
+  int get tick => _tick;
+  @override
+  void cancel() => _active = false;
+  void fire() {
+    if (!_active) return;
+    _active = false;
+    _tick = 1;
+    _callback();
+  }
+}
+
 class EmbeddingHandle implements RevisionPinnedHandle {
   EmbeddingHandle(this.embedder);
   final rag.TestHandle delegate = rag.TestHandle();
@@ -298,24 +319,44 @@ void main() {
     );
   }
   test('timeout returns without releasing a still-running embedder', () async {
-    final e = ManagedQueryEmbedder(
-      config: f.config,
-      backend: f.backend,
-      operationTimeout: const Duration(milliseconds: 20),
+    const timeout = Duration(milliseconds: 20);
+    final deadlines = <_DeadlineTimer>[];
+    await runZoned(
+      () async {
+        final e = ManagedQueryEmbedder(
+          config: f.config,
+          backend: f.backend,
+          operationTimeout: timeout,
+        );
+        try {
+          await e.load(TutorCancellation());
+          expect(deadlines.single.isActive, isFalse);
+          f.backend.pending = Completer<List<double>>();
+          final timedOut = expectLater(
+            e.embed('test', TutorCancellation()),
+            failure(RuntimeErrorCode.timeout),
+          );
+          expect(deadlines.last.isActive, isTrue);
+          deadlines.last.fire();
+          await timedOut;
+          await expectLater(e.unload(), failure(RuntimeErrorCode.busy));
+        } finally {
+          f.backend.pending?.complete([1, 0]);
+          await e.whenIdle;
+          await e.unload();
+        }
+      },
+      zoneSpecification: ZoneSpecification(
+        createTimer: (self, parent, zone, duration, callback) {
+          if (duration != timeout) {
+            return parent.createTimer(zone, duration, callback);
+          }
+          final timer = _DeadlineTimer(callback);
+          deadlines.add(timer);
+          return timer;
+        },
+      ),
     );
-    try {
-      await e.load(TutorCancellation());
-      f.backend.pending = Completer<List<double>>();
-      await expectLater(
-        e.embed('test', TutorCancellation()),
-        failure(RuntimeErrorCode.timeout),
-      );
-      await expectLater(e.unload(), failure(RuntimeErrorCode.busy));
-    } finally {
-      f.backend.pending?.complete([1, 0]);
-      await e.whenIdle;
-      await e.unload();
-    }
   });
   test(
     'cancelled partial load cannot issue vectors before explicit recovery',

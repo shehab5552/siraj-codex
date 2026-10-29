@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Timing follows actual UI conditions; no real Auth/SQLite/native port is faked.
@@ -19,22 +20,39 @@ class UnifiedFlow {
 
   Future<void> tap(Finder finder) async {
     await until(finder);
-    // A real Android IME can cover a form button after enterText. Close it
-    // through focus, then wait for the actual view inset before scrolling.
+    // Native IME callbacks can arrive after Flutter has no scheduled frames.
+    // Require two actual hit-testable frames; never force a covered coordinate.
     FocusManager.instance.primaryFocus?.unfocus();
-    await tester.pumpAndSettle();
-    final keyboard = Stopwatch()..start();
-    while (tester.view.viewInsets.bottom > 0 &&
-        keyboard.elapsed < const Duration(seconds: 3)) {
+    await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+    var stable = 0;
+    for (var attempt = 0; attempt < 30 && stable < 2; attempt++) {
       await tester.pump(const Duration(milliseconds: 100));
+      if (tester.view.viewInsets.bottom > 0) {
+        stable = 0;
+        FocusManager.instance.primaryFocus?.unfocus();
+        await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+        continue;
+      }
+      await Scrollable.ensureVisible(tester.element(finder), alignment: 0.5);
+      await tester.pump(const Duration(milliseconds: 100));
+      stable =
+          tester.view.viewInsets.bottom == 0 &&
+              finder.hitTestable().evaluate().isNotEmpty
+          ? stable + 1
+          : 0;
+    }
+    if (stable < 2) {
+      debugPrint(
+        'SIRAJ_NATIVE_TARGET_NOT_READY rect=${tester.getRect(finder)} '
+        'size=${tester.view.physicalSize} dpr=${tester.view.devicePixelRatio} '
+        'insets=${tester.view.viewInsets}',
+      );
     }
     expect(
-      tester.view.viewInsets.bottom,
-      0,
-      reason: 'IME must close before target geometry is measured',
+      stable,
+      2,
+      reason: 'Target must be stably hit-testable after native layout settles',
     );
-    await tester.ensureVisible(finder);
-    await tester.pumpAndSettle();
     expect(finder.hitTestable(), findsWidgets);
     await tester.tap(finder);
     await tester.pump();

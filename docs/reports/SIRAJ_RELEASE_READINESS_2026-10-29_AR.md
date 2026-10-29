@@ -6,7 +6,7 @@
 
 | المجال | المثبت | المطلوب قبل إصدار إنتاجي |
 |---|---|---|
-| Code quality | Flutter3.38.5/Dart3.10.4، Lockfile enforced، analyze نظيف،591 host test ناجحًا | آخر CI مطابق للكود وسجل حزم SHA256؛ لا تجاوز فشل |
+| Code quality | Flutter3.38.5/Dart3.10.4، Lockfile enforced، analyze نظيف،593 host test ناجحًا | آخر CI مطابق للكود وسجل حزم SHA256؛ لا تجاوز فشل |
 | Auth/security | PBKDF2-HMAC-SHA256 وKeystore/SQLiteNonce/session guards؛ مرشح 600k على المحاكي فقط | Benchmark للهاتف6GB ومراجعة أمنية وProfile معتمد؛ يبقى Release credential entry Fail-closed |
 | Signing | Debug key للتجربة، وRelease evaluation غير موقع عند غياب المدخلات؛ لا debug fallback | مفاتيح/هوية إنتاج من مخزن أسرار، توقيع APK/AAB وفحصه؛ لا أسرار داخلSource/Git |
 | Identity/backup | `com.example.siraj.unifiedtest` معزول، Label=SIRAJ، backup/transfer محجوبان بقواعدAndroid | applicationId/سياسة انتقال معتمدة؛ لا تغيير هوية المشروع الأصلي |

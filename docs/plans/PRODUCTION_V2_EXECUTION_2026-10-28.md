@@ -208,3 +208,14 @@ download was attempted and blocked by results-receiver.actions.githubusercontent
 HTTP403 (CONNECT/Forbidden); no signed URL or credentials printed. Add bounded
 build-log annotations using a fail-fast subshell and preserve exact exit status,
 then rerun to identify the actual cause. No application rewrite based on a guess.
+
+
+CI40788692133: build passed (the previous build failure cause remains unknown),
+KDF/PDF/App passed; setup showed late IME callbacks again after the initial
+zero-inset check. Widget RED reproduced delayed pointer coverage. The driver
+now requests platform IME hide and waits for two hit-testable frames, bounded
+30 attempts, never force-tapping. Positive and permanent-coverage negative tests
+pass. Full first593 run then exposed an existing B09 test's20ms preload race
+(592pass/1error); control only that test's deadline timer, preserve exact20ms
+and real artifact IO. Runtime production code unchanged. Focused34 passed;
+final full593passed/0failed/0skipped in81963ms; analyze clean.
