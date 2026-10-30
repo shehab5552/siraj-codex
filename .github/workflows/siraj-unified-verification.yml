@@ -29,7 +29,7 @@ jobs:
       - name: Flutter tests
         run: |
           mkdir -p dist
-          # File-level serialization avoids observed pinned Linux engine teardown crashes.
+          # Serialize file scheduling for golden reproducibility; engine crashes remain fatal.
           # All application concurrency/cancellation tests still execute unchanged.
           flutter test --no-pub --concurrency=1 --reporter=json > dist/flutter-tests.jsonl
           python3 tool/flutter_test_summary.py dist/flutter-tests.jsonl dist/flutter-results.json

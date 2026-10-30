@@ -66,4 +66,4 @@ All five primary screens consume existing controllers/callbacks; shared primitiv
 
 ## Execution checkpoint — 30 October 2026
 
-Primary and remaining presentation changes implemented, 142 golden images and100 same-viewport comparison panels generated, geometry assertions added. Official logo source remains absent; reference monogram is explicitly provisional. Full-suite and native CI evidence is recorded in docs/qa/UIUX_V2_CLOSURE_2026-10-30_AR.md. Parallel Linux engine teardown SIGSEGV was observed and is documented; no KDF/runtime/profile change is justified by that unknown cause.
+Primary and remaining presentation changes implemented, 142 golden images and100 same-viewport comparison panels generated, geometry assertions added. Official logo source remains absent; reference monogram is explicitly provisional. Full-suite and native CI evidence is recorded in docs/qa/UIUX_V2_CLOSURE_2026-10-30_AR.md. Parallel and serial Linux engine teardown SIGSEGV was observed and is documented; no KDF/runtime/profile change is justified by that unknown cause.

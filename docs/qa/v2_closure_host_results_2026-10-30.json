@@ -1,6 +1,22 @@
 {
-  "passed": 605,
-  "failed": 0,
-  "skipped": 0,
-  "success": true
+  "pre_review_full_serial": {
+    "passed": 605,
+    "failed": 0,
+    "skipped": 0,
+    "success": true
+  },
+  "post_review_full_serial": {
+    "passed": 606,
+    "failed": 4,
+    "skipped": 0,
+    "success": false
+  },
+  "post_review_focused_regressions": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "analysis": "No issues found",
+  "engine_failure": "flutter_tester SIGSEGV; no native stack/core available; cause unproven; serialization did not eliminate it",
+  "build_acceptance_source": "current CI generated CI_ACCEPTANCE.json, not these local runs"
 }

@@ -55,7 +55,7 @@ class SettingsPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: SirajV2Icon(
-                delete ? 'trash' : 'lock',
+                'alert',
                 size: 22,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? const Color(0xFFFFCD80)
@@ -75,10 +75,32 @@ class SettingsPage extends StatelessWidget {
                           'This account and its conversations will be permanently deleted. Its data cannot be recovered.',
                         )
                       : context.copy(
-                          'ستبقى بيانات حسابك ومحادثاتك والموارد على الجهاز. يلزم إدخال كلمة المرور للدخول مجددًا.',
-                          'Your account, conversations and resources will remain on this device. Your password is required to log in again.',
+                          'ستنتهي الجلسة الحالية وستحتاج إلى تسجيل الدخول مجددًا. ستبقى بيانات الحساب ومحادثاتك وموارد LLM وRAG وPDF المحلية على الجهاز.',
+                          'The current session ends and you will need to log in again. Your account, conversations and local LLM, RAG and PDF resources remain on this device.',
                         ),
                 ),
+                if (delete)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    child: Text(
+                      context.copy(
+                        'ستُزال بيانات الحساب والجلسة والمحادثات المرتبطة به. أمّا الملفات التعليمية المشتركة LLM وRAG وPDF فستبقى على الجهاز وفق P0.',
+                        'Account, session and conversation data will be removed. Shared LLM, RAG and PDF resources remain on this device under P0.',
+                      ),
+                    ),
+                  ),
+                if (!delete)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    child: SirajReferenceNotice(
+                      warning: true,
+                      icon: Icons.shield_outlined,
+                      text: context.copy(
+                        'قد تتوقف الطلبات الجارية ولن تُحفظ ردود متأخرة بعد الخروج.',
+                        'Pending requests may stop. Late replies will not be saved after logout.',
+                      ),
+                    ),
+                  ),
                 if (delete)
                   CheckboxListTile(
                     key: const Key('delete-account-checkbox'),
@@ -103,15 +125,7 @@ class SettingsPage extends StatelessWidget {
             ),
             FilledButton(
               key: const Key('confirm-account-action'),
-              style: delete
-                  ? FilledButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF472B34)
-                          : const Color(0xFFFFF0F2),
-                      foregroundColor: Theme.of(context).colorScheme.error,
-                    )
-                  : null,
+              style: delete ? _dangerButtonStyle() : null,
               onPressed: delete && !checked
                   ? null
                   : () => Navigator.pop(dialogContext, true),
@@ -133,6 +147,25 @@ class SettingsPage extends StatelessWidget {
     }
   }
 
+  ButtonStyle _dangerButtonStyle() => ButtonStyle(
+    backgroundColor: WidgetStateProperty.resolveWith(
+      (states) => const Color(
+        0xFFFFF0F2,
+      ).withValues(alpha: states.contains(WidgetState.disabled) ? 0.52 : 1),
+    ),
+    foregroundColor: WidgetStateProperty.resolveWith(
+      (states) => const Color(
+        0xFFB72039,
+      ).withValues(alpha: states.contains(WidgetState.disabled) ? 0.52 : 1),
+    ),
+    side: WidgetStateProperty.resolveWith(
+      (states) => BorderSide(
+        color: const Color(
+          0xFFFFD1D8,
+        ).withValues(alpha: states.contains(WidgetState.disabled) ? 0.52 : 1),
+      ),
+    ),
+  );
   @override
   Widget build(BuildContext context) {
     final prefs = AppPreferencesScope.maybeOf(context);
@@ -291,17 +324,7 @@ class SettingsPage extends StatelessWidget {
                         trailing: OutlinedButton.icon(
                           onPressed: () =>
                               unawaited(_accountAction(context, delete: true)),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? const Color(0xFF472B34)
-                                : const Color(0xFFFFF0F2),
-                            foregroundColor: c.error,
-                            side: BorderSide(
-                              color: c.error.withValues(alpha: .25),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                          ),
+                          style: _dangerButtonStyle(),
                           icon: const SirajV2Icon('trash', size: 16),
                           label: Text(context.copy('حذف', 'Delete')),
                         ),

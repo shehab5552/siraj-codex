@@ -70,6 +70,7 @@ class QuizController extends ChangeNotifier {
   QuizPhase _phase = QuizPhase.loading;
   QuizErrorCode? _error;
   QuizSession? _session;
+  Object? _sessionIdentity;
   QuizRequest? _request;
   final _answers = <String, QuizAnswer>{};
   final _feedback = <String, QuizFeedback>{};
@@ -129,7 +130,9 @@ class QuizController extends ChangeNotifier {
           .where((q) => _answerIsValid(q, _answers[q.id]))
           .length ??
       0;
-  Object? get sessionIdentity => _session;
+
+  /// Opaque UI guard; never exposes or retains reviewed question/answer data.
+  Object? get sessionIdentity => _sessionIdentity;
   void setDraftAnswerFor(String questionId, QuizAnswer? answer) {
     if (question?.id != questionId) return;
     setDraftAnswer(answer);
@@ -280,6 +283,7 @@ class QuizController extends ChangeNotifier {
     }
     final saved = _session;
     _session = null;
+    _sessionIdentity = null;
     if (saved != null) _discard(saved);
     _answers.clear();
     _feedback.clear();
@@ -417,6 +421,7 @@ class QuizController extends ChangeNotifier {
         throw const QuizFailure(QuizErrorCode.notAvailable);
       }
       _session = value;
+      _sessionIdentity = Object();
       _index = 0;
       _phase = QuizPhase.question;
       _error = null;

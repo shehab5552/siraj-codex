@@ -161,48 +161,62 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
                     child: InkWell(
                       key: Key('history-${item.id}'),
                       onTap: _opening ? null : () => unawaited(_open(item.id)),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const SirajIconTile(icon: Icons.chat_bubble_outline),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.title,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontSize: 11),
-                                ),
-                                Text(
-                                  context.copy(
-                                    'محادثة محفوظة على هذا الجهاز',
-                                    'Saved on this device',
-                                  ),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(fontSize: 9),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          TextButton(
-                            onPressed: _opening
-                                ? null
-                                : () => unawaited(_open(item.id)),
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
-                              minimumSize: const Size(48, 48),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
+                          Row(
+                            children: [
+                              const SirajIconTile(
+                                icon: Icons.chat_bubble_outline,
                               ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(fontSize: 11),
+                                    ),
+                                    Text(
+                                      context.copy(
+                                        'محادثة محفوظة على هذا الجهاز',
+                                        'Saved on this device',
+                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(fontSize: 9),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: TextButton(
+                              key: Key('history-open-${item.id}'),
+                              onPressed: _opening
+                                  ? null
+                                  : () => unawaited(_open(item.id)),
+                              style: TextButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                minimumSize: const Size(48, 48),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                              ),
+                              child: Text(context.copy('فتح', 'Open')),
                             ),
-                            child: Text(context.copy('فتح', 'Open')),
                           ),
                         ],
                       ),
