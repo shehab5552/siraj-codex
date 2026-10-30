@@ -1,0 +1,83 @@
+{
+  "client_reference_date": "2026-10-24",
+  "timezone": "Asia/Aden",
+  "base": "dd1d7c42af0ef0d727c9ae6b70dfdfc17d53b994",
+  "branch": "codex/b09-shared-embedding-readiness",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "baseline": 261,
+  "new_tests": 32,
+  "tests": {
+    "passed": 293,
+    "failed": 0,
+    "skipped": 0
+  },
+  "validation": {
+    "finished_utc": "2026-10-23T21:24:02.549936+00:00",
+    "client_reference_date": "2026-10-24",
+    "commands": [
+      {
+        "name": "pub-final",
+        "command": [
+          "flutter",
+          "pub",
+          "get",
+          "--enforce-lockfile"
+        ],
+        "exit_code": 0,
+        "seconds": 0.808
+      },
+      {
+        "name": "analyze-final",
+        "command": [
+          "flutter",
+          "analyze",
+          "--no-pub"
+        ],
+        "exit_code": 0,
+        "seconds": 2.187
+      },
+      {
+        "name": "tests-final",
+        "command": [
+          "flutter",
+          "test",
+          "--no-pub",
+          "--machine"
+        ],
+        "exit_code": 0,
+        "seconds": 20.993
+      }
+    ]
+  },
+  "review": {
+    "tree": "95a6297ecbc9172e09f0924e22b97b4ffdae7cac",
+    "axes": [
+      "spec",
+      "standards"
+    ],
+    "finding": "possible idle/state callback ordering",
+    "reproduction": "three verified tests passed against original implementation; NOT a reproduced runtime bug",
+    "action": "state publication moved to synchronous lane hooks before idle as refactor; post-review lifecycle44 tests pass",
+    "qodo": "not installed in PATH or standard fallback; no Qodo review claimed"
+  },
+  "product_ready": false,
+  "G2_G3": false,
+  "actual_native_embedding": false,
+  "remaining": [
+    "approved runtime build/license/ABI",
+    "model/shared embedding files and exact configs/hashes",
+    "Biology reviewed fixture/index/expected vectors and approved tolerance",
+    "real semantic/index/native validators",
+    "B12 file pin→runtime provider adapter after dependencies integrated",
+    "Android actual G2 then G3"
+  ],
+  "logs_sha256": {
+    "pub-final.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92",
+    "analyze-final.log": "4c5dd573b86fafe1d1b3624f32290f4d1cab428a1d265690a18096cea1cfec65",
+    "tests-final.log": "6eb15d7434667425f345b376563eb5d0ce8768956fd4f2f177652fe9f3252ecd",
+    "review-idle-red-verified.log": "2c3d7787a9007534990926d46a19c86ed692f67d207b82833be1d93338ef2ab6",
+    "review-idle-state-red.log": "ff6f299f559ba6b377dec9d69e5bc438b539b4a91de8e895347c901915cbc098",
+    "lifecycle-post-review.log": "8b149a374e2ef19cd0b1cdc21692786aa6c2654f08fdf79112064a9fdda0e8fe"
+  }
+}

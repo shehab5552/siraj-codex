@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:siraj/app/siraj_app.dart';
+import 'package:siraj/core/design/siraj_v2_components.dart';
 
 void main() {
   testWidgets('Explicit debug preview opens with SIRAJ branding', (
     tester,
   ) async {
     await tester.pumpWidget(const SirajApp(debugPreview: true));
-    expect(find.text('سراج'), findsOneWidget);
+    expect(find.byType(SirajBrandMark), findsOneWidget);
+    expect(find.text('الرئيسية'), findsWidgets);
     expect(find.byKey(const Key('open-chat')), findsOneWidget);
   });
 

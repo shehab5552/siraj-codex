@@ -1,0 +1,194 @@
+{
+  "repository": "shehab5552/siraj-codex",
+  "client_date": "2026-10-25",
+  "client_timezone": "Asia/Aden",
+  "branch": "codex/unified-siraj-v2-integration-20261024",
+  "pr_url": "https://github.com/shehab5552/siraj-codex/pull/12",
+  "pr_state": "OPEN/DRAFT",
+  "base_main": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "delivery_start": "ca17aed5b31344cc9f90874e2abd05ee0b504c55",
+  "verified_code_commit": "06f231026aa63fa9900f834ff5a1ba9c2d35a192",
+  "verified_code_tree": "22a5ed7b6f8fb6f909819c73619e3373fd6f9bc5",
+  "file_inventory": {
+    "since_main": 271,
+    "current_delivery": 91,
+    "excludes_later_documentation": true
+  },
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "host": {
+    "enforced_pub": "passed",
+    "analyze": "no issues",
+    "tests": {
+      "passed": 566,
+      "failed": 0,
+      "skipped": 0,
+      "done_success": true,
+      "duration_ms": 65991
+    },
+    "test_machine_log_sha256": "61ca76b42a35cead5b83cb74af266f5112cf765806b5ad38b58a98d57bb63c72"
+  },
+  "review": {
+    "whole_branch_head": "30900976912100252bb4cae3828293ada3abd38c",
+    "axes": [
+      "spec",
+      "standards"
+    ],
+    "independent_reviewers": 2,
+    "model": "gpt-6-astra",
+    "important_findings": 4,
+    "fix_commit": "b2fa50044ff9628fb186debfbc4fd7c4eeca403d",
+    "targeted_closure": "all four addressed; no new substantiated important/critical in fix pass",
+    "runtime_independently_rerun_by_reviewers": false,
+    "production_approval": false,
+    "qodo_run": false
+  },
+  "ci": {
+    "run_id": 40156855257,
+    "url": "https://github.com/shehab5552/siraj-codex/actions/runs/40156855257",
+    "status": "completed",
+    "conclusion": "success",
+    "check_run_id": 121059965820,
+    "debug_main_build": "passed",
+    "unsigned_release_build": "passed",
+    "native_android": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "sequential_derive_calls": 64,
+      "sequential_workers": 2,
+      "global_contention_recovery": "passed",
+      "logical_cancel_ms": 0,
+      "provider_drained": true
+    },
+    "application_android": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android_target": "API33 Google APIs x86_64 emulator",
+    "metrics": {
+      "iterations": 600000,
+      "elapsed_ms": 2849,
+      "heartbeat_ticks": 283,
+      "physical_device": false,
+      "production_approved": false
+    },
+    "artifact": {
+      "id": 12585306737,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/40156855257/artifacts/12585306737",
+      "size_bytes": 80475700,
+      "expires_at_utc": "2026-11-01T03:13:57Z",
+      "expires_at_client": "2026-11-01T06:13:57+03:00",
+      "sha256": {
+        "dist/SIRAJ_P0_FLUTTER_SOURCE.zip": "662de9ba0551be2c5f7b04fa3138d58312fff669d15af1fb396d418713dad03c",
+        "dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk": "e7a28ae5e6c1a3154a9967a87c248e3e9333d1a46de395180cc7950ca0a2ecb4"
+      },
+      "sha256_source": "GitHub CI sha256sum notices; not independently redownloaded due proxy403"
+    },
+    "annotations": [
+      {
+        "title": "",
+        "level": "warning",
+        "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "00:20 +1: All tests passed!"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "SIRAJ_UNIFIED_ANDROID startup/signup/nativeKdf/keystore/sqlite/chat/logout/login/delete PASS; emulator only; AI unavailable; G2/G3 not run"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "00:12 +10: All tests passed!"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "SIRAJ_NATIVE_CANCEL logical_cancel_ms=0 provider_drained=true; no physical-device approval"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "SIRAJ_NATIVE_GLOBAL_LANE busy_then_recovered=true PASS"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "SIRAJ_NATIVE_COMPLETION sequential_calls=64 workers=2 PASS"
+      },
+      {
+        "title": "SIRAJ Android evidence",
+        "level": "notice",
+        "message": "SIRAJ_NATIVE_KDF_METRICS {\"iterations\":600000,\"elapsed_ms\":2849,\"heartbeat_ticks\":283,\"physical_device\":false,\"production_approved\":false}"
+      },
+      {
+        "title": "SIRAJ artifact SHA256",
+        "level": "notice",
+        "message": "662de9ba0551be2c5f7b04fa3138d58312fff669d15af1fb396d418713dad03c dist/SIRAJ_P0_FLUTTER_SOURCE.zip"
+      },
+      {
+        "title": "SIRAJ artifact SHA256",
+        "level": "notice",
+        "message": "e7a28ae5e6c1a3154a9967a87c248e3e9333d1a46de395180cc7950ca0a2ecb4 dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk"
+      }
+    ]
+  },
+  "production_ready": false,
+  "auth_release_approved": false,
+  "native_pdf_reader_implemented": false,
+  "ai_runtime_available": false,
+  "rag_ready": false,
+  "g2_passed": false,
+  "g3_passed": false,
+  "physical_android_tested": false,
+  "samsung_tested": false,
+  "main_merged_by_this_delivery": false,
+  "network": {
+    "hostname": "results-receiver.actions.githubusercontent.com",
+    "http_status": 403,
+    "response": "Forbidden",
+    "proxy": "envoy",
+    "observed_cause": "CONNECT tunnel rejected by inherited proxy policy; authentication failure not established",
+    "bypass_attempted": false,
+    "artifact_locally_redownloaded": false
+  },
+  "resource_gaps": [
+    "approved native LLM build/license/ABI/weights/tokenizer/prompt",
+    "shared embedding build/model/sidecars/vector configuration and reference protocol",
+    "Biology fixture/index/source metadata/revision/hashes and science policies",
+    "production catalog/five packs/shared embedder/archive extractor if needed",
+    "official PDF catalog/books and approved native reader adapter",
+    "physical Android security and G2/G3 acceptance",
+    "production signing/identity/migration inputs"
+  ],
+  "ci_failed_prior": {
+    "run_id": 40156003414,
+    "sha": "b2fa50044ff9628fb186debfbc4fd7c4eeca403d",
+    "native_passed": 7,
+    "native_failed": 1,
+    "native_skipped": 0,
+    "application_executed": false,
+    "artifact_accepted": false,
+    "masked_original_platform_code": true,
+    "observed_error": "generic KdfFailure",
+    "kdf_busy_as_original_cause_proven": false
+  },
+  "native_ordering_fix": {
+    "commit": "06f231026aa63fa9900f834ff5a1ba9c2d35a192",
+    "static_race_confirmed": true,
+    "targeted_independent_review": "addressed by inspection; no new Important/Critical in patch",
+    "host_red_green": "typed platform KDF_BUSY was previously mapped to failed",
+    "host_proves_kotlin_scheduling": false,
+    "android_new_tests": [
+      "64 sequential derives across 2 workers",
+      "global contention and recovery"
+    ],
+    "production_approval": false
+  }
+}

@@ -1,0 +1,116 @@
+name: SIRAJ unified integration verification
+on:
+  push:
+    branches: [codex/unified-siraj-v2-integration-20261024]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  flutter-test-and-android-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install pinned Flutter
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 3.38.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse --short=10 HEAD)" = f6ff1529fd
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Dependencies and static analysis
+        run: |
+          flutter pub get --enforce-lockfile
+          flutter analyze --no-pub
+      - name: Flutter tests
+        run: |
+          mkdir -p dist
+          # Serialize file scheduling for golden reproducibility; engine crashes remain fatal.
+          # All application concurrency/cancellation tests still execute unchanged.
+          flutter test --no-pub --concurrency=1 --reporter=json > dist/flutter-tests.jsonl
+          python3 tool/flutter_test_summary.py dist/flutter-tests.jsonl dist/flutter-results.json
+      - name: Validate launcher and splash resources
+        run: |
+          python3 -m pip install Pillow==11.3.0
+          python3 -m unittest discover -s tool/tests -p test_android_branding.py -v
+          python3 tool/verify_android_branding.py
+      - name: Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          python3 - <<'PY'
+          import subprocess
+          subprocess.run(['sdkmanager', '--licenses'], input='y\n' * 100, text=True, check=True)
+          PY
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+      - name: Build isolated unified Android debug APK
+        run: tool/build_android_with_evidence.sh
+      - name: Verify actual compiled SIRAJ launcher branding
+        run: python3 tool/verify_android_branding.py --apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --output dist/android-branding-verification.json
+      - name: Install Android runtime test image
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+          sdkmanager 'emulator' 'system-images;android-33;google_apis;x86_64'
+          export ANDROID_USER_HOME="$RUNNER_TEMP/siraj-android-user"
+          export ANDROID_EMULATOR_HOME="$ANDROID_USER_HOME"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd --force --name siraj-unified --path "$ANDROID_AVD_HOME/siraj-unified.avd" --package 'system-images;android-33;google_apis;x86_64'
+          test -e /dev/kvm
+          sudo chmod a+rw /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -avd siraj-unified -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > "$RUNNER_TEMP/unified-emulator.log" 2>&1 &
+          timeout 300 adb wait-for-device
+          timeout 300 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          adb shell input keyevent 82
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+      - name: Actual Android native KDF compatibility
+        run: tool/android_test_with_evidence.sh integration_test/unified_native_kdf_test.dart dist/android-native-kdf.log
+      - name: Actual Android PDF engine and offline reader
+        run: tool/android_test_with_evidence.sh integration_test/unified_pdf_reader_test.dart dist/android-pdf.log
+      - name: Actual unified Android application flow
+        run: tool/android_test_with_evidence.sh integration_test/unified_application_test.dart dist/android-application.log
+      - name: Prepare persisted account for Android force-stop
+        run: tool/android_test_with_evidence.sh integration_test/unified_restart_setup_test.dart dist/android-restart-setup.log
+      - name: Force-stop the isolated Android application
+        shell: bash
+        run: |
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell svc wifi disable
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell svc data disable
+          "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell am force-stop com.example.siraj.unifiedtest
+          if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell pidof com.example.siraj.unifiedtest; then
+            echo 'Application process still running after force-stop' >&2
+            exit 1
+          fi
+          echo '::notice title=SIRAJ Android evidence::WiFi/mobile data disabled; adb force-stop verified no remaining isolated app process'
+      - name: Verify real Android restart persistence
+        run: tool/android_test_with_evidence.sh integration_test/unified_restart_restore_test.dart dist/android-restart-restore.log
+      - name: Collect isolated Android UI evidence
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p dist/screenshots
+          for name in siraj-unified-home siraj-unified-chat-unavailable siraj-unified-settings-en-dark siraj-native-pdf-reader siraj-force-stop-restored; do
+            if "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 shell run-as com.example.siraj.unifiedtest test -f "cache/$name.png"; then
+              "$ANDROID_HOME/platform-tools/adb" -s emulator-5554 exec-out run-as com.example.siraj.unifiedtest cat "cache/$name.png" > "dist/screenshots/$name.png"
+            fi
+          done
+      - name: Package verified source and current acceptance report
+        run: python3 tool/package_verified_source.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: siraj-unified-application-${{ github.sha }}
+          retention-days: 7
+          path: dist/

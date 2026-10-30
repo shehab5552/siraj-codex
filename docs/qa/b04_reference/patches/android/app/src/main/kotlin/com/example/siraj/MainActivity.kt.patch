@@ -1,0 +1,12 @@
+diff --git a/android/app/src/main/kotlin/com/example/siraj/MainActivity.kt b/android/app/src/main/kotlin/com/example/siraj/MainActivity.kt
+index ce016af..e4f9158 100644
+--- a/android/app/src/main/kotlin/com/example/siraj/MainActivity.kt
++++ b/android/app/src/main/kotlin/com/example/siraj/MainActivity.kt
+@@ -10,6 +10,7 @@ class MainActivity : FlutterActivity() {
+ 
+     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+         super.configureFlutterEngine(flutterEngine)
++        secureSessionChannel?.dispose()
+         secureSessionChannel = SirajSecureSessionChannel(
+             applicationContext,
+             flutterEngine.dartExecutor.binaryMessenger,

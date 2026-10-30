@@ -153,7 +153,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.text('حالة الموارد'), findsOneWidget);
+        expect(find.text('إدارة الموارد'), findsOneWidget);
         expect(find.text('النموذج المحلي (LLM)'), findsOneWidget);
         expect(find.text('model-A'), findsOneWidget);
         expect(find.text('حزم بيانات RAG'), findsOneWidget);

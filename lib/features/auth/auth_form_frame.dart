@@ -1,3 +1,5 @@
+import '../../core/design/siraj_v2_components.dart';
+import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
 /// Shared visual shell for B-06 account screens. Presentation only.
@@ -20,53 +22,53 @@ class AuthFormFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('سراج')),
+      appBar: SirajAppBar(
+        title: context.copy('الحساب المحلي', 'Local account'),
+        subtitle: context.copy(
+          'خصوصية أكبر على جهازك',
+          'Privacy on your device',
+        ),
+        showBack: false,
+      ),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            padding: const EdgeInsets.fromLTRB(15, 37, 15, 18),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: BoxConstraints(maxWidth: 460),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.school_outlined,
-                    size: 58,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
+                  const Center(child: SirajBrandMark(size: 64)),
+                  SizedBox(height: 12),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 19,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 4),
                   Text(
                     description,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  Card(
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: content,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      height: 2,
                     ),
                   ),
+                  const SizedBox(height: 12),
                   if (notice != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      notice!,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    SirajReferenceNotice(
+                      text: notice!,
+                      warning: true,
+                      icon: Icons.lock_outline,
                     ),
+                    const SizedBox(height: 14),
                   ],
+                  content,
                 ],
               ),
             ),

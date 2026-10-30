@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:cryptography/dart.dart';
 
 import '../../data/user_repository.dart';
 import 'auth_models.dart';
@@ -13,8 +14,31 @@ class SessionGuard {
   const SessionGuard(this._users);
 
   final UserRepository _users;
+  static final _blocked = Expando<Set<String>>();
+  // Retain only a digest in failure fences, never a deleted session's raw nonce.
+  String _identity(AuthSession s) => base64Encode(
+    const DartSha256()
+        .hashSync(
+          utf8.encode(
+            '${s.userId}\u0000${s.accountEpoch}\u0000${s.sessionNonce}',
+          ),
+        )
+        .bytes,
+  );
+  bool isBlocked(AuthSession session) =>
+      _blocked[_users.db]?.contains(_identity(session)) == true;
+  void block(AuthSession session) =>
+      (_blocked[_users.db] ??= {}).add(_identity(session));
 
   Future<bool> isCurrent(AuthSession session) async {
+    if (isBlocked(session)) return false;
+    final valid = await matchesPersistedSessionForRevocation(session);
+    return valid && !isBlocked(session);
+  }
+
+  /// Revocation retry only. Never use this to authorize UI/data access: a failed
+  /// Logout may have fenced this still-persisted nonce in the running process.
+  Future<bool> matchesPersistedSessionForRevocation(AuthSession session) async {
     if (session.userId.isEmpty ||
         session.accountEpoch.isEmpty ||
         session.sessionNonce.isEmpty) {

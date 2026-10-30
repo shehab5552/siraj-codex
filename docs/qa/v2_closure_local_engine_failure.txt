@@ -1,0 +1,14 @@
+unhandled error during finalization of test:
+/workspace/siraj-codex-unified/test/v2_all_screens_golden_test.dart
+TestDeviceException(Shell subprocess crashed with segmentation fault.)
+#0      FlutterTesterTestDevice.finished (package:flutter_tools/src/test/flutter_tester_device.dart:252:5)
+<asynchronous suspension>
+#1      FlutterTesterTestDevice.kill (package:flutter_tools/src/test/flutter_tester_device.dart:234:5)
+<asynchronous suspension>
+#2      FlutterPlatform._startTest.<anonymous closure> (package:flutter_tools/src/test/flutter_platform.dart:690:9)
+<asynchronous suspension>
+#3      FlutterPlatform._startTest.finalize (package:flutter_tools/src/test/flutter_platform.dart:592:11)
+<asynchronous suspension>
+#4      FlutterPlatform._startTest (package:flutter_tools/src/test/flutter_platform.dart:763:7)
+<asynchronous suspension>
+
