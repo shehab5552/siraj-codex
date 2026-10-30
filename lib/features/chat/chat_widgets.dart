@@ -1,4 +1,6 @@
 import '../../core/localization/siraj_copy.dart';
+import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../../integrations/ai/tutor_contract.dart';
@@ -9,24 +11,11 @@ import 'chat_turn_coordinator.dart';
 class ChatReadinessNotice extends StatelessWidget {
   const ChatReadinessNotice({super.key});
   @override
-  Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-    margin: EdgeInsets.fromLTRB(12, 8, 12, 0),
-    child: Padding(
-      padding: EdgeInsets.all(12),
-      child: Row(
-        children: [
-          Icon(Icons.cloud_off_outlined),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              context.tr(
-                'الذكاء الاصطناعي غير جاهز حاليًا. يمكنك حفظ أسئلتك محليًا.',
-              ),
-            ),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context) => SirajReferenceNotice(
+    warning: true,
+    icon: Icons.warning_amber_outlined,
+    text: context.tr(
+      'الذكاء الاصطناعي غير جاهز حاليًا. يمكنك حفظ أسئلتك محليًا.',
     ),
   );
 }
@@ -94,9 +83,11 @@ class ChatMessageBubble extends StatelessWidget {
           ? AlignmentDirectional.centerStart
           : AlignmentDirectional.centerEnd,
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 580),
+        constraints: BoxConstraints(
+          maxWidth: (MediaQuery.sizeOf(context).width - 30) * .92,
+        ),
         child: Container(
-          margin: EdgeInsets.symmetric(vertical: 6),
+          margin: const EdgeInsets.only(bottom: 11),
           padding: EdgeInsets.all(13),
           decoration: BoxDecoration(
             color: message.isUser ? colors.primaryContainer : colors.surface,
@@ -106,18 +97,22 @@ class ChatMessageBubble extends StatelessWidget {
               bottomStart: Radius.circular(message.isUser ? 5 : 16),
               bottomEnd: Radius.circular(message.isUser ? 16 : 5),
             ),
-            border: Border.all(color: colors.outlineVariant),
+            border: message.isUser
+                ? null
+                : Border.all(color: colors.outlineVariant),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 message.isUser ? context.tr('أنت') : context.tr('سراج'),
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(color: colors.primary),
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  fontSize: 10,
+                  height: 2.1,
+                ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: 5),
               if (partial)
                 Padding(
                   key: Key('chat-partial'),
@@ -139,20 +134,51 @@ class ChatMessageBubble extends StatelessWidget {
               if (message.sources.isNotEmpty)
                 Padding(
                   padding: EdgeInsets.only(top: 10),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      for (var i = 0; i < message.sources.length; i++)
-                        ActionChip(
-                          key: Key('chat-source-$assistantIndex-$i'),
-                          avatar: Icon(Icons.menu_book_outlined, size: 18),
-                          label: Text(
-                            context.copy('المصدر ${i + 1}', 'Source ${i + 1}'),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF1B3045)
+                          : const Color(0xFFF9FBFF),
+                      border: Border.all(color: colors.outlineVariant),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          context.copy(
+                            'المصادر التعليمية',
+                            'Educational sources',
                           ),
-                          onPressed: () => onSource(message.sources[i]),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                    ],
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            for (var i = 0; i < message.sources.length; i++)
+                              ActionChip(
+                                key: Key('chat-source-$assistantIndex-$i'),
+                                avatar: const SirajV2Icon('book', size: 18),
+                                label: Text(
+                                  context.copy(
+                                    'المصدر ${i + 1}',
+                                    'Source ${i + 1}',
+                                  ),
+                                ),
+                                onPressed: () => onSource(message.sources[i]),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
             ],

@@ -3,6 +3,7 @@ import '../../app/app_routes.dart';
 import '../../core/design/siraj_components.dart';
 import '../../core/design/siraj_design.dart';
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
 import '../../core/localization/siraj_copy.dart';
 
 /// Actual callbacks/history are supplied by the guarded composition root.
@@ -31,20 +32,13 @@ class HomePage extends StatelessWidget {
     final authenticated = onOpenChat != null;
     return Scaffold(
       appBar: SirajAppBar(
-        title: context.tr('سراج'),
+        title: context.tr('الرئيسية'),
         subtitle: context.copy(
-          'مساعدك الدراسي — تعلم محلي موثوق',
+          'مساعدك الدراسي — دون إنترنت بعد التجهيز',
           'Your study companion — trusted local learning',
         ),
         showBack: false,
         actions: [
-          if (onOpenHistory != null)
-            IconButton(
-              key: const Key('open-chat-history'),
-              tooltip: context.tr('محادثاتي المحفوظة'),
-              onPressed: onOpenHistory,
-              icon: const Icon(Icons.history, size: 20),
-            ),
           if (onOpenSettings != null)
             IconButton(
               key: const Key('open-settings'),
@@ -66,8 +60,8 @@ class HomePage extends StatelessWidget {
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
+                      begin: Alignment(-.77, -.64),
+                      end: Alignment(.77, .64),
                       colors: [SirajPalette.navy, Color(0xFF1D537B)],
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -101,7 +95,7 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 15.5),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -113,6 +107,7 @@ class HomePage extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 10,
                                 color: Color(0xFFDAE8F6),
+                                height: 2.1,
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -124,17 +119,18 @@ class HomePage extends StatelessWidget {
                               style: const TextStyle(
                                 fontSize: 22,
                                 height: 1.5,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
+                                fontVariations: [FontVariation('wght', 700)],
                                 color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 7),
                             ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 270),
+                              constraints: const BoxConstraints(maxWidth: 240),
                               child: Text(
                                 authenticated
                                     ? context.copy(
-                                        'سراج يساعدك على المذاكرة، ويعرض مصادر التفسير حين تتوفر الموارد المعتمدة.',
+                                        'سراج يساعدك على مذاكرة مواد الثالث الثانوي، ويُظهر مصادر التفسير حين تتوفر الموارد.',
                                         'SIRAJ helps you study and shows supporting sources when approved resources are available.',
                                       )
                                     : context.copy(
@@ -143,15 +139,22 @@ class HomePage extends StatelessWidget {
                                       ),
                                 style: const TextStyle(
                                   fontSize: 11,
+                                  fontWeight: FontWeight.w400,
+                                  fontVariations: [FontVariation('wght', 400)],
                                   height: 1.9,
                                   color: Color(0xFFDAE8F6),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 9.5),
                             FilledButton.icon(
                               key: const Key('open-chat'),
                               style: FilledButton.styleFrom(
+                                minimumSize: const Size(48, 39),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 7,
+                                ),
                                 backgroundColor: Colors.white,
                                 foregroundColor: const Color(0xFF123C62),
                               ),
@@ -160,16 +163,27 @@ class HomePage extends StatelessWidget {
                                   () => Navigator.of(
                                     context,
                                   ).pushNamed(AppRoutes.chat),
-                              icon: const Icon(
-                                Icons.chat_bubble_outline,
-                                size: 16,
-                              ),
-                              label: Text(
-                                context.tr(
-                                  authenticated
-                                      ? 'فتح المحادثة'
-                                      : 'فتح معاينة المحادثة',
-                                ),
+                              icon: const SirajV2Icon('message', size: 16),
+                              label: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      context.copy(
+                                        authenticated
+                                            ? 'اسأل سراج'
+                                            : 'فتح معاينة المحادثة',
+                                        authenticated
+                                            ? 'Ask SIRAJ'
+                                            : 'Open chat preview',
+                                      ),
+                                    ),
+                                  ),
+                                  if (authenticated) ...[
+                                    const SizedBox(width: 7),
+                                    const SirajV2Icon('arrow', size: 10),
+                                  ],
+                                ],
                               ),
                             ),
                           ],
@@ -180,7 +194,7 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 SirajCard(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.fromLTRB(14, 14, 14, 7),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -192,14 +206,9 @@ class HomePage extends StatelessWidget {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
-                          Flexible(
-                            child: SirajStatusPill(
-                              text: context.copy(
-                                'لم تثبت الجاهزية',
-                                'Readiness not established',
-                              ),
-                              warning: true,
-                            ),
+                          SirajStatusPill(
+                            text: context.copy('غير جاهز', 'Not ready'),
+                            warning: true,
                           ),
                         ],
                       ),
@@ -214,11 +223,22 @@ class HomePage extends StatelessWidget {
                       if (authenticated && onOpenResources != null)
                         Align(
                           alignment: AlignmentDirectional.centerStart,
-                          child: TextButton.icon(
+                          child: TextButton(
                             key: const Key('open-resource-status'),
                             onPressed: onOpenResources,
-                            icon: const Icon(Icons.tune, size: 16),
-                            label: Text(context.tr('حالة الموارد')),
+                            style: TextButton.styleFrom(
+                              textStyle: const TextStyle(
+                                fontFamily: 'NotoSansArabic',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            child: Text(
+                              context.copy(
+                                'الانتقال إلى تهيئة الموارد',
+                                'Prepare resources',
+                              ),
+                            ),
                           ),
                         ),
                     ],
@@ -226,13 +246,20 @@ class HomePage extends StatelessWidget {
                 ),
                 if (authenticated) ...[
                   Padding(
-                    padding: const EdgeInsets.only(top: 15, bottom: 10),
+                    padding: const EdgeInsets.only(top: 5, bottom: 10),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
                             context.copy('إلى أين نذهب؟', 'Where shall we go?'),
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  height: 2.1,
+                                  fontWeight: FontWeight.w900,
+                                  fontVariations: const [
+                                    FontVariation('wght', 900),
+                                  ],
+                                ),
                           ),
                         ),
                         Flexible(
@@ -278,7 +305,7 @@ class HomePage extends StatelessWidget {
                             ),
                             (
                               Icons.menu_book_outlined,
-                              'المكتبة',
+                              'مكتبة الكتب',
                               'مواد وكتب PDF محلية',
                               'Local books and PDF resources',
                               onOpenLibrary,
@@ -296,15 +323,16 @@ class HomePage extends StatelessWidget {
                             ),
                             (
                               Icons.download_outlined,
-                              'تجهيز الموارد',
+                              'إدارة الموارد',
                               'تنزيل وتحقق وجاهزية',
                               'Downloads, checks and readiness',
                               onOpenResources,
                               true,
-                              null,
+                              const Key('home-resources-card'),
                             ),
                           ];
                       return Wrap(
+                        key: const Key('v2-home-quickgrid'),
                         spacing: 9,
                         runSpacing: 9,
                         children: [
@@ -320,7 +348,7 @@ class HomePage extends StatelessWidget {
                                     onTap: e.$5,
                                     borderRadius: BorderRadius.circular(16),
                                     child: Padding(
-                                      padding: const EdgeInsets.all(13),
+                                      padding: const EdgeInsets.all(14),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -329,21 +357,26 @@ class HomePage extends StatelessWidget {
                                             icon: e.$1,
                                             teal: e.$6,
                                             size: 38,
+                                            height: 42,
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
                                             context.tr(e.$2),
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleMedium,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium
+                                                ?.copyWith(height: 2.1),
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: 8),
                                           Text(
                                             context.copy(e.$3, e.$4),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall
-                                                ?.copyWith(fontSize: 9),
+                                                ?.copyWith(
+                                                  fontSize: 9,
+                                                  height: 1.6,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -358,31 +391,61 @@ class HomePage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 15, bottom: 10),
                     child: Text(
-                      context.tr('أحدث محادثة محفوظة'),
+                      context.tr('البدء بسرعة'),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  if (onOpenHistory != null)
+                    SirajCard(
+                      padding: const EdgeInsets.all(14),
+                      child: InkWell(
+                        key: const Key('open-chat-history'),
+                        onTap: onOpenHistory,
+                        child: Row(
+                          children: [
+                            const SirajIconTile(icon: Icons.history),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    context.copy(
+                                      'محادثاتك السابقة',
+                                      'Your previous conversations',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontSize: 11),
+                                  ),
+                                  Text(
+                                    context.copy(
+                                      'حد أقصى 10 محادثات محفوظة، وسجل خاص بحسابك فقط.',
+                                      'Up to 10 saved conversations, private to your account.',
+                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(fontSize: 9),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SirajV2Icon('chevron', size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
                   if (latestConversationTitle != null && onOpenLatest != null)
                     SirajCard(
-                      padding: const EdgeInsets.all(12),
                       child: ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const SirajIconTile(icon: Icons.history),
                         title: Text(
                           latestConversationTitle!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         onTap: onOpenLatest,
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      ),
-                    )
-                  else
-                    SirajCard(
-                      padding: const EdgeInsets.all(14),
-                      child: Text(
-                        context.tr('لا توجد محادثات محفوظة بعد.'),
-                        style: Theme.of(context).textTheme.bodySmall,
+                        trailing: const SirajV2Icon('chevron', size: 18),
                       ),
                     ),
                 ],

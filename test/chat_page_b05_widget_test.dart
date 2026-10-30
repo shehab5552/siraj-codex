@@ -84,7 +84,7 @@ void main() {
       tester,
     ) async {
       await render(tester);
-      expect(find.textContaining('محادثة جديدة مؤقتة'), findsOneWidget);
+      expect(find.text('محادثة جديدة · مؤقتة'), findsOneWidget);
       expect(find.byKey(const Key('chat-send-disabled')), findsOneWidget);
       expect(await savedCount(), 0);
     });

@@ -1,4 +1,5 @@
 import '../../core/localization/siraj_copy.dart';
+import '../../core/design/siraj_v2_components.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_form_frame.dart';
@@ -114,9 +115,13 @@ class _SignupPageState extends State<SignupPage> {
     }
     final enabled = widget.onCreateAccount != null && !_busy;
     return AuthFormFrame(
-      title: context.tr('إنشاء الحساب المحلي'),
-      description: context.tr(
-        'حساب واحد على هذا الجهاز، دون إنترنت أو خادم للحسابات.',
+      title: context.copy(
+        'ابدأ رحلتك مع سراج',
+        'Start your journey with SIRAJ',
+      ),
+      description: context.copy(
+        'حساب واحد، خصوصية أكبر، وتعليم يعمل محليًا',
+        'One account, more privacy and local learning',
       ),
       notice: widget.onCreateAccount == null
           ? context.tr(
@@ -131,20 +136,26 @@ class _SignupPageState extends State<SignupPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              key: Key('signup-username'),
-              controller: _username,
-              enabled: enabled,
-              textInputAction: TextInputAction.next,
-              autofillHints: [AutofillHints.newUsername],
-              decoration: InputDecoration(
-                labelText: context.tr('اسم المستخدم'),
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+            SirajLabeledField(
+              label: context.tr('اسم المستخدم'),
+              child: TextFormField(
+                key: Key('signup-username'),
+                style: const TextStyle(fontSize: 12, letterSpacing: 0),
+                controller: _username,
+                enabled: enabled,
+                textInputAction: TextInputAction.next,
+                autofillHints: [AutofillHints.newUsername],
+                decoration: InputDecoration(
+                  hintText: context.copy(
+                    'مثال: اسم المستخدم',
+                    'Example: username',
+                  ),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? context.tr('اسم المستخدم مطلوب')
+                    : null,
               ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? context.tr('اسم المستخدم مطلوب')
-                  : null,
             ),
             SizedBox(height: 14),
             TextFormField(
@@ -158,7 +169,6 @@ class _SignupPageState extends State<SignupPage> {
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 labelText: context.tr('كلمة المرور'),
-                prefixIcon: Icon(Icons.lock_outline),
                 border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hidePassword
@@ -179,53 +189,56 @@ class _SignupPageState extends State<SignupPage> {
                   : null,
             ),
             SizedBox(height: 14),
-            TextFormField(
-              key: Key('signup-confirmation'),
-              controller: _confirmation,
-              enabled: enabled,
-              obscureText: _hideConfirmation,
-              enableSuggestions: false,
-              autocorrect: false,
-              autofillHints: [AutofillHints.newPassword],
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: context.tr('تأكيد كلمة المرور'),
-                prefixIcon: Icon(Icons.verified_user_outlined),
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  tooltip: _hideConfirmation
-                      ? context.tr('إظهار التأكيد')
-                      : context.tr('إخفاء التأكيد'),
-                  onPressed: enabled
-                      ? () => setState(
-                          () => _hideConfirmation = !_hideConfirmation,
-                        )
-                      : null,
-                  icon: Icon(
-                    _hideConfirmation
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
+            SirajLabeledField(
+              label: context.tr('تأكيد كلمة المرور'),
+              child: TextFormField(
+                key: Key('signup-confirmation'),
+                style: const TextStyle(fontSize: 12, letterSpacing: 0),
+                controller: _confirmation,
+                enabled: enabled,
+                obscureText: _hideConfirmation,
+                enableSuggestions: false,
+                autocorrect: false,
+                autofillHints: [AutofillHints.newPassword],
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  hintText: '••••••••',
+                  border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    tooltip: _hideConfirmation
+                        ? context.tr('إظهار التأكيد')
+                        : context.tr('إخفاء التأكيد'),
+                    onPressed: enabled
+                        ? () => setState(
+                            () => _hideConfirmation = !_hideConfirmation,
+                          )
+                        : null,
+                    icon: Icon(
+                      _hideConfirmation
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
                   ),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return context.tr('تأكيد كلمة المرور مطلوب');
+                  }
+
+                  if (value != _password.text) {
+                    return context.tr('كلمتا المرور غير متطابقتين');
+                  }
+
+                  return null;
+                },
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return context.tr('تأكيد كلمة المرور مطلوب');
-                }
-
-                if (value != _password.text) {
-                  return context.tr('كلمتا المرور غير متطابقتين');
-                }
-
-                return null;
-              },
             ),
             SizedBox(height: 12),
             Text(
               context.tr(
                 'احتفظ بكلمة المرور في مكان آمن؛ لا توجد آلية لاستعادتها في هذه النسخة.',
               ),
-              style: TextStyle(fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
             if (_error != null) ...[
               SizedBox(height: 12),
@@ -239,16 +252,13 @@ class _SignupPageState extends State<SignupPage> {
             FilledButton(
               key: Key('signup-submit'),
               onPressed: enabled ? _submit : null,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: _busy
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(context.tr('إنشاء الحساب')),
-              ),
+              child: _busy
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(context.tr('إنشاء الحساب')),
             ),
             if (_busy && widget.onCancel != null)
               TextButton(

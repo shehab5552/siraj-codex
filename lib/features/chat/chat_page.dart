@@ -1,4 +1,6 @@
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
+import '../../core/design/siraj_v2_illustration.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 
@@ -18,10 +20,12 @@ class ChatPage extends StatefulWidget {
     this.coordinator,
     this.draftController,
     this.session,
+    this.onOpenHistory,
   });
   final ChatTurnCoordinator? coordinator;
   final ConversationDraftController? draftController;
   final AuthSession? session;
+  final VoidCallback? onOpenHistory;
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
@@ -158,31 +162,70 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
           : TextDirection.ltr,
       child: Scaffold(
         appBar: SirajAppBar(
-          title: context.tr('المحادثة'),
-          subtitle: context.tr('سراج — المعلم المحلي'),
+          title: context.copy('المساعد التعليمي', 'Learning assistant'),
+          subtitle: context.copy(
+            chat?.conversationId == null
+                ? 'محادثة جديدة Draft مؤقتة'
+                : 'محادثة محفوظة على الجهاز',
+            chat?.conversationId == null
+                ? 'New temporary draft'
+                : 'Conversation saved on device',
+          ),
         ),
         body: SafeArea(
           child: Column(
             children: [
-              if (chat != null && !chat.availability.isReady)
-                ChatReadinessNotice(key: Key('chat-no-ai-answer')),
               Expanded(
                 child: ListView(
                   key: Key('chat-message-list'),
                   controller: _scroll,
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
                   children: [
-                    if (messages.isEmpty)
+                    if (messages.isEmpty) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: SirajStatusPill(
+                                text: context.copy(
+                                  'محادثة جديدة · مؤقتة',
+                                  'New conversation · temporary',
+                                ),
+                                tone: SirajPillTone.good,
+                              ),
+                            ),
+                          ),
+                          if (widget.onOpenHistory != null)
+                            TextButton.icon(
+                              key: const Key('chat-history'),
+                              onPressed: widget.onOpenHistory,
+                              icon: const SirajV2Icon('history', size: 18),
+                              label: Text(
+                                context.copy('سجل المحادثات', 'History'),
+                              ),
+                            ),
+                        ],
+                      ),
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24),
+                        padding: const EdgeInsets.fromLTRB(7, 52, 7, 18),
                         child: Column(
                           children: [
-                            Icon(
-                              Icons.forum_outlined,
-                              size: 48,
-                              color: Theme.of(context).colorScheme.primary,
+                            const SirajV2Illustration(
+                              key: Key('v2-chat-illustration'),
+                              icon: 'message',
+                              compact: true,
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 16),
+                            Text(
+                              context.copy(
+                                'ما الذي تريد فهمه اليوم؟',
+                                'What would you like to understand today?',
+                              ),
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
                             Text(
                               chat == null
                                   ? context.tr(
@@ -192,12 +235,23 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                                   ? context.tr(
                                       'المحادثة غير متاحة لهذه الجلسة.',
                                     )
-                                  : context.tr(
-                                      'محادثة جديدة مؤقتة. تُحفظ عند إرسال أول سؤال صالح.',
+                                  : context.copy(
+                                      'اكتب سؤالك، وستبدأ المحادثة عند إرسال أول رسالة صحيحة فقط.',
+                                      'Write your question. A conversation starts only after the first valid message.',
                                     ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontSize: 11, height: 1.9),
                               textAlign: TextAlign.center,
                             ),
                           ],
+                        ),
+                      ),
+                    ],
+                    if (chat != null && !chat.availability.isReady)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 11),
+                        child: ChatReadinessNotice(
+                          key: Key('chat-no-ai-answer'),
                         ),
                       ),
                     for (var i = 0; i < messages.length; i++)
@@ -256,8 +310,20 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                   ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(12, 8, 12, 12),
+              Container(
+                key: const Key('v2-chat-composer'),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -266,25 +332,38 @@ class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
                         key: Key('chat-question-input'),
                         controller: _input,
                         enabled: enabled,
+                        style: const TextStyle(fontSize: 11, height: 1.9),
                         minLines: 1,
                         maxLines: 4,
                         textInputAction: TextInputAction.newline,
                         decoration: InputDecoration(
                           hintText: context.tr('اكتب سؤالك أو رسالة متابعة'),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 11,
+                            vertical: 10,
+                          ),
+                          isDense: true,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
                     ),
                     SizedBox(width: 8),
                     IconButton.filled(
+                      style: IconButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        minimumSize: const Size(48, 48),
+                      ),
                       key: Key(
                         canSend ? 'chat-send-enabled' : 'chat-send-disabled',
                       ),
                       onPressed: canSend ? () => unawaited(_send()) : null,
                       tooltip: context.tr('إرسال السؤال'),
-                      icon: Icon(Icons.send_rounded),
+                      icon: const SirajV2Icon('send', size: 18),
                     ),
                   ],
                 ),

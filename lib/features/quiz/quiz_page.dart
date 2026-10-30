@@ -1,4 +1,5 @@
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_components.dart';
 import '../../app/presentation/siraj_problem.dart';
 import '../../integrations/ai/quiz_port.dart';
 import '../../core/localization/siraj_copy.dart';
@@ -23,6 +24,89 @@ class QuizPage extends StatefulWidget {
 
 class _QuizPageState extends State<QuizPage> {
   QuizController get c => widget.controller;
+  QuizSelection? _viewSelection;
+  Object? _viewSession;
+  Future<void> _startSelection(QuizSelection selection) async {
+    final owner = c;
+    await owner.startSelection(selection);
+    if (!mounted || !identical(owner, c) || c.sessionIdentity == null) return;
+    setState(() {
+      _viewSelection = selection;
+      _viewSession = c.sessionIdentity;
+    });
+  }
+
+  Widget _selectionSummary() {
+    final selected = identical(_viewSession, c.sessionIdentity)
+        ? _viewSelection
+        : null;
+    if (selected == null) return const SizedBox.shrink();
+    final subject = selected.catalog.subjects.singleWhere(
+      (s) => s.id == selected.scope.subjectId,
+    );
+    final unit = subject.units.singleWhere(
+      (u) => u.id == selected.scope.unitId,
+    );
+    final labels = [
+      (
+        context.copy('المادة', 'Subject'),
+        context.copy(subject.arabicName, subject.englishName),
+      ),
+      (context.tr('الوحدة'), context.copy(unit.arabicName, unit.englishName)),
+      (
+        context.copy('نوع الأسئلة', 'Question type'),
+        context.tr(switch (selected.type) {
+          QuizQuestionType.mcq => 'اختيار من متعدد',
+          QuizQuestionType.trueFalse => 'صح أو خطأ',
+          QuizQuestionType.numeric => 'مسألة عددية',
+          QuizQuestionType.shortAnswer => 'إجابة قصيرة',
+        }),
+      ),
+      (context.copy('عدد الأسئلة', 'Question count'), '${c.questionCount}'),
+    ];
+    return Container(
+      key: const Key('quiz-selection-summary'),
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1B3045)
+            : const Color(0xFFF9FBFF),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: LayoutBuilder(
+        builder: (context, box) => Wrap(
+          spacing: 11,
+          runSpacing: 11,
+          children: [
+            for (final item in labels)
+              SizedBox(
+                width: MediaQuery.textScalerOf(context).scale(11) > 16
+                    ? box.maxWidth
+                    : (box.maxWidth - 11) / 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.$1,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(fontSize: 9),
+                    ),
+                    Text(
+                      item.$2,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   late final QuizSetupController _setup = QuizSetupController(
     catalog: widget.curriculum,
     availability: () => c.availability,
@@ -108,7 +192,13 @@ class _QuizPageState extends State<QuizPage> {
           'Question ${index + 1} of ${c.questionCount}',
         ),
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 8),
+      LinearProgressIndicator(
+        value: (index + 1) / c.questionCount,
+        minHeight: 8,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      _selectionSummary(),
       QuizQuestionForm(
         key: ValueKey(question.id),
         question: question,
@@ -222,7 +312,7 @@ class _QuizPageState extends State<QuizPage> {
         ),
         body: SafeArea(
           child: ListView(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
             children: [
               if (c.phase == QuizPhase.loading)
                 Center(child: CircularProgressIndicator())
@@ -259,7 +349,7 @@ class _QuizPageState extends State<QuizPage> {
                     setup: _setup,
                     busy: c.busy,
                     onStart: (selection) =>
-                        unawaited(c.startSelection(selection)),
+                        unawaited(_startSelection(selection)),
                   ),
                 if (c.phase == QuizPhase.generating) ...[
                   Center(child: CircularProgressIndicator()),
@@ -277,7 +367,7 @@ class _QuizPageState extends State<QuizPage> {
                 ],
                 if (c.phase == QuizPhase.review) ...[
                   Text(
-                    context.copy('مراجعة الاختبار', 'Review quiz'),
+                    context.copy('مراجعة الإجابات', 'Review answers'),
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Text(
@@ -286,8 +376,9 @@ class _QuizPageState extends State<QuizPage> {
                       '${c.answeredCount} of ${c.questionCount} answers are valid for submission',
                     ),
                   ),
+                  _selectionSummary(),
                   for (var i = 0; i < c.reviewQuestions.length; i++)
-                    Card(
+                    SirajCard(
                       child: ListTile(
                         title: Text(c.reviewQuestions[i].stem),
                         subtitle: Text(

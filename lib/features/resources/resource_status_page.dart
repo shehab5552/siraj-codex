@@ -1,4 +1,5 @@
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'package:flutter/material.dart';
 
@@ -46,7 +47,7 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SirajAppBar(
-        title: context.tr('حالة الموارد'),
+        title: context.copy('إدارة الموارد', 'Manage resources'),
         subtitle: context.copy(
           'تنزيل وفحص الموارد المستقلة',
           'Independent resource downloads and checks',
@@ -75,15 +76,15 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
           }
           final data = snapshot.data!;
           return ListView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
             children: [
-              Text(
-                context.tr(
-                  'هذه حالات مسجلة محليًا وليست شهادة بجاهزية الملفات. '
-                  'لا تُفعّل الموارد إلا بعد فحص السلامة والتوافق.',
+              SirajReferenceNotice(
+                text: context.copy(
+                  'هذه حالات مسجلة محليًا وليست شهادة بجاهزية الملفات. لا تُفعّل الموارد إلا بعد فحص السلامة والتوافق.',
+                  'These local records do not certify readiness. Integrity and compatibility checks are required before activation.',
                 ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               _section('النموذج المحلي (LLM)', data.llm),
               _section('حزم بيانات RAG', data.ragPacks),
               _section('نموذج Query Embedding المشترك', data.ragEmbedding),
@@ -103,7 +104,7 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
                 Card(
                   key: const Key('resource-catalog-unavailable'),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
                     child: Text(
                       context.copy(
                         'لم يتوفر فهرس تنزيل معتمد وروابط وهوية موارد وفاحص Runtime متوافق. لن يُعرض تنزيل تجريبي أو حالة جاهزية وهمية.',
@@ -136,33 +137,65 @@ class _ResourceStatusPageState extends State<ResourceStatusPage> {
   }
 
   Widget _section(String title, List<ResourceStatusEntry> entries) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              context.tr(title),
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 6),
-            if (entries.isEmpty)
-              Text(context.tr('لا توجد موارد مسجلة في هذا القسم.'))
-            else
-              for (final entry in entries)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(entry.resourceId),
-                  subtitle: Text(context.tr(entry.statusLabel)),
-                  leading: Icon(
-                    entry.displayState == ResourceDisplayState.failed
-                        ? Icons.error_outline
-                        : Icons.info_outline,
-                  ),
+    final isPdf = title == 'كتب PDF';
+    final isLlm = title == 'النموذج المحلي (LLM)';
+    return SirajCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              SirajIconTile(
+                icon: isPdf
+                    ? Icons.description_outlined
+                    : isLlm
+                    ? Icons.memory_outlined
+                    : Icons.menu_book_outlined,
+                teal: isLlm,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  context.tr(title),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          if (entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: SirajStatusPill(
+                  text: context.copy('غير مجهّز', 'Not prepared'),
+                  tone: SirajPillTone.gray,
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          if (entries.isEmpty)
+            Text(
+              context.tr('لا توجد موارد مسجلة في هذا القسم.'),
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          else
+            for (final entry in entries)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  entry.resourceId,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                subtitle: Text(context.tr(entry.statusLabel)),
+                leading: SirajIconTile(
+                  icon: entry.displayState == ResourceDisplayState.failed
+                      ? Icons.error_outline
+                      : Icons.info_outline,
+                ),
+              ),
+        ],
       ),
     );
   }

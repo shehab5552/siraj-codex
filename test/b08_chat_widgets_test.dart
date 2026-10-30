@@ -280,7 +280,7 @@ void main() {
       MaterialApp(home: ConversationHistoryPage(controller: history)),
     );
     await t.pumpAndSettle();
-    expect(find.textContaining('تُحذف أقدم محادثة'), findsOneWidget);
+    expect(find.textContaining('يُحذف الأقدم تلقائيًا'), findsOneWidget);
     await t.tap(find.text('عنوان المحادثة'));
     await t.pumpAndSettle();
     expect(find.byKey(const Key('chat-question-input')), findsOneWidget);
@@ -356,6 +356,8 @@ void main() {
         home: HomePage(onOpenChat: () {}, onOpenHistory: () => opened = true),
       ),
     );
+    await t.scrollUntilVisible(find.byKey(const Key('open-chat-history')), 180);
+    await t.pumpAndSettle();
     await t.tap(find.byKey(const Key('open-chat-history')));
     expect(opened, true);
   });

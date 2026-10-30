@@ -5,7 +5,7 @@ import 'package:siraj/core/design/siraj_navigation.dart';
 
 void main() {
   testWidgets(
-    'reference navigation selects the full 54dp tile with accessible targets',
+    'reference navigation selects the measured 90.75x57 tile with accessible targets',
     (t) async {
       t.view.physicalSize = const Size(380, 737);
       t.view.devicePixelRatio = 1;
@@ -29,13 +29,13 @@ void main() {
       );
       final first = find.byKey(const Key('v2-nav-tile-0'));
       expect(first, findsOneWidget);
-      expect(t.getSize(first), const Size(83, 54));
+      expect(t.getSize(first), const Size(90.75, 57));
       final box = t.widget<DecoratedBox>(first);
       expect(
         (box.decoration as BoxDecoration).color,
         SirajTheme.light().colorScheme.primaryContainer,
       );
-      await t.tap(find.text('المكتبة'));
+      await t.tap(find.text('المكتبة الدراسية'));
       await t.pumpAndSettle();
       expect(
         t.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,

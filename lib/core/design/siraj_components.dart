@@ -11,7 +11,10 @@ class SirajCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     margin: const EdgeInsets.only(bottom: 10),
-    child: Padding(padding: padding, child: child),
+    child: Padding(
+      padding: const EdgeInsets.all(1),
+      child: Padding(padding: padding, child: child),
+    ),
   );
 }
 

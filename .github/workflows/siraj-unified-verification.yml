@@ -29,8 +29,15 @@ jobs:
       - name: Flutter tests
         run: |
           mkdir -p dist
-          flutter test --no-pub --reporter=json > dist/flutter-tests.jsonl
+          # File-level serialization avoids observed pinned Linux engine teardown crashes.
+          # All application concurrency/cancellation tests still execute unchanged.
+          flutter test --no-pub --concurrency=1 --reporter=json > dist/flutter-tests.jsonl
           python3 tool/flutter_test_summary.py dist/flutter-tests.jsonl dist/flutter-results.json
+      - name: Validate launcher and splash resources
+        run: |
+          python3 -m pip install Pillow==11.3.0
+          python3 -m unittest discover -s tool/tests -p test_android_branding.py -v
+          python3 tool/verify_android_branding.py
       - name: Android SDK components
         shell: bash
         run: |
@@ -45,6 +52,8 @@ jobs:
           sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
       - name: Build isolated unified Android debug APK
         run: tool/build_android_with_evidence.sh
+      - name: Verify actual compiled SIRAJ launcher branding
+        run: python3 tool/verify_android_branding.py --apk dist/SIRAJ_P0_UNIFIED_ANDROID_DEBUG.apk --aapt "$ANDROID_HOME/build-tools/35.0.0/aapt" --output dist/android-branding-verification.json
       - name: Install Android runtime test image
         shell: bash
         run: |

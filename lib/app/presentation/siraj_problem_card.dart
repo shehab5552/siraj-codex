@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/design/siraj_v2_components.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'siraj_problem.dart';
 
@@ -35,19 +36,24 @@ class SirajProblemCard extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Card(
-        color: Theme.of(context).colorScheme.errorContainer,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(13),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.error_outline),
-                  const SizedBox(width: 12),
+                  const SirajIconTile(icon: Icons.error_outline),
+                  const SizedBox(width: 9),
                   Expanded(
-                    child: Text(context.copy(problem.arabic, problem.english)),
+                    child: Text(
+                      context.copy(problem.arabic, problem.english),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        height: 1.9,
+                      ),
+                    ),
                   ),
                 ],
               ),

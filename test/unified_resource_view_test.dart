@@ -29,7 +29,7 @@ void main() {
         ),
       );
       await t.pumpAndSettle();
-      expect(find.text('Resource status'), findsOneWidget);
+      expect(find.text('Manage resources'), findsOneWidget);
       expect(find.text('Local model (LLM)'), findsOneWidget);
       await t.scrollUntilVisible(
         find.byKey(const Key('resource-catalog-unavailable')),

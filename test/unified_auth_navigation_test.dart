@@ -56,7 +56,7 @@ void main() {
             find
                 .descendant(
                   of: find.byType(NavigationBar),
-                  matching: find.text('المكتبة'),
+                  matching: find.text('المكتبة الدراسية'),
                 )
                 .last,
           );
@@ -145,7 +145,7 @@ void main() {
       findsOneWidget,
       reason: 'restoring the same session must keep current route',
     );
-    await tester.tap(find.text('حالة الموارد').last);
+    await tester.tap(find.byKey(const Key('settings-resources')));
     await tester.pumpAndSettle();
     expect(find.byType(ResourceStatusPage), findsOneWidget);
     await tester.pageBack();

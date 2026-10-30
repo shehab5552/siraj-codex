@@ -188,7 +188,12 @@ class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
       if (chat != null) {
         SirajTabScope.maybeOf(context)?.setContext(1);
         await Navigator.of(context).push<void>(
-          MaterialPageRoute(builder: (_) => ChatPage(coordinator: chat)),
+          MaterialPageRoute(
+            builder: (_) => ChatPage(
+              coordinator: chat,
+              onOpenHistory: () => Navigator.of(context).pop(),
+            ),
+          ),
         );
       }
       if (mounted) await _history.load();

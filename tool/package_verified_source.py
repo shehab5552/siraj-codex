@@ -23,7 +23,10 @@ commit = os.environ['GITHUB_SHA']
 run = os.environ['GITHUB_RUN_ID']
 if not re.fullmatch('[a-f0-9]{40}', commit) or not run.isdigit():
     raise SystemExit('Invalid CI identity')
-proof = dict(commit=commit, run_url='https://github.com/shehab5552/siraj-codex/actions/runs/' + run,
+branding = json.loads((output / 'android-branding-verification.json').read_text())
+if branding.get('compiled_label') != 'SIRAJ' or len(branding.get('compiled_launchers_checked', [])) != 5:
+    raise SystemExit('Cannot package unverified Android launcher branding')
+proof = dict(branding=branding, commit=commit, run_url='https://github.com/shehab5552/siraj-codex/actions/runs/' + run,
              host=host, native=native, physical_device=False,
              release_readiness='Integration Testing',
              gates={'code_quality': 'PASS', 'visual_fidelity': 'FAIL', 'physical_device': 'BLOCKED',
@@ -35,6 +38,8 @@ md = ('# سجل قبول CI الفعلي\n\n'
       f'Android: {sum(r["passed"] for r in native)} ناجحًا،0 فاشل،0 متخطى؛ محاكي API33 فقط.\n\n'
       'تشمل النتائج KDF وPDF الأصلي والتطبيق وإعداد حالة محفوظة ثم استعادتها بعد adb force-stop. '
       'جُمعت الصور والعدادات على المضيف؛ لم تُنسخ SQLite أو Keystore لإعادة الحالة.\n\n'
+      'اسم APK هو SIRAJ؛ فُحصت بكسلات الأيقونات الخمس وAdaptive Icon وSplash في APK الفعلي. '
+      'الهوية مؤقتة بمونوغرام V2 حتى تسلم الشعار الرسمي واعتماده.\n\n'
       '**Integration Testing؛ لا اعتماد جهاز فعلي أو G2/G3 أو إنتاج.** '
       'المطابقة البصرية النهائية والموارد العلمية والتوقيع وملف Auth لها بوابات باقية في تقارير المشروع.\n')
 (output / 'CI_ACCEPTANCE.json').write_text(proof_json)

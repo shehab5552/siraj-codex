@@ -159,7 +159,7 @@ void main() {
           await t.tap(
             find.descendant(
               of: find.byType(NavigationBar),
-              matching: find.text('المكتبة'),
+              matching: find.text('المكتبة الدراسية'),
             ),
           );
           await until(find.byKey(const Key('library-open-test')));

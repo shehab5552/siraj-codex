@@ -1,4 +1,6 @@
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
 import '../../core/localization/siraj_copy.dart';
 import 'dart:async';
 
@@ -47,7 +49,12 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
     }
     if (chat != null) {
       await Navigator.of(context).push<void>(
-        MaterialPageRoute(builder: (_) => ChatPage(coordinator: chat)),
+        MaterialPageRoute(
+          builder: (_) => ChatPage(
+            coordinator: chat,
+            onOpenHistory: () => Navigator.of(context).pop(),
+          ),
+        ),
       );
     }
     if (mounted && identical(history, widget.controller)) {
@@ -73,7 +80,7 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
         final history = widget.controller;
         return Scaffold(
           appBar: SirajAppBar(
-            title: context.tr('محادثاتك'),
+            title: context.copy('سجل المحادثات', 'Conversation history'),
             subtitle: context.copy(
               'حتى عشر محادثات محفوظة',
               'Up to ten saved conversations',
@@ -90,27 +97,41 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
           ),
           body: SafeArea(
             child: ListView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
               children: [
-                Text(
-                  context.tr('تابع أسئلتك من حيث توقفت'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: 8),
-                Text(
-                  context.tr(
-                    'تُحفظ حتى عشر محادثات على هذا الجهاز. عند حفظ أول رسالة صالحة في المحادثة الحادية عشرة، تُحذف أقدم محادثة تلقائيًا.',
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.tr('محادثاتك'),
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(fontSize: 13),
+                            ),
+                            Text(
+                              context.copy(
+                                'تُحفظ بعد أول رسالة صحيحة',
+                                'Saved after the first valid message',
+                              ),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SirajStatusPill(
+                        text: context.copy(
+                          '${history.conversations.length} من 10',
+                          '${history.conversations.length} of 10',
+                        ),
+                        tone: SirajPillTone.gray,
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 16),
-                FilledButton.icon(
-                  key: Key('history-new-chat'),
-                  onPressed:
-                      _opening || history.isLoading || history.sessionExpired
-                      ? null
-                      : () => unawaited(_open()),
-                  icon: Icon(Icons.add_comment_outlined),
-                  label: Text(context.tr('محادثة جديدة')),
                 ),
                 if (history.isLoading)
                   Padding(
@@ -136,19 +157,74 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
                     ),
                   ),
                 for (final item in history.conversations)
-                  Card(
-                    child: ListTile(
+                  SirajCard(
+                    child: InkWell(
                       key: Key('history-${item.id}'),
-                      leading: Icon(Icons.chat_bubble_outline),
-                      title: Text(
-                        item.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      trailing: Icon(Icons.chevron_left),
                       onTap: _opening ? null : () => unawaited(_open(item.id)),
+                      child: Row(
+                        children: [
+                          const SirajIconTile(icon: Icons.chat_bubble_outline),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontSize: 11),
+                                ),
+                                Text(
+                                  context.copy(
+                                    'محادثة محفوظة على هذا الجهاز',
+                                    'Saved on this device',
+                                  ),
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.copyWith(fontSize: 9),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: _opening
+                                ? null
+                                : () => unawaited(_open(item.id)),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                              minimumSize: const Size(48, 48),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                            ),
+                            child: Text(context.copy('فتح', 'Open')),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                SirajReferenceNotice(
+                  key: const Key('v2-history-retention'),
+                  text: context.copy(
+                    'يُحذف الأقدم تلقائيًا عند تجاوز عشر محادثات، داخل معاملة آمنة وفق مواصفة P0.',
+                    'The oldest conversation is removed automatically when exceeding ten, inside a safe transaction under P0.',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  key: const Key('history-new-chat'),
+                  onPressed:
+                      _opening || history.isLoading || history.sessionExpired
+                      ? null
+                      : () => unawaited(_open()),
+                  icon: const SirajV2Icon('message', size: 18),
+                  label: Text(context.tr('محادثة جديدة')),
+                ),
               ],
             ),
           ),

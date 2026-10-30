@@ -82,7 +82,7 @@ void main() {
         );
         await t.tap(find.byType(BackButton));
         await t.pumpAndSettle();
-        await t.tap(find.text('الاختبارات').last);
+        await t.tap(find.text('اختبر معلوماتك').last);
         await t.pumpAndSettle();
         expect(find.byKey(const Key('quiz-subject')), findsOneWidget);
         await t.tap(find.text('الرئيسية').last);

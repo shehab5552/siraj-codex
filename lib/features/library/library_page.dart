@@ -1,4 +1,5 @@
 import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../app/presentation/siraj_problem.dart';
@@ -46,7 +47,7 @@ class _LibraryPageState extends State<LibraryPage> {
     animation: c,
     builder: (context, _) => Scaffold(
       appBar: SirajAppBar(
-        title: context.tr('المكتبة'),
+        title: context.copy('مكتبة الكتب', 'Book library'),
         subtitle: context.copy(
           'كتب PDF مستقلة ومحلية',
           'Independent, local PDF books',
@@ -69,21 +70,22 @@ class _LibraryPageState extends State<LibraryPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1000),
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
               children: [
                 Text(
                   context.copy(
                     'كتبك ومصادرك الدراسية',
                     'Your books and learning resources',
                   ),
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   context.copy(
-                    'كتب PDF مستقلة عن LLM وRAG. لا يُعرض كتاب كقابل للفتح قبل فحص ملفه بقارئ معتمد.',
+                    'نزّل كل كتاب على حدة، وافتحه محليًا بعد التحقق. ملفات PDF مستقلة عن LLM وRAG.',
                     'PDF books are independent of LLM and RAG. A book is never offered for opening before its file is verified by an approved reader.',
                   ),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 16),
                 if (c.loading) const LinearProgressIndicator(),
@@ -151,110 +153,7 @@ class _LibraryPageState extends State<LibraryPage> {
                         'Try another search or category. Books outside the approved catalog are not added.',
                       ),
                     ),
-                  for (final book in c.books)
-                    SirajCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.picture_as_pdf_outlined,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 40,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      context.copy(
-                                        book.arabicTitle,
-                                        book.englishTitle,
-                                      ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      context.copy(
-                                        book.categoryArabic,
-                                        book.categoryEnglish,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            context.copy(
-                              switch (c.state(book)) {
-                                BookFileState.missing => 'الملف غير محمل',
-                                BookFileState.unverified =>
-                                  'يتطلب التحقق من الملف',
-                                BookFileState.readerRequired =>
-                                  'القارئ المحلي المعتمد غير متاح',
-                                BookFileState.readable =>
-                                  'فُحص الملف ويمكن فتحه محليًا',
-                                BookFileState.invalid =>
-                                  'تعذر التحقق من سلامة الملف',
-                              },
-                              switch (c.state(book)) {
-                                BookFileState.missing => 'File not downloaded',
-                                BookFileState.unverified =>
-                                  'File verification required',
-                                BookFileState.readerRequired =>
-                                  'The approved local reader is unavailable',
-                                BookFileState.readable =>
-                                  'File verified and available locally',
-                                BookFileState.invalid =>
-                                  'File integrity could not be verified',
-                              },
-                            ),
-                          ),
-                          if (c.busy(book)) ...[
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(value: _progress(book)),
-                            TextButton(
-                              onPressed: () => unawaited(c.cancel(book)),
-                              child: Text(context.tr('إلغاء')),
-                            ),
-                          ],
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              if (c.canDownload(book))
-                                OutlinedButton.icon(
-                                  key: Key('library-download-${book.id}'),
-                                  onPressed: () => unawaited(c.download(book)),
-                                  icon: const Icon(Icons.download_outlined),
-                                  label: Text(
-                                    context.copy(
-                                      'تنزيل الكتاب',
-                                      'Download book',
-                                    ),
-                                  ),
-                                ),
-                              if (c.canOpen(book))
-                                FilledButton.icon(
-                                  key: Key('library-open-${book.id}'),
-                                  onPressed: () => unawaited(c.open(book)),
-                                  icon: const Icon(Icons.menu_book_outlined),
-                                  label: Text(
-                                    context.copy('فتح محليًا', 'Open locally'),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                  for (final book in c.books) _bookCard(context, book),
                 ],
               ],
             ),
@@ -263,4 +162,110 @@ class _LibraryPageState extends State<LibraryPage> {
       ),
     ),
   );
+  Widget _bookCard(BuildContext context, LibraryBook book) {
+    final state = c.state(book);
+    final readable = state == BookFileState.readable;
+    final invalid = state == BookFileState.invalid;
+    final label = context.copy(
+      switch (state) {
+        BookFileState.missing => 'غير منزّل',
+        BookFileState.unverified => 'بانتظار التحقق',
+        BookFileState.readerRequired => 'القارئ غير متاح',
+        BookFileState.readable => 'متاح محليًا',
+        BookFileState.invalid => 'فشل التحقق',
+      },
+      switch (state) {
+        BookFileState.missing => 'Not downloaded',
+        BookFileState.unverified => 'Verification required',
+        BookFileState.readerRequired => 'Reader unavailable',
+        BookFileState.readable => 'Available locally',
+        BookFileState.invalid => 'Verification failed',
+      },
+    );
+    final details = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          context.copy(book.arabicTitle, book.englishTitle),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        Text(
+          context.copy(book.categoryArabic, book.categoryEnglish),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: SirajStatusPill(
+              text: label,
+              tone: readable
+                  ? SirajPillTone.good
+                  : invalid
+                  ? SirajPillTone.error
+                  : SirajPillTone.gray,
+            ),
+          ),
+        ),
+        if (c.busy(book)) ...[
+          LinearProgressIndicator(value: _progress(book)),
+          TextButton(
+            onPressed: () => unawaited(c.cancel(book)),
+            child: Text(context.tr('إلغاء')),
+          ),
+        ],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (c.canDownload(book))
+              OutlinedButton.icon(
+                key: Key('library-download-${book.id}'),
+                onPressed: () => unawaited(c.download(book)),
+                icon: const SirajV2Icon('download', size: 16),
+                label: Text(context.copy('تنزيل الكتاب', 'Download book')),
+              ),
+            if (c.canOpen(book))
+              FilledButton.icon(
+                key: Key('library-open-${book.id}'),
+                onPressed: () => unawaited(c.open(book)),
+                icon: const SirajV2Icon('book', size: 16),
+                label: Text(context.copy('فتح محليًا', 'Open locally')),
+              ),
+          ],
+        ),
+      ],
+    );
+    final cover = Container(
+      width: 66,
+      height: 93,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Color(0xFF234D80), Color(0xFF102B46)],
+        ),
+        borderRadius: BorderRadius.circular(9),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFB9CDE4), offset: Offset(4, 5)),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: const SirajV2Icon('book', size: 25, color: Colors.white),
+    );
+    return SirajCard(
+      child: MediaQuery.textScalerOf(context).scale(12) > 18
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [cover, const SizedBox(height: 13), details],
+            )
+          : Row(
+              children: [
+                cover,
+                const SizedBox(width: 13),
+                Expanded(child: details),
+              ],
+            ),
+    );
+  }
 }

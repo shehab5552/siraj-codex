@@ -58,9 +58,7 @@ void main() {
         await t.pumpAndSettle();
         await t.tap(find.byKey(const Key('open-settings')));
         await t.pumpAndSettle();
-        await t.tap(find.byKey(const Key('settings-language')));
-        await t.pumpAndSettle();
-        await t.tap(find.text('الإنجليزية').last);
+        await t.tap(find.byKey(const Key('settings-language-en')));
         await t.pumpAndSettle();
         final row = await db
             .customSelect(
@@ -116,19 +114,10 @@ void main() {
             ),
           ),
         );
-        await t.tap(find.byKey(const Key('settings-theme')));
-        await t.pumpAndSettle();
-        await t.tap(find.text('داكن').last);
+        await t.tap(find.byKey(const Key('settings-theme-dark')));
         await t.pumpAndSettle();
         expect(prefs.persistenceFailed, isTrue);
-        expect(
-          t
-              .widget<DropdownButton<ThemeMode>>(
-                find.byType(DropdownButton<ThemeMode>),
-              )
-              .value,
-          ThemeMode.system,
-        );
+        expect(prefs.value.themeMode, ThemeMode.system);
       } finally {
         await t.pumpWidget(const SizedBox());
         prefs.dispose();

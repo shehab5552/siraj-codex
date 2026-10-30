@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../localization/siraj_copy.dart';
 import 'siraj_design.dart';
+import 'siraj_v2_icons.dart';
 
 /// Presentation state only; the application host authorizes actual navigation.
 class SirajTabScope extends InheritedWidget {
@@ -35,24 +36,24 @@ class SirajAdaptiveNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     final tabs = [
       NavigationDestination(
-        icon: const Icon(Icons.home_outlined),
-        selectedIcon: const Icon(Icons.home),
+        icon: const SirajV2Icon('home'),
+        selectedIcon: const SirajV2Icon('home'),
         label: context.tr('الرئيسية'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.chat_bubble_outline),
-        selectedIcon: const Icon(Icons.chat_bubble),
-        label: context.tr('المساعد'),
+        icon: const SirajV2Icon('message'),
+        selectedIcon: const SirajV2Icon('message'),
+        label: context.copy('المساعد التعليمي', 'Learning assistant'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.menu_book_outlined),
-        selectedIcon: const Icon(Icons.menu_book),
-        label: context.tr('المكتبة'),
+        icon: const SirajV2Icon('book'),
+        selectedIcon: const SirajV2Icon('book'),
+        label: context.copy('المكتبة الدراسية', 'Study library'),
       ),
       NavigationDestination(
-        icon: const Icon(Icons.quiz_outlined),
-        selectedIcon: const Icon(Icons.quiz),
-        label: context.tr('الاختبارات'),
+        icon: const SirajV2Icon('graduation'),
+        selectedIcon: const SirajV2Icon('graduation'),
+        label: context.copy('اختبر معلوماتك', 'Test your knowledge'),
       ),
     ];
     Widget guarded(Widget child) => Stack(
@@ -94,20 +95,32 @@ class SirajAdaptiveNavigation extends StatelessWidget {
     return Scaffold(
       body: body,
       bottomNavigationBar: guarded(
-        NavigationBar(
-          key: const Key('siraj-bottom-navigation'),
-          selectedIndex: index,
-          onDestinationSelected: onSelect,
-          destinations: [
-            for (var i = 0; i < tabs.length; i++)
-              _ReferenceDestination(
-                icon: tabs[i].icon,
-                label: tabs[i].label,
-                selected: index == i,
-                onTap: () => onSelect(i),
-                tileIndex: i,
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
               ),
-          ],
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6.5),
+          child: NavigationBar(
+            height: 65,
+            key: const Key('siraj-bottom-navigation'),
+            selectedIndex: index,
+            onDestinationSelected: onSelect,
+            destinations: [
+              for (var i = 0; i < tabs.length; i++)
+                _ReferenceDestination(
+                  icon: tabs[i].icon,
+                  label: tabs[i].label,
+                  selected: index == i,
+                  onTap: () => onSelect(i),
+                  tileIndex: i,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -133,7 +146,7 @@ class _ReferenceDestination extends NavigationDestination {
     final scheme = Theme.of(context).colorScheme;
     final color = selected ? scheme.primary : scheme.onSurfaceVariant;
     return Padding(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.symmetric(horizontal: .5, vertical: 4),
       child: Semantics(
         label: label,
         button: true,
@@ -152,7 +165,7 @@ class _ReferenceDestination extends NavigationDestination {
               onTap: onTap,
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
-                height: 54,
+                height: 57,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -160,7 +173,7 @@ class _ReferenceDestination extends NavigationDestination {
                       data: IconThemeData(color: color, size: 20),
                       child: icon,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2),
                       child: Text(
@@ -168,8 +181,11 @@ class _ReferenceDestination extends NavigationDestination {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 9,
-                          height: 1.2,
+                          fontSize: 10,
+                          height:
+                              MediaQuery.textScalerOf(context).scale(10) > 14
+                              ? 1.2
+                              : 2.1,
                           fontWeight: FontWeight.w700,
                           color: color,
                         ),

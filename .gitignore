@@ -66,3 +66,7 @@ key.properties
 *.db
 *.db-wal
 *.db-shm
+
+# Local Python tooling caches and generated golden failure diagnostics
+__pycache__/
+/test/failures/

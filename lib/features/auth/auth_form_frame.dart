@@ -22,44 +22,53 @@ class AuthFormFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: SirajAppBar(title: context.tr('سراج'), showBack: false),
+      appBar: SirajAppBar(
+        title: context.copy('الحساب المحلي', 'Local account'),
+        subtitle: context.copy(
+          'خصوصية أكبر على جهازك',
+          'Privacy on your device',
+        ),
+        showBack: false,
+      ),
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(15, 38, 15, 24),
+            padding: const EdgeInsets.fromLTRB(15, 37, 15, 18),
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: 460),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Center(child: SirajBrandMark(size: 64)),
-                  SizedBox(height: 16),
+                  SizedBox(height: 12),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 19,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 4),
                   Text(
                     description,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  SizedBox(height: 24),
-                  content,
-                  if (notice != null) ...[
-                    SizedBox(height: 16),
-                    Text(
-                      notice!,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 11,
+                      height: 2,
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (notice != null) ...[
+                    SirajReferenceNotice(
+                      text: notice!,
+                      warning: true,
+                      icon: Icons.lock_outline,
+                    ),
+                    const SizedBox(height: 14),
                   ],
+                  content,
                 ],
               ),
             ),

@@ -42,6 +42,7 @@ dependencies:
   cryptography: ^2.9.0
   uuid: ^4.6.0
   cryptography_flutter: 2.3.4
+  flutter_svg: 2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/fonts/OFL.txt
+    - assets/icons/v2/
+    - assets/branding/app_mark.png
   fonts:
     - family: NotoSansArabic
       fonts:

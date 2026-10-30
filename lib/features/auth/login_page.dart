@@ -1,4 +1,5 @@
 import '../../core/localization/siraj_copy.dart';
+import '../../core/design/siraj_v2_components.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_form_frame.dart';
@@ -71,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final enabled = widget.onLogin != null && !_busy;
     return AuthFormFrame(
-      title: context.tr('تسجيل الدخول'),
+      title: context.copy('مرحبًا بعودتك', 'Welcome back'),
       description: context.tr('استخدم حساب سراج المحلي المسجل على هذا الجهاز.'),
       notice:
           widget.notice ??
@@ -88,20 +89,26 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              key: Key('login-username'),
-              controller: _username,
-              enabled: enabled,
-              autofillHints: [AutofillHints.username],
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                labelText: context.tr('اسم المستخدم'),
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+            SirajLabeledField(
+              label: context.tr('اسم المستخدم'),
+              child: TextFormField(
+                key: Key('login-username'),
+                style: const TextStyle(fontSize: 12, letterSpacing: 0),
+                controller: _username,
+                enabled: enabled,
+                autofillHints: [AutofillHints.username],
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  hintText: context.copy(
+                    'مثال: اسم المستخدم',
+                    'Example: username',
+                  ),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? context.tr('اسم المستخدم مطلوب')
+                    : null,
               ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? context.tr('اسم المستخدم مطلوب')
-                  : null,
             ),
             SizedBox(height: 14),
             TextFormField(
@@ -115,7 +122,6 @@ class _LoginPageState extends State<LoginPage> {
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 labelText: context.tr('كلمة المرور'),
-                prefixIcon: Icon(Icons.lock_outline),
                 border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hidePassword
@@ -147,16 +153,13 @@ class _LoginPageState extends State<LoginPage> {
             FilledButton(
               key: Key('login-submit'),
               onPressed: enabled ? _submit : null,
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: _busy
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(context.tr('تسجيل الدخول')),
-              ),
+              child: _busy
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(context.tr('تسجيل الدخول')),
             ),
             if (_busy && widget.onCancel != null)
               TextButton(
@@ -169,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                 'لا تتوفر استعادة كلمة المرور أو إضافة حساب ثانٍ في SIRAJ P0.',
               ),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
