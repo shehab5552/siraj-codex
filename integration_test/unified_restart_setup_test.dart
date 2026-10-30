@@ -46,13 +46,9 @@ void main() {
       await flow.tab(0);
       await flow.tap(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
-      await flow.tap(find.byKey(const Key('settings-theme')));
+      await flow.tap(find.byKey(const Key('settings-theme-dark')));
       await tester.pumpAndSettle();
-      await flow.tap(find.text('داكن').last);
-      await tester.pumpAndSettle();
-      await flow.tap(find.byKey(const Key('settings-language')));
-      await tester.pumpAndSettle();
-      await flow.tap(find.text('الإنجليزية').last);
+      await flow.tap(find.byKey(const Key('settings-language-en')));
       await tester.pumpAndSettle();
       expect(find.text('Settings'), findsOneWidget);
       debugPrint(

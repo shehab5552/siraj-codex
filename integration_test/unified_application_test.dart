@@ -70,7 +70,7 @@ void main() {
       expect(find.text('لا توجد موارد مسجلة في هذا القسم.'), findsWidgets);
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('المساعد').last);
+      await tester.tap(find.text('المساعد التعليمي').last);
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('history-new-chat')));
       await tester.pumpAndSettle();
@@ -94,23 +94,15 @@ void main() {
       await tester.tap(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
       // Exercise the real account-scoped SQLite appearance writer on Android.
-      await tester.tap(find.byKey(const Key('settings-theme')));
+      await tester.tap(find.byKey(const Key('settings-theme-dark')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('داكن').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('settings-language')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('الإنجليزية').last);
+      await tester.tap(find.byKey(const Key('settings-language-en')));
       await tester.pumpAndSettle();
       expect(find.text('Settings'), findsOneWidget);
       await screenshot('siraj-unified-settings-en-dark');
-      await tester.tap(find.byKey(const Key('settings-language')));
+      await tester.tap(find.byKey(const Key('settings-language-ar')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Arabic').last);
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('settings-theme')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('حسب النظام').last);
+      await tester.tap(find.byKey(const Key('settings-theme-system')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byKey(const Key('settings-logout')));
       await tester.tap(find.byKey(const Key('settings-logout')));
