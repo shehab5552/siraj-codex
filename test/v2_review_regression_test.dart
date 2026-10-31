@@ -118,6 +118,10 @@ void main() {
           await t.pumpWidget(
             MaterialApp(
               theme: dark ? SirajTheme.dark() : SirajTheme.light(),
+              builder: (context, child) => Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
               home: Directionality(
                 textDirection: TextDirection.rtl,
                 child: SettingsPage(session: session, onOpenResources: () {}),
@@ -147,6 +151,24 @@ void main() {
           await t.tap(find.byKey(const Key('settings-delete')));
           await t.pumpAndSettle();
           expect(find.textContaining('LLM وRAG وPDF'), findsOneWidget);
+          final acknowledgement = find.byKey(
+            const Key('delete-account-checkbox'),
+          );
+          final checkbox = find.descendant(
+            of: acknowledgement,
+            matching: find.byType(Checkbox),
+          );
+          final warning = find.descendant(
+            of: acknowledgement,
+            matching: find.text(
+              'أفهم أن الحذف نهائي ولا يمكن استعادة الحساب ومحادثاته.',
+            ),
+          );
+          expect(warning, findsOneWidget);
+          expect(
+            t.getCenter(checkbox).dx,
+            greaterThan(t.getCenter(warning).dx),
+          );
           expect(
             t
                 .widget<FilledButton>(

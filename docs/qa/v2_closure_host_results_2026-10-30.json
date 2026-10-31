@@ -39,5 +39,16 @@
     "passed": 5,
     "failed": 0,
     "skipped": 0
+  },
+  "final_rtl_acknowledgement_regression": {
+    "before": {
+      "passed": 2,
+      "failed": 2
+    },
+    "after": {
+      "passed": 4,
+      "failed": 0
+    },
+    "full_suite_verified": true
   }
 }

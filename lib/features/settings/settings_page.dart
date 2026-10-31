@@ -117,16 +117,25 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                 if (delete)
-                  CheckboxListTile(
-                    key: const Key('delete-account-checkbox'),
-                    contentPadding: EdgeInsets.zero,
-                    value: checked,
-                    onChanged: (value) =>
-                        setState(() => checked = value == true),
-                    title: Text(
-                      context.copy(
-                        'أفهم أن الحذف نهائي',
-                        'I understand deletion is permanent',
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    child: CheckboxListTile(
+                      key: const Key('delete-account-checkbox'),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      contentPadding: const EdgeInsets.all(9),
+                      tileColor: Theme.of(context).scaffoldBackgroundColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      value: checked,
+                      onChanged: (value) =>
+                          setState(() => checked = value == true),
+                      title: Text(
+                        context.copy(
+                          'أفهم أن الحذف نهائي ولا يمكن استعادة الحساب ومحادثاته.',
+                          'I understand deletion is permanent and the account and its conversations cannot be recovered.',
+                        ),
+                        style: const TextStyle(fontSize: 10.5, height: 1.8),
                       ),
                     ),
                   ),
