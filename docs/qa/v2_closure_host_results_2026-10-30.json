@@ -16,11 +16,11 @@
     "failed": 0,
     "skipped": 0
   },
-  "analysis": "Analyzing siraj-codex-unified...                                \nNo issues found! (ran in 2.3s)",
+  "analysis": "Analyzing siraj-codex-unified...                                \nNo issues found! (ran in 1.8s)",
   "engine_failure": "Historical flutter_tester SIGSEGV. Separate Flutter processes overlapped while sharing build/unit_test_assets; subsequent isolated full runs passed. Native root cause remains unproven.",
   "build_acceptance_source": "current CI generated CI_ACCEPTANCE.json, not these local runs",
   "latest_isolated_full_suite": {
-    "passed": 614,
+    "passed": 615,
     "failed": 0,
     "skipped": 0,
     "success": true
@@ -68,5 +68,24 @@
     "origin_http_status": null,
     "curl_exit": 56,
     "cause": "Proxy CONNECT rejected; origin not reached; no signed URLs exposed"
+  },
+  "native_action_button_run": {
+    "sha": "529cf3ae66541b144d0fdaffcd6bbae04bab7044",
+    "run": 41248030945,
+    "host_passed": 614,
+    "native_passed": 11,
+    "native_failed": 1,
+    "native_targets_not_executed": [
+      "restart-setup",
+      "restart-restore"
+    ],
+    "failure": "helper incorrectly rejected default BackButton Navigator action; reproduced with real 2-route regression and corrected",
+    "focused_after_fix": 8,
+    "production_files_changed": false
+  },
+  "helper_latest_focused": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
   }
 }

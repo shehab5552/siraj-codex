@@ -37,6 +37,12 @@ class UnifiedFlow {
 
   bool _enabled(Finder finder) => switch (tester.widget(finder)) {
     ButtonStyleButton(:final onPressed) => onPressed != null,
+    // Flutter action buttons build an enabled IconButton with a default action
+    // when their public onPressed override is null (e.g. Navigator.maybePop).
+    BackButton() ||
+    CloseButton() ||
+    DrawerButton() ||
+    EndDrawerButton() => true,
     IconButton(:final onPressed) => onPressed != null,
     TextFormField(:final enabled) => enabled != false,
     TextField(:final enabled, :final readOnly) => enabled != false && !readOnly,

@@ -4,6 +4,31 @@ import 'package:flutter_test/flutter_test.dart';
 import '../integration_test/support/unified_flow.dart';
 
 void main() {
+  testWidgets('driver accepts BackButton default Navigator action', (
+    tester,
+  ) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: navigator,
+        home: const Scaffold(body: Text('Root')),
+      ),
+    );
+    navigator.currentState!.push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(leading: const BackButton()),
+          body: const Text('Details'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(navigator.currentState!.canPop(), isTrue);
+    await UnifiedFlow(tester).tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(navigator.currentState!.canPop(), isFalse);
+    expect(find.text('Root'), findsOneWidget);
+  });
   for (final (becomesEnabled, formField) in [
     (true, true),
     (false, true),

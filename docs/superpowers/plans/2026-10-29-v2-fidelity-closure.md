@@ -77,3 +77,5 @@ CI9904b4f built the normal-main APK and passed compiled launcher/adaptive/splash
 Final comparison correction: RTL deletion acknowledgement now matches logical leading placement/full text/background/radius, with real geometry assertion RED→GREEN in both themes. No further presentation changes planned; refresh exact-SHA full verification and CI after this scoped correction.
 
 Native follow-up855a0a0:13 native passed, finalrestore target failedafterlogout/login. Existing native tool falselytreateddisabledbuttonasready (RED), now waits enabledform/button and single acceptedinput forTextField/TextFormField with7focusedtests. NoAuthsourcechanges; causeoforiginaltimeoutnotproven, finalnativeCIrequired. ArtifactBlobhostproductionresultssa1.blob.core.windows.net blockedbyproxyCONNECT403; originnotreached.
+
+Native529 passedHost614/build/branding/KDF/PDF buthelpermisclassifiedBackButton defaultonPressednull; real2routeNavigator regression RED→GREEN, Flutter_ActionButton defaultcallbacks nowrecognized,8focusedpassed, no productionnavigation/Authchanges. Fresh full/native runrequired afterthisfix.
