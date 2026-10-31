@@ -1,0 +1,275 @@
+{
+  "task": "B-08 INDEPENDENT-CHAT-TUTOR-01",
+  "repository": "shehab5552/siraj-codex",
+  "branch": "codex/b08-independent-chat-tutor",
+  "git_base": "651af0d62d05761c80d9a8cbc9d1f51b836929eb",
+  "tested_source_tree": "0cc466e9f43410d5c4b8afc4410aef3d72903366",
+  "recorded_at": "2026-10-23T00:00:28.639519+03:00",
+  "flutter": "3.38.5",
+  "dart": "3.10.4",
+  "host": "Linux x86_64, Debian GNU/Linux 13",
+  "baseline": {
+    "passed": 130,
+    "failed": 0,
+    "skipped": 0
+  },
+  "commands": [
+    {
+      "command": [
+        "dart",
+        "format",
+        "--output=none",
+        "--set-exit-if-changed",
+        "lib/app/app_bootstrap.dart",
+        "lib/app/app_routes.dart",
+        "lib/app/siraj_app.dart",
+        "lib/data/conversation_repository.dart",
+        "lib/data/user_repository.dart",
+        "lib/features/chat/chat_copy.dart",
+        "lib/features/chat/chat_models.dart",
+        "lib/features/chat/chat_page.dart",
+        "lib/features/chat/chat_turn_coordinator.dart",
+        "lib/features/chat/chat_widgets.dart",
+        "lib/features/chat/conversation_draft_controller.dart",
+        "lib/features/chat/conversation_history_controller.dart",
+        "lib/features/chat/conversation_history_page.dart",
+        "lib/features/home/home_page.dart",
+        "lib/integrations/ai/tutor_contract.dart",
+        "lib/integrations/ai/tutor_port.dart",
+        "test/b08_chat_persistence_test.dart",
+        "test/b08_chat_retry_recovery_test.dart",
+        "test/b08_chat_turn_coordinator_test.dart",
+        "test/b08_chat_widgets_test.dart",
+        "test/b08_conversation_history_test.dart",
+        "test/b08_tutor_contract_test.dart",
+        "test/chat_page_b05_widget_test.dart",
+        "test/support/chat_fixture.dart",
+        "test/support/chat_widget_harness.dart",
+        "test/support/fake_tutor.dart"
+      ],
+      "started_utc": "2026-10-22T20:58:14.956121+00:00",
+      "exit_code": 0,
+      "seconds": 0.171
+    },
+    {
+      "command": [
+        "flutter",
+        "pub",
+        "get",
+        "--enforce-lockfile"
+      ],
+      "started_utc": "2026-10-22T20:58:15.127262+00:00",
+      "exit_code": 0,
+      "seconds": 0.565
+    },
+    {
+      "command": [
+        "flutter",
+        "analyze"
+      ],
+      "started_utc": "2026-10-22T20:58:15.693199+00:00",
+      "exit_code": 0,
+      "seconds": 3.229
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--machine"
+      ],
+      "exit_code": 0,
+      "passed": 197,
+      "failed": 0,
+      "skipped": 0,
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 12970
+        }
+      ],
+      "errors": [],
+      "per_file": {
+        "b07_resource_status_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_artifact_integrity_test.dart": {
+          "passed": 23,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_resource_format_preflight_test.dart": {
+          "passed": 18,
+          "failed": 0,
+          "skipped": 0
+        },
+        "auth_service_test.dart": {
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_retry_recovery_test.dart": {
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_persistence_test.dart": {
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0
+        },
+        "password_hasher_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_startup_session_resolver_test.dart": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_widgets_test.dart": {
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_resource_navigation_test.dart": {
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_conversation_history_test.dart": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b06_auth_pages_widget_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_schema_test.dart": {
+          "passed": 9,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_tutor_contract_test.dart": {
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b07_validation_contracts_test.dart": {
+          "passed": 18,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_runtime_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_turn_coordinator_test.dart": {
+          "passed": 24,
+          "failed": 0,
+          "skipped": 0
+        },
+        "chat_page_b05_widget_test.dart": {
+          "passed": 4,
+          "failed": 0,
+          "skipped": 0
+        },
+        "conversation_draft_controller_test.dart": {
+          "passed": 5,
+          "failed": 0,
+          "skipped": 0
+        },
+        "database_repository_test.dart": {
+          "passed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "widget_test.dart": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "command": [
+        "flutter",
+        "test",
+        "--no-pub",
+        "--machine",
+        "test/b08_tutor_contract_test.dart",
+        "test/b08_chat_persistence_test.dart",
+        "test/b08_chat_turn_coordinator_test.dart",
+        "test/b08_chat_retry_recovery_test.dart",
+        "test/b08_conversation_history_test.dart",
+        "test/b08_chat_widgets_test.dart"
+      ],
+      "exit_code": 0,
+      "seconds": 7.848,
+      "started_utc": "2026-10-22T20:59:31.641001+00:00",
+      "passed": 67,
+      "failed": 0,
+      "skipped": 0,
+      "done": [
+        {
+          "success": true,
+          "type": "done",
+          "time": 7178
+        }
+      ],
+      "errors": [],
+      "per_file": {
+        "b08_tutor_contract_test.dart": {
+          "passed": 11,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_persistence_test.dart": {
+          "passed": 10,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_turn_coordinator_test.dart": {
+          "passed": 24,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_retry_recovery_test.dart": {
+          "passed": 3,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_conversation_history_test.dart": {
+          "passed": 6,
+          "failed": 0,
+          "skipped": 0
+        },
+        "b08_chat_widgets_test.dart": {
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
+    }
+  ],
+  "counting_policy": "Count testDone for real tests by ID and suite; exclude only loading events with null test URL. The real widget test named loading can be cancelled and late answer never appears is included.",
+  "android_tests": "NOT_RUN: no Android device connected",
+  "real_ai_g2_g3": "PENDING TEST: real native runtime, compatible artifacts and device absent",
+  "download_failures": [],
+  "sqlite_cache_sha256": "b17729184e5a2818055ecbddd5ed6642521bfe6e56aafa472330e483c0e2e0d2",
+  "raw_log_hashes": {
+    "final-format.log": "2e9b1d61e71ddef6cfd8bdc85fd125b0f795e937da8fda8b17f4c99af4fe903e",
+    "final-pub.log": "d495b418afebb8a1ace15e7acccb14a4d3367a7c6f21e782040755967fbe3a92",
+    "final-analyze.log": "44b578f6b38663c3ad2ce52471dffc5e3fc068ade34c0e484c12bd350e0ba9c5",
+    "final-test.log": "377a41bde7a1db9c6bef0fd8641a0b68a2e20e756434d1e705746e90b754dedb",
+    "final-focused.log": "c5063567250d04ebb17ce7da99aaabe92e6397662790d2d09d674dc1463f8c1f",
+    "review-findings-red.log": "17665a244889ff922262e6eadbb6c37583fd6ca85f44ddf2fbadcaa0747be93a",
+    "review-findings-green.log": "30ac9daab507fa9129308d585be1f26fb73fcc661614b6f9dfaac9413b66076c"
+  }
+}

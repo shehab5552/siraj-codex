@@ -1,0 +1,91 @@
+{
+  "pre_review_full_serial": {
+    "passed": 605,
+    "failed": 0,
+    "skipped": 0,
+    "success": true
+  },
+  "post_review_full_serial": {
+    "passed": 606,
+    "failed": 4,
+    "skipped": 0,
+    "success": false
+  },
+  "post_review_focused_regressions": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "analysis": "Analyzing siraj-codex-unified...                                \nNo issues found! (ran in 1.8s)",
+  "engine_failure": "Historical flutter_tester SIGSEGV. Separate Flutter processes overlapped while sharing build/unit_test_assets; subsequent isolated full runs passed. Native root cause remains unproven.",
+  "build_acceptance_source": "current CI generated CI_ACCEPTANCE.json, not these local runs",
+  "latest_isolated_full_suite": {
+    "passed": 615,
+    "failed": 0,
+    "skipped": 0,
+    "success": true
+  },
+  "latest_suite_stderr_bytes": 0,
+  "android_previous_run": {
+    "sha": "9904b4f2ac4ee1fcc6deddf2748eb61bd69c1d18",
+    "run": 41119371662,
+    "build_and_compiled_branding": "passed",
+    "native_kdf_passed": 10,
+    "native_pdf_passed": 1,
+    "application": "failed: logout tap offscreen (y727 vs height640); existing safe UnifiedFlow helper applied; fresh native verification required",
+    "restart": "not run"
+  },
+  "android_branding_python_tests": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0
+  },
+  "final_rtl_acknowledgement_regression": {
+    "before": {
+      "passed": 2,
+      "failed": 2
+    },
+    "after": {
+      "passed": 4,
+      "failed": 0
+    },
+    "full_suite_verified": true
+  },
+  "native_followup_run": {
+    "sha": "855a0a006e1a73e6a8b10a570b5c3a3144b11964",
+    "run": 41245779976,
+    "passed": 13,
+    "failed": 1,
+    "skipped": 0,
+    "failure": "restart-restore at waitHome after logout/login; earlier restoration assertions passed; Auth cause unproven",
+    "test_helper_defect": "visible disabled buttons falsely treated as ready; isolated regression reproduced; readiness and safe diagnostics added",
+    "helper_focused_passed": 7,
+    "new_host_readiness_cases": 5
+  },
+  "artifact_download_probe": {
+    "hostname": "productionresultssa1.blob.core.windows.net",
+    "proxy_connect_status": 403,
+    "origin_http_status": null,
+    "curl_exit": 56,
+    "cause": "Proxy CONNECT rejected; origin not reached; no signed URLs exposed"
+  },
+  "native_action_button_run": {
+    "sha": "529cf3ae66541b144d0fdaffcd6bbae04bab7044",
+    "run": 41248030945,
+    "host_passed": 614,
+    "native_passed": 11,
+    "native_failed": 1,
+    "native_targets_not_executed": [
+      "restart-setup",
+      "restart-restore"
+    ],
+    "failure": "helper incorrectly rejected default BackButton Navigator action; reproduced with real 2-route regression and corrected",
+    "focused_after_fix": 8,
+    "production_files_changed": false
+  },
+  "helper_latest_focused": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0
+  }
+}

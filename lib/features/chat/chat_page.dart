@@ -1,194 +1,375 @@
+import '../../core/design/siraj_v2_components.dart';
+import '../../core/design/siraj_v2_icons.dart';
+import '../../core/design/siraj_v2_illustration.dart';
+import '../../core/localization/siraj_copy.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../integrations/ai/tutor_contract.dart';
 import '../auth/auth_models.dart';
+import 'chat_turn_coordinator.dart';
+import 'chat_widgets.dart';
 import 'conversation_draft_controller.dart';
 
-/// B-05: view-only by default; enabled only when a verified session and
-/// a session-guarded draft controller are supplied by the authenticated flow.
-/// The debug B-02 route supplies neither, so it cannot create DB rows.
+/// Route owns its coordinator. The legacy draft entry remains supported;
+/// composition supplies a real TutorPort later without changing this widget.
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, this.draftController, this.session});
-
+  const ChatPage({
+    super.key,
+    this.coordinator,
+    this.draftController,
+    this.session,
+    this.onOpenHistory,
+  });
+  final ChatTurnCoordinator? coordinator;
   final ConversationDraftController? draftController;
   final AuthSession? session;
-
+  final VoidCallback? onOpenHistory;
   @override
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
-  final TextEditingController _questionController = TextEditingController();
-  bool _busy = false;
-  String? _savedQuestion;
-  String? _error;
-
-  bool get _hasSession =>
-      widget.draftController != null && widget.session != null;
-
-  bool get _canSend =>
-      _hasSession &&
-      widget.draftController!.isTemporary &&
-      !_busy &&
-      _questionController.text.trim().isNotEmpty;
+class _ChatPageState extends State<ChatPage> with WidgetsBindingObserver {
+  final _input = TextEditingController();
+  final _scroll = ScrollController();
+  ChatTurnCoordinator? _chat;
 
   @override
   void initState() {
     super.initState();
-    _questionController.addListener(_updateSubmitState);
+    WidgetsBinding.instance.addObserver(this);
+    _input.addListener(_inputChanged);
+    _bind();
   }
 
-  void _updateSubmitState() {
+  void _bind() {
+    _chat =
+        widget.coordinator ??
+        (widget.draftController != null && widget.session != null
+            ? ChatTurnCoordinator.fromDraft(
+                widget.draftController!,
+                widget.session!,
+              )
+            : null);
+    _chat?.addListener(_changed);
+    unawaited(_chat?.initialize());
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.coordinator != widget.coordinator ||
+        oldWidget.draftController != widget.draftController ||
+        oldWidget.session != widget.session) {
+      _chat?.removeListener(_changed);
+      _chat?.dispose();
+      _input.clear();
+      _bind();
+    }
+  }
+
+  void _inputChanged() {
     if (mounted) setState(() {});
   }
 
-  Future<void> _submitFirstQuestion() async {
-    if (!_canSend) return;
-    final question = _questionController.text.trim();
-    setState(() {
-      _busy = true;
-      _error = null;
+  void _changed() {
+    if (!mounted) return;
+    if (_chat?.phase == ChatPhase.sessionExpired) _input.clear();
+    final chat = _chat;
+    final showEvictionNotice = chat?.takeEvictionNotice() == true;
+    setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          identical(chat, _chat) &&
+          chat?.phase != ChatPhase.sessionExpired &&
+          showEvictionNotice) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr(
+                'حُذفت أقدم محادثة بعد حفظ سؤالك؛ يُحفظ آخر عشر محادثات.',
+              ),
+            ),
+          ),
+        );
+      }
+      if (mounted && _scroll.hasClients) {
+        _scroll.animateTo(
+          _scroll.position.maxScrollExtent,
+          duration: Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+        );
+      }
     });
-    try {
-      await widget.draftController!.commitFirstQuestion(
-        session: widget.session!,
-        question: question,
-      );
-      if (!mounted) return;
-      setState(() {
-        _savedQuestion = question;
-        _questionController.clear();
-      });
-    } on AuthFailure {
-      if (!mounted) return;
-      setState(
-        () => _error = 'انتهت الجلسة أو لم تعد صالحة. سجّل الدخول مرة أخرى.',
-      );
-    } on Exception {
-      if (!mounted) return;
-      setState(
-        () => _error =
-            'تعذّر حفظ السؤال. لم نعرض إجابة ولم ننفّذ طلبًا إلى الذكاء الاصطناعي.',
-      );
-    } finally {
-      if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_chat?.refresh());
     }
+  }
+
+  Future<void> _send() async {
+    final chat = _chat;
+    if (chat == null) return;
+    await chat.send(_input.text);
+    if (mounted && chat.lastUserMessageSaved) {
+      _input.clear();
+    }
+  }
+
+  Future<void> _retry() async {
+    final chat = _chat;
+    if (chat == null) return;
+    await chat.retry();
+    if (mounted && chat.lastUserMessageSaved) _input.clear();
+  }
+
+  void _openSource(SourceReference reference) {
+    final chat = _chat;
+    if (chat == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => ChatSourceSheet(coordinator: chat, reference: reference),
+    );
   }
 
   @override
   void dispose() {
-    _questionController.removeListener(_updateSubmitState);
-    _questionController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    _chat?.removeListener(_changed);
+    _chat?.dispose();
+    _input.dispose();
+    _scroll.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final canSubmit = _canSend;
-    final isSaved = widget.draftController?.isTemporary == false;
-    return Scaffold(
-      appBar: AppBar(title: const Text('المحادثة — B-05')),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                key: const Key('chat-message-list'),
-                padding: const EdgeInsets.all(20),
-                children: [
-                  if (_savedQuestion == null)
-                    Text(
-                      _hasSession
-                          ? 'محادثة جديدة مؤقتة. لا تُحفظ حتى ترسل أول سؤال صالح.'
-                          : 'معاينة واجهة المحادثة فقط. لا توجد جلسة مستخدم '
-                                'موثقة في هذه الشاشة، ولذلك الإرسال معطل.',
-                      textAlign: TextAlign.center,
+    final chat = _chat;
+    final enabled = chat?.canSend == true;
+    final canSend = enabled && _input.text.trim().isNotEmpty;
+    final messages = chat?.messages ?? <ChatMessage>[];
+    var assistantIndex = 0;
+    final firstUserIndex = messages.indexWhere((message) => message.isUser);
+    return Directionality(
+      textDirection: SirajCopy.isArabic(context)
+          ? TextDirection.rtl
+          : TextDirection.ltr,
+      child: Scaffold(
+        appBar: SirajAppBar(
+          title: context.copy('المساعد التعليمي', 'Learning assistant'),
+          subtitle: context.copy(
+            chat?.conversationId == null
+                ? 'محادثة جديدة Draft مؤقتة'
+                : 'محادثة محفوظة على الجهاز',
+            chat?.conversationId == null
+                ? 'New temporary draft'
+                : 'Conversation saved on device',
+          ),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView(
+                  key: Key('chat-message-list'),
+                  controller: _scroll,
+                  padding: const EdgeInsets.fromLTRB(15, 17, 15, 18),
+                  children: [
+                    if (messages.isEmpty) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: SirajStatusPill(
+                                text: context.copy(
+                                  'محادثة جديدة · مؤقتة',
+                                  'New conversation · temporary',
+                                ),
+                                tone: SirajPillTone.good,
+                              ),
+                            ),
+                          ),
+                          if (widget.onOpenHistory != null)
+                            TextButton.icon(
+                              key: const Key('chat-history'),
+                              onPressed: widget.onOpenHistory,
+                              icon: const SirajV2Icon('history', size: 18),
+                              label: Text(
+                                context.copy('سجل المحادثات', 'History'),
+                              ),
+                            ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(7, 52, 7, 18),
+                        child: Column(
+                          children: [
+                            const SirajV2Illustration(
+                              key: Key('v2-chat-illustration'),
+                              icon: 'message',
+                              compact: true,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              context.copy(
+                                'ما الذي تريد فهمه اليوم؟',
+                                'What would you like to understand today?',
+                              ),
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              chat == null
+                                  ? context.tr(
+                                      'يلزم تسجيل دخول صالح لفتح محادثاتك وإرسال الأسئلة.',
+                                    )
+                                  : chat.phase == ChatPhase.sessionExpired
+                                  ? context.tr(
+                                      'المحادثة غير متاحة لهذه الجلسة.',
+                                    )
+                                  : context.copy(
+                                      'اكتب سؤالك، وستبدأ المحادثة عند إرسال أول رسالة صحيحة فقط.',
+                                      'Write your question. A conversation starts only after the first valid message.',
+                                    ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(fontSize: 11, height: 1.9),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (chat != null && !chat.availability.isReady)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 11),
+                        child: ChatReadinessNotice(
+                          key: Key('chat-no-ai-answer'),
+                        ),
+                      ),
+                    for (var i = 0; i < messages.length; i++)
+                      ChatMessageBubble(
+                        key: i == firstUserIndex
+                            ? Key('chat-saved-question')
+                            : Key('chat-message-${messages[i].id}'),
+                        message: messages[i],
+                        assistantIndex: messages[i].isUser
+                            ? -1
+                            : assistantIndex++,
+                        onSource: _openSource,
+                        partial:
+                            !messages[i].isUser &&
+                            i == messages.length - 1 &&
+                            chat?.lastResult?.isPartial == true,
+                      ),
+                    if (chat?.failure != null)
+                      ChatFailureNotice(
+                        key: Key('chat-save-error'),
+                        failure: chat!.failure!,
+                        onRetry: chat.canRetry
+                            ? () => unawaited(_retry())
+                            : null,
+                      ),
+                    if (chat?.isBusy == true)
+                      Semantics(
+                        liveRegion: true,
+                        child: Card(
+                          key: Key('chat-loading'),
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                LinearProgressIndicator(),
+                                SizedBox(height: 10),
+                                Text(
+                                  chat!.phase == ChatPhase.asking
+                                      ? context.tr('جارٍ إعداد الإجابة…')
+                                      : chat.phase == ChatPhase.loading
+                                      ? context.tr('جارٍ فتح المحادثة…')
+                                      : context.tr('جارٍ حفظ الرسالة…'),
+                                ),
+                                if (chat.phase != ChatPhase.loading)
+                                  TextButton.icon(
+                                    key: Key('chat-cancel'),
+                                    onPressed: () => unawaited(chat.cancel()),
+                                    icon: Icon(Icons.close),
+                                    label: Text(context.tr('إلغاء')),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                key: const Key('v2-chat-composer'),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
                     ),
-                  if (_savedQuestion != null)
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Card(
-                        key: const Key('chat-saved-question'),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(_savedQuestion!),
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        key: Key('chat-question-input'),
+                        controller: _input,
+                        enabled: enabled,
+                        style: const TextStyle(fontSize: 11, height: 1.9),
+                        minLines: 1,
+                        maxLines: 4,
+                        textInputAction: TextInputAction.newline,
+                        decoration: InputDecoration(
+                          hintText: context.tr('اكتب سؤالك أو رسالة متابعة'),
+                          fillColor: Theme.of(context).scaffoldBackgroundColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 11,
+                            vertical: 10,
+                          ),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
-                  if (isSaved)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 12),
-                      child: Text(
-                        'تم حفظ السؤال محليًا. توليد الإجابات وإرسال أسئلة '
-                        'إضافية غير مفعّلين حتى تكامل Tutor المعتمد.',
-                        key: Key('chat-no-ai-answer'),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Text(
-                        _error!,
-                        key: const Key('chat-save-error'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                    SizedBox(width: 8),
+                    IconButton.filled(
+                      style: IconButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        minimumSize: const Size(48, 48),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                isSaved
-                    ? 'هذه المرحلة تختبر حفظ أول رسالة فقط، دون توليد إجابات.'
-                    : _hasSession
-                    ? 'سيُحفظ السؤال الأول محليًا بعد التحقق من الجلسة.'
-                    : 'الإرسال غير متاح حتى ربط الحساب والجلسة الآمنة.',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const Key('chat-question-input'),
-                      controller: _questionController,
-                      enabled: _hasSession && !isSaved && !_busy,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.newline,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'اكتب سؤالك',
+                      key: Key(
+                        canSend ? 'chat-send-enabled' : 'chat-send-disabled',
                       ),
+                      onPressed: canSend ? () => unawaited(_send()) : null,
+                      tooltip: context.tr('إرسال السؤال'),
+                      icon: const SirajV2Icon('send', size: 18),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    key: Key(
-                      canSubmit ? 'chat-send-enabled' : 'chat-send-disabled',
-                    ),
-                    onPressed: canSubmit ? _submitFirstQuestion : null,
-                    tooltip: canSubmit
-                        ? 'حفظ السؤال الأول'
-                        : 'الإرسال غير متاح',
-                    icon: _busy
-                        ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send_outlined),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

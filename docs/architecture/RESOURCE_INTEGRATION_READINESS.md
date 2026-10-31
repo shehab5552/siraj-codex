@@ -12,7 +12,8 @@
 | عقود التحقق والمرشح | قائمة متطلبات؛ اتساق تصريح خمس مواد وEmbedder واحد | التصريح ليس فحصًا للملفات |
 | `ArtifactIntegrityValidator` | قراءة ملف فعلي، SHA-256، حجم اختياري، رفض مسارات وروابط غير آمنة، prefix محدود | يحتاج Catalog موثوقًا وStaging خاصًا بالتطبيق دون كتابات متزامنة |
 | `ResourceFormatPreflight` | تعرف محدود على ترويسة GGUF/PDF من البايتات المقروءة نفسها | لا يثبت صحة الملف كاملة أو قابلية تشغيله/قراءته |
-| التنزيل، فك الأرشيف، Validators المتخصصة، النشر والمؤشر | غير منفذة في هذه الشريحة | `UNIMPLEMENTED`؛ لا تُستنتج من نجاح الاختبارات الجديدة |
+| التنزيل الآمن | `DownloadService<T>` و`DownloadStaging` وسياسة `ResourceDownloadValidator`؛ HTTPS وPause/Resume/Retry/Cancel وفحص مساحة وProvenance | منفذ ومختبر بخادم TLS محلي؛ ليس تنزيل موارد إنتاجية أو إثبات Android |
+| فك الأرشيف، Validators المتخصصة، النشر والمؤشر | غير منفذة في هذه الشريحة | `UNIMPLEMENTED`؛ لا تُستنتج من نجاح اختبارات النقل |
 | LLM وEmbedder وبيانات الأحياء الحقيقية | لا دليل دمج أو جهاز في هذه الشريحة | التصنيف المنفصل أدناه؛ غيابها لا يعطل العمل المستقل |
 
 تصنيفات الاعتماد المطلوبة: `AVAILABLE_VERIFIED`، `AVAILABLE_UNVERIFIED`، `NOT_AVAILABLE`، `INCOMPATIBLE`، `PENDING_APPROVAL`، `PENDING_DEVICE_TEST`. لا نضع موردًا في حالة عدم توافق دون اختباره، ولا نفترض توفر مورد غير مفحوص خارج نطاق المستودع والحزمة.
@@ -92,9 +93,30 @@ PDF: يتعرف على `%PDF-1.0` إلى `1.7` و`2.0` متبوعة بـCR/LF ف
 
 هذه سلسلة مطلوبة للمراحل اللاحقة، وليست كودًا مُنجزًا بواسطة هذين الفاحصين.
 
-## 7. التنزيل الآمن والتعافي — التنفيذ التالي
+## 7. التنزيل الآمن والتعافي — B-07/INDEPENDENT-DOWNLOAD-01
 
-يلزم DownloadService مع HTTPS والتحقق العادي من TLS، Disk Space، Staging فقط، أخطاء محددة، Pause/Cancel وResume مقيد بهوية Artifact وETag/Last-Modified عند توفرهما. Range غير مدعوم أو هوية تغيرت تعني Restart نظيفًا؛ لا جمع بايتات من Artifact مختلف. اكتمال HTTP لا يعني التفعيل. لا تُضعف الشهادات أو Hashes لتجاوز فشل الشبكة.
+`DownloadService<T>` ينقل البايتات فقط، ويستدعي `StagedDownloadValidator<T>` بعد إغلاق الكاتب وهو ما يزال يملك Lease. `ResourceDownloadValidator` يربط فاحصي SHA/الحجم والترويسة السابقين؛ لا تُضاف خدمة تنزيل بديلة لكل نوع مورد. `DownloadSpec` يأتي من Catalog معتمد: ID وRevision وKind وHTTPS URL وDestination Key وحجم/Hash إن توفرا، وحد نقل `maxBytes` صريح من المستدعي. لا تتضمن هذه الشريحة روابط أو Manifest إنتاجية أو اختيار نموذج.
+
+الواجهة: `start(spec)` يعطي Handle وFuture Result؛ `progress(handle)` يعرض Snapshot؛ `pause` و`cancel` تنتظران إغلاق الكاتب/الفاحص وتسوية السجل؛ `resumeOrRestart` و`retry` يعيدان المحاولة صراحةً. Retry يدوي محدود بالمحاولة المطلوبة، وليس حلقة خلفية غير محدودة. طلب Resume أثناء نقل أو تسوية Control قائم يعيد Busy. Cancel يهيمن على Pause، وتكرار Cancel ينضم إلى Cleanup نفسها. Cancel بعد نتيجة Downloaded لا يحذف المرشح المكتمل.
+
+التخزين محصور في `appSupportDirectory/downloads-staging-v1/<destinationKey>/`: `payload.part` و`provenance.json` وملف metadata مؤقت وWriter Lock. المفتاح ASCII محدود دون مسارات؛ الروابط والأسماء غير المملوكة ترفض، ولا حذف Recursive أو وصول إلى `models/` أو `books/` أو `rag/releases/`. المرشح المكتمل لا يستبدل حتى لو تغيرت هوية الطلب. مصدر `appSupportDirectory` يجب أن يكون مسار التطبيق الخاص، لا مسارًا يختاره الطالب. يبقى منسق Dataset مسؤولًا عن الموافقة الواحدة؛ هذه الخدمة العامة لا تبدأ تنزيلًا تلقائيًا.
+
+### الاستئناف وProvenance
+
+- هوية السجل SHA-256 لتصريح الطلب كاملًا، بما فيه URL/Revision/Kind/Hash/الحجم/الحد والمفتاح؛ لا تحفظ URL أو Tokens خامًا في السجل أو الأخطاء. السجل يحوي كذلك عدد بايتات الجزء وبصمته وTotal وETag وحالة اكتمال النقل.
+- السجل حدّه 16 KiB، يقرأ كـBytes محدودة ويُفك UTF-8 بصرامة ثم JSON Schema صغيرة. غياب/فساد/كبر/عدم تطابق السجل أو بايتات الجزء يمنع Resume ويعيد البدء من صفر داخل Staging المملوك. Marker اكتمال موجود يُحفظ تحفظيًا بدل حذفه أو استبداله.
+- Resume يتطلب **ETag قويًا** وHash/حجم الجزء مطابقين. ETag ضعيف أو غائب، ولو وُجد Last-Modified، يؤدي إلى Restart؛ لا يستخدم Last-Modified وحده كضمان هوية. الثقة تعتمد على Catalog وHTTPS وملكية التخزين الخاص؛ السجل ليس توقيعًا مشفرًا ضد خصم يستطيع الكتابة في بيانات التطبيق.
+- طلب Range يرسل `If-Range`. `206` يحتاج Start مطابقًا وEnd/Total وContent-Length متسقة، وBody لا يتجاوز End. تغير ETag أو `416` يؤدي إلى GET كامل جديد واحد كحد أقصى. `200` المتجاهل Range يستخدم Body الجديدة من الصفر. النطاق المعطوب لا يدمج بايتات الرد بالجزء القديم.
+- Auto Decompression معطل و`Accept-Encoding: identity`؛ الرد المضغوط يرفض. Redirects لا تتبع تلقائيًا، فلا عبور إلى HTTP أو Host/هوية مختلفين. TLS العادي مفعل دون `badCertificateCallback`؛ شهادة الاختبار موثوقة داخل Test Client فقط.
+- قبل أي Append/Truncate يبطل Checkpoint السابق. بعد إغلاق/Flush البايتات تُحسب بصمة الجزء ويحفظ Metadata بـFlush ثم Rename ذري لملف السجل. الانقطاع المعالج وPause يسمحان باستئناف موثق؛ Crash أثناء النقل قبل Checkpoint صالح يؤدي إلى Restart محافظ، لا إلى الوثوق ببايتات غير مثبتة.
+
+### المساحة والتزامن والنتيجة
+
+`DownloadSpaceProbe` فصل لنظام التشغيل؛ `AndroidDownloadSpaceProbe` يستعمل MethodChannel و`StatFs.availableBytes` الحقيقي ضمن شجرة بيانات التطبيق الخاصة. المساحة تفحص قبل النقل ومع الحجم المعلن وقبل كل دفعة، مع حجز 32 KiB لسجل Metadata واستبداله. Unknown/خطأ الفحص = Storage Unavailable، لا مساحة وهمية. أخطاء ENOSPC/EDQUOT الفعلية تصنف Insufficient Storage؛ بقية I/O تبقى أخطاء محددة. حد `maxBytes` يحمي أيضًا Stream مجهول الحجم. إضافة INTERNET إلى Manifest الرئيسي تتيح النقل في Build التطبيق، دون تغيير TLS أو Cleartext Policy.
+
+Lease داخل منسق التطبيق الواحد يعزل الوجهة، وFile Lock استشاري يظل حتى انتهاء الفحص وCheckpoint/Control. الاستخدام من Isolate واحد للمنسق شرط صريح؛ ليست هذه شهادة بمنسق خلفية متعدد Isolates أو قفل مقاوم لكاتب خصم. شرط App-private/عدم وجود كتّاب خارجيين وحدود Dart للمسار الموضحة في §4 تظل قائمة. تسوية Cancel بعد Pause/الفشل تعيد أخذ Lease قبل Cleanup، ولا تمس موردًا منشورًا.
+
+الحالة النهائية `downloaded` تعني أن النقل وسياسة الفحص الأولي اجتازا فقط. Evidence تحتوي متطلبات Runtime/Model Load/PDF Readability/Archive وغيرها المتبقية. لا تكتب الخدمة SQLite أو READY/ACTIVE/RAG_READY، ولا تنفذ Atomic Dataset Activation؛ يبقى ذلك مسارًا منفصلًا وفق تكليف B-12. Adapter Android وقبول ملفات إنتاجية واختبارات G2/G3 لم تُثبت على جهاز بهذه الاختبارات السحابية.
 
 كل فشل يسجل Host وHTTP Status والسبب القابل للإثبات، دون Tokens أو بيانات الطالب. يظل المورد القديم صالحًا إن كان البديل قد فشل. الموارد المشتركة تبقى عند حذف الحساب؛ لا تعود محادثات الحساب المحذوف أو إعداداته لحساب جديد.
 
@@ -102,7 +124,7 @@ PDF: يتعرف على `%PDF-1.0` إلى `1.7` و`2.0` متبوعة بـCR/LF ف
 
 | المرحلة | يمكن بناؤه دون المورد الحقيقي | الدليل الإضافي عند توفره |
 |---|---|---|
-| B-07 التنزيل | State Machine واختبارات هوية/Range/Restart/انقطاع/مساحة وفشل تحقق | Catalog/HTTPS Host فعليان؛ ملف كبير وسلوك الشبكة على Android |
+| B-07 التنزيل | منفذ: State Machine واختبارات HTTPS محلية وهوية/Range/Restart/انقطاع/مساحة وفشل تحقق وControl races | Catalog/HTTPS Host فعليان؛ ملف كبير وStorage Adapter وسلوك الشبكة على Android |
 | B-07 المتخصص | Safe Extraction وSchema/Checksum/Invalid UTF-8 وفشل المرشح | Schema المعتمدة وPacks/Index/Embedder حقيقية؛ لا اختراع حقول إنتاج |
 | B-07 النشر | Transactions/Crash Recovery/Orphan وPinned Handles باختبارات محلية | تحقق المسار وFilesystem وStartup والتزامن على Android |
 | A+B+C / G2 مبكر | Interfaces وTyped Unavailable وDebug Fixture Wiring | LLM/Embedder حقيقيان وBiology fixture مراجعة وقياسات Vector/Retrieval/RAM على Android |

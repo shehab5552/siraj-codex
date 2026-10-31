@@ -1,0 +1,98 @@
+name: B09 Shared embedding verification
+on:
+  push:
+    branches: [codex/b09-shared-embedding-readiness]
+    paths: ['lib/**', 'test/**', 'pubspec.yaml', 'pubspec.lock', '.github/workflows/b09-embedding-verification.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: b09-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  flutter-and-apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5, official ref verified
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Official fixed Flutter release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch 3.38.5 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse --short=10 HEAD)" = f6ff1529fd
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Enforced dependencies, analyzer and Linux regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+          flutter pub get --enforce-lockfile
+          flutter analyze --no-pub
+          flutter test --no-pub --machine > b09-linux-tests.jsonl
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          events = [json.loads(line) for line in Path('b09-linux-tests.jsonl').read_text().splitlines() if line.startswith('{')]
+          done = [e for e in events if e.get('type') == 'testDone' and not e.get('hidden')]
+          summary = dict(passed=sum(e.get('result') == 'success' and not e.get('skipped') for e in done), failed=sum(e.get('result') in ('error', 'failure') for e in done), skipped=sum(bool(e.get('skipped')) for e in done))
+          Path('b09-linux-test-summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+          print('::notice title=B09 Linux tests::' + json.dumps(summary))
+          PY
+      - name: Official Android SDK components
+        shell: bash
+        run: |
+          set -euo pipefail
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          python3 - <<'PY'
+          import subprocess
+          subprocess.run(['sdkmanager', '--licenses'], input='y\n' * 100, text=True, check=True)
+          PY
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+          test -f "$ANDROID_HOME/platforms/android-36/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt"
+      - name: Build separate-ID APK, without enabling Auth or fake Embedding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('android/app/build.gradle.kts')
+          text = p.read_text()
+          old = 'applicationId = "com.example.siraj"'
+          assert text.count(old) == 1
+          p.write_text(text.replace(old, 'applicationId = "com.example.siraj.embeddingverification"'))
+          PY
+          flutter build apk --debug --no-pub
+          cp build/app/outputs/flutter-apk/app-debug.apk build/b09-embedding-verification-debug.apk
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging build/b09-embedding-verification-debug.apk > b09-apk-package.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          line = Path('b09-apk-package.txt').read_text().splitlines()[0]
+          assert "name='com.example.siraj.embeddingverification'" in line
+          print('::notice title=B09 APK::Debug APK compiled with isolated application ID com.example.siraj.embeddingverification; not device/AI/science acceptance')
+          PY
+      - name: Evidence limits
+        if: always()
+        shell: bash
+        run: |
+          printf '%s\n' "SHA=$GITHUB_SHA" 'Compile evidence only: no Android device/emulator execution.' 'Auth production gate stays closed; default EmbeddingBackend unavailable.' 'No production model, embedding or Dataset bundled.' > b09-android-evidence-limits.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: b09-isolated-apk-${{ github.sha }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            build/b09-embedding-verification-debug.apk
+            b09-apk-package.txt
+            b09-linux-test-summary.json
+            b09-linux-tests.jsonl
+            b09-android-evidence-limits.txt

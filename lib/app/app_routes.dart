@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../features/auth/auth_models.dart';
 import '../features/chat/chat_page.dart';
+import '../features/chat/chat_turn_coordinator.dart';
 import '../features/chat/conversation_draft_controller.dart';
+import '../integrations/ai/tutor_port.dart';
 
 /// Authenticated chat navigation must carry a verified session plus a
 /// repository-backed draft controller. The controller checks SQLite again
@@ -12,10 +14,14 @@ class AuthenticatedChatRoute {
   const AuthenticatedChatRoute({
     required this.session,
     required this.draftController,
+    this.tutor = const UnavailableTutorPort(),
+    this.sources = const UnavailableSourceResolver(),
   });
 
   final AuthSession session;
   final ConversationDraftController draftController;
+  final TutorPort tutor;
+  final SourceResolverPort sources;
 }
 
 abstract final class AppRoutes {
@@ -26,12 +32,15 @@ abstract final class AppRoutes {
       case chat:
         final arguments = settings.arguments;
         if (arguments is AuthenticatedChatRoute) {
+          final coordinator = ChatTurnCoordinator.fromDraft(
+            arguments.draftController,
+            arguments.session,
+            tutor: arguments.tutor,
+            sources: arguments.sources,
+          );
           return MaterialPageRoute<dynamic>(
             settings: settings,
-            builder: (_) => ChatPage(
-              draftController: arguments.draftController,
-              session: arguments.session,
-            ),
+            builder: (_) => ChatPage(coordinator: coordinator),
           );
         }
         // Preserve the B-02 debug preview, but never give release/profile

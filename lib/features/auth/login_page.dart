@@ -1,3 +1,5 @@
+import '../../core/localization/siraj_copy.dart';
+import '../../core/design/siraj_v2_components.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_form_frame.dart';
@@ -8,10 +10,18 @@ typedef LoginAction =
     Future<void> Function({required String username, required String password});
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, this.onLogin, this.onCompleted});
+  const LoginPage({
+    super.key,
+    this.onLogin,
+    this.onCompleted,
+    this.onCancel,
+    this.notice,
+  });
 
   final LoginAction? onLogin;
   final VoidCallback? onCompleted;
+  final VoidCallback? onCancel;
+  final String? notice;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -27,6 +37,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
+    if (_busy) widget.onCancel?.call();
     _username.dispose();
     _password.dispose();
     super.dispose();
@@ -42,11 +53,15 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await action(username: _username.text.trim(), password: _password.text);
       if (!mounted) return;
+      _password.clear();
       widget.onCompleted?.call();
     } catch (_) {
       // Intentionally generic to avoid exposing which credential was wrong.
       if (mounted) {
-        setState(() => _error = 'تعذّر تسجيل الدخول. تحقق من بيانات الحساب.');
+        setState(
+          () =>
+              _error = context.tr('تعذّر تسجيل الدخول. تحقق من بيانات الحساب.'),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -57,50 +72,61 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final enabled = widget.onLogin != null && !_busy;
     return AuthFormFrame(
-      title: 'تسجيل الدخول',
-      description: 'استخدم حساب سراج المحلي المسجل على هذا الجهاز.',
-      notice: widget.onLogin == null
-          ? 'تسجيل الدخول غير مفعّل مؤقتًا حتى اعتماد حماية كلمة المرور الإنتاجية.'
-          : 'الجلسة تُحفظ على هذا الجهاز بعد التحقق من بيانات الحساب.',
+      title: context.copy('مرحبًا بعودتك', 'Welcome back'),
+      description: context.tr('استخدم حساب سراج المحلي المسجل على هذا الجهاز.'),
+      notice:
+          widget.notice ??
+          (widget.onLogin == null
+              ? context.tr(
+                  'تسجيل الدخول غير مفعّل مؤقتًا حتى اعتماد حماية كلمة المرور الإنتاجية.',
+                )
+              : context.tr(
+                  'الجلسة تُحفظ على هذا الجهاز بعد التحقق من بيانات الحساب.',
+                )),
       content: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              key: const Key('login-username'),
-              controller: _username,
-              enabled: enabled,
-              autofillHints: const [AutofillHints.username],
-              textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
-                labelText: 'اسم المستخدم',
-                prefixIcon: Icon(Icons.person_outline),
-                border: OutlineInputBorder(),
+            SirajLabeledField(
+              label: context.tr('اسم المستخدم'),
+              child: TextFormField(
+                key: Key('login-username'),
+                style: const TextStyle(fontSize: 12, letterSpacing: 0),
+                controller: _username,
+                enabled: enabled,
+                autofillHints: [AutofillHints.username],
+                textInputAction: TextInputAction.next,
+                decoration: InputDecoration(
+                  hintText: context.copy(
+                    'مثال: اسم المستخدم',
+                    'Example: username',
+                  ),
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? context.tr('اسم المستخدم مطلوب')
+                    : null,
               ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? 'اسم المستخدم مطلوب'
-                  : null,
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: 14),
             TextFormField(
-              key: const Key('login-password'),
+              key: Key('login-password'),
               controller: _password,
               enabled: enabled,
               obscureText: _hidePassword,
               enableSuggestions: false,
               autocorrect: false,
-              autofillHints: const [AutofillHints.password],
+              autofillHints: [AutofillHints.password],
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: 'كلمة المرور',
-                prefixIcon: const Icon(Icons.lock_outline),
-                border: const OutlineInputBorder(),
+                labelText: context.tr('كلمة المرور'),
+                border: OutlineInputBorder(),
                 suffixIcon: IconButton(
                   tooltip: _hidePassword
-                      ? 'إظهار كلمة المرور'
-                      : 'إخفاء كلمة المرور',
+                      ? context.tr('إظهار كلمة المرور')
+                      : context.tr('إخفاء كلمة المرور'),
                   onPressed: enabled
                       ? () => setState(() => _hidePassword = !_hidePassword)
                       : null,
@@ -111,37 +137,42 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              validator: (value) =>
-                  value == null || value.isEmpty ? 'كلمة المرور مطلوبة' : null,
+              validator: (value) => value == null || value.isEmpty
+                  ? context.tr('كلمة المرور مطلوبة')
+                  : null,
             ),
             if (_error != null) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 _error!,
-                key: const Key('login-error'),
+                key: Key('login-error'),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             FilledButton(
-              key: const Key('login-submit'),
+              key: Key('login-submit'),
               onPressed: enabled ? _submit : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: _busy
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('تسجيل الدخول'),
-              ),
+              child: _busy
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(context.tr('تسجيل الدخول')),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'لا تتوفر استعادة كلمة المرور أو إضافة حساب ثانٍ في SIRAJ P0.',
+            if (_busy && widget.onCancel != null)
+              TextButton(
+                onPressed: widget.onCancel,
+                child: Text(context.tr('إلغاء')),
+              ),
+            SizedBox(height: 16),
+            Text(
+              context.tr(
+                'لا تتوفر استعادة كلمة المرور أو إضافة حساب ثانٍ في SIRAJ P0.',
+              ),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),

@@ -1,0 +1,147 @@
+diff --git a/lib/features/auth/kdf_worker.dart b/lib/features/auth/kdf_worker.dart
+new file mode 100644
+index 0000000..2b8b1bc
+--- /dev/null
++++ b/lib/features/auth/kdf_worker.dart
+@@ -0,0 +1,141 @@
++import 'dart:async';
++import 'dart:convert';
++import 'dart:isolate';
++import 'dart:typed_data';
++
++import 'package:cryptography/cryptography.dart';
++import 'package:cryptography/dart.dart';
++
++enum KdfFailureCode { cancelled, busy, timedOut, failed }
++
++class KdfFailure implements Exception {
++  const KdfFailure(this.code);
++  final KdfFailureCode code;
++}
++
++class KdfCancellation {
++  final _signal = Completer<void>();
++  bool get isCancelled => _signal.isCompleted;
++  Future<void> get whenCancelled => _signal.future;
++  void cancel() {
++    if (!_signal.isCompleted) _signal.complete();
++  }
++}
++
++/// One bounded, disposable CPU worker per derivation. No platform channel,
++/// password logging or unbounded isolate queue. Cancellation kills the worker.
++class IsolatePbkdf2 {
++  IsolatePbkdf2({this.deadline = const Duration(seconds: 60)});
++  final Duration deadline;
++  bool _busy = false;
++
++  Future<Uint8List> derive({
++    required String password,
++    required Uint8List salt,
++    required int iterations,
++    KdfCancellation? cancellation,
++  }) async {
++    if (cancellation?.isCancelled == true) {
++      throw const KdfFailure(KdfFailureCode.cancelled);
++    }
++    if (_busy) throw const KdfFailure(KdfFailureCode.busy);
++    if (iterations < 1 ||
++        iterations > 5000000 ||
++        salt.isEmpty ||
++        salt.length > 256 ||
++        password.length > 1024) {
++      throw ArgumentError('Invalid PBKDF2 parameters');
++    }
++    final passwordBytes = Uint8List.fromList(utf8.encode(password));
++    if (passwordBytes.length > 1024) {
++      throw ArgumentError("Password exceeds byte limit");
++    }
++    _busy = true;
++    final port = ReceivePort();
++    final response = Completer<Uint8List>();
++    final subscription = port.listen((Object? message) {
++      if (response.isCompleted) return;
++      if (message is Uint8List && message.length == 32) {
++        response.complete(message);
++      } else {
++        response.completeError(const KdfFailure(KdfFailureCode.failed));
++      }
++    });
++    response.future
++        .ignore(); // Consume spawn/exit errors even before spawn settles.
++    Isolate? worker;
++    try {
++      worker = await Isolate.spawn(
++        _deriveInWorker,
++        _KdfInput(
++          port.sendPort,
++          passwordBytes,
++          Uint8List.fromList(salt),
++          iterations,
++        ),
++        onError: port.sendPort,
++        onExit: port.sendPort,
++        errorsAreFatal: true,
++        debugName: 'siraj-pbkdf2',
++      );
++      final futures = <Future<Uint8List>>[response.future];
++      if (cancellation != null) {
++        if (cancellation.isCancelled) {
++          throw const KdfFailure(KdfFailureCode.cancelled);
++        }
++        futures.add(
++          cancellation.whenCancelled.then<Uint8List>((_) {
++            throw const KdfFailure(KdfFailureCode.cancelled);
++          }),
++        );
++      }
++      return await Future.any(futures).timeout(
++        deadline,
++        onTimeout: () => throw const KdfFailure(KdfFailureCode.timedOut),
++      );
++    } on KdfFailure {
++      rethrow;
++    } catch (_) {
++      throw const KdfFailure(KdfFailureCode.failed);
++    } finally {
++      worker?.kill(priority: Isolate.immediate);
++      await subscription.cancel();
++      port.close();
++      passwordBytes.fillRange(0, passwordBytes.length, 0);
++      _busy = false;
++    }
++  }
++}
++
++class _KdfInput {
++  const _KdfInput(this.reply, this.password, this.salt, this.iterations);
++  final SendPort reply;
++  final Uint8List password;
++  final Uint8List salt;
++  final int iterations;
++}
++
++Future<void> _deriveInWorker(_KdfInput input) async {
++  final password = SecretKeyData(input.password);
++  SecretKey? key;
++  try {
++    // This isolate has no UI. Disable per-2000-iteration scheduling pauses;
++    // the parent event loop stays responsive and can terminate this worker.
++    key = await DartPbkdf2(
++      macAlgorithm: Hmac.sha256(),
++      iterations: input.iterations,
++      bits: 256,
++      pauseFrequency: 0,
++    ).deriveKey(secretKey: password, nonce: input.salt);
++    final derived = Uint8List.fromList(await key.extractBytes());
++    input.reply.send(derived);
++    derived.fillRange(0, derived.length, 0);
++  } catch (_) {
++    input.reply.send(false); // Never send exception text or secret material.
++  } finally {
++    key?.destroy();
++    password.destroy();
++    input.password.fillRange(0, input.password.length, 0);
++    input.salt.fillRange(0, input.salt.length, 0);
++  }
++}

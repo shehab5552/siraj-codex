@@ -1,0 +1,97 @@
+diff --git a/lib/features/auth/signup_page.dart b/lib/features/auth/signup_page.dart
+index 61015b8..bc9732b 100644
+--- a/lib/features/auth/signup_page.dart
++++ b/lib/features/auth/signup_page.dart
+@@ -1,6 +1,8 @@
+ import 'package:flutter/material.dart';
+ 
+ import 'auth_form_frame.dart';
++import 'auth_models.dart';
++import 'login_page.dart';
+ 
+ /// Interface contract ONLY. Production code must connect this to an AuthService
+ /// whose KDF has passed a separate security and on-device performance gate.
+@@ -12,11 +14,19 @@ typedef CreateAccountAction =
+     });
+ 
+ class SignupPage extends StatefulWidget {
+-  const SignupPage({super.key, this.onCreateAccount, this.onCompleted});
++  const SignupPage({
++    super.key,
++    this.onCreateAccount,
++    this.onCompleted,
++    this.onCancel,
++    this.onLoginAfterCreation,
++  });
+ 
+   /// Null intentionally means: no password input and no account creation.
+   final CreateAccountAction? onCreateAccount;
+   final VoidCallback? onCompleted;
++  final VoidCallback? onCancel;
++  final LoginAction? onLoginAfterCreation;
+ 
+   @override
+   State<SignupPage> createState() => _SignupPageState();
+@@ -31,9 +41,11 @@ class _SignupPageState extends State<SignupPage> {
+   bool _hidePassword = true;
+   bool _hideConfirmation = true;
+   String? _error;
++  bool _accountStored = false;
+ 
+   @override
+   void dispose() {
++    if (_busy) widget.onCancel?.call();
+     _username.dispose();
+     _password.dispose();
+     _confirmation.dispose();
+@@ -54,7 +66,23 @@ class _SignupPageState extends State<SignupPage> {
+         confirmation: _confirmation.text,
+       );
+       if (!mounted) return;
++      _password.clear();
++      _confirmation.clear();
+       widget.onCompleted?.call();
++    } on AuthFailure catch (failure) {
++      if (mounted) {
++        final requiresLogin =
++            failure.accountCreated ||
++            failure.code == AuthFailureCode.accountAlreadyExists;
++        if (requiresLogin) {
++          _password.clear();
++          _confirmation.clear();
++        }
++        setState(() {
++          _accountStored = requiresLogin;
++          _error = 'تعذّر إنشاء الحساب. تحقق من البيانات وحاول مجددًا.';
++        });
++      }
+     } catch (_) {
+       // Do not surface platform details, hashes, account IDs or passwords.
+       if (mounted) {
+@@ -69,6 +97,14 @@ class _SignupPageState extends State<SignupPage> {
+ 
+   @override
+   Widget build(BuildContext context) {
++    if (_accountStored) {
++      return LoginPage(
++        onLogin: widget.onLoginAfterCreation,
++        onCompleted: widget.onCompleted,
++        onCancel: widget.onCancel,
++        notice: 'حُفظ الحساب، وتعذّر إكمال الجلسة. سجّل الدخول للمتابعة.',
++      );
++    }
+     final enabled = widget.onCreateAccount != null && !_busy;
+     return AuthFormFrame(
+       title: 'إنشاء الحساب المحلي',
+@@ -198,6 +234,11 @@ class _SignupPageState extends State<SignupPage> {
+                     : const Text('إنشاء الحساب'),
+               ),
+             ),
++            if (_busy && widget.onCancel != null)
++              TextButton(
++                onPressed: widget.onCancel,
++                child: const Text('إلغاء'),
++              ),
+           ],
+         ),
+       ),

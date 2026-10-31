@@ -1,0 +1,29 @@
+diff --git a/lib/features/auth/auth_models.dart b/lib/features/auth/auth_models.dart
+index b0167cb..bd6d4cf 100644
+--- a/lib/features/auth/auth_models.dart
++++ b/lib/features/auth/auth_models.dart
+@@ -41,6 +41,7 @@ class PersistedSessionMarker {
+   });
+ 
+   static PersistedSessionMarker? decode(String raw) {
++    if (raw.length > 4096) return null;
+     try {
+       final data = jsonDecode(raw);
+       if (data is! Map<String, dynamic>) return null;
+@@ -78,11 +79,15 @@ enum AuthFailureCode {
+   confirmationRequired,
+   databaseFailure,
+   secureStorageFailure,
++  operationInProgress,
++  operationCancelled,
++  kdfFailure,
+ }
+ 
+ class AuthFailure implements Exception {
+-  const AuthFailure(this.code);
++  const AuthFailure(this.code, {this.accountCreated = false});
+   final AuthFailureCode code;
++  final bool accountCreated;
+ 
+   @override
+   String toString() => 'AuthFailure(${code.name})';

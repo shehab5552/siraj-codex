@@ -58,7 +58,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('open-resource-status')));
     await tester.pumpAndSettle();
-    expect(find.text('حالة الموارد'), findsOneWidget);
+    expect(find.text('إدارة الموارد'), findsOneWidget);
     expect(find.text('النموذج المحلي (LLM)'), findsOneWidget);
     expect(find.text('لا توجد موارد مسجلة في هذا القسم.'), findsWidgets);
     expect(find.text('تنزيل'), findsNothing);

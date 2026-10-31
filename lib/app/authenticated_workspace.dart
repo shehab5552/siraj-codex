@@ -1,0 +1,250 @@
+import 'dart:io';
+import '../core/runtime/resource_cleanup_owner.dart';
+import '../features/library/native_pdf_reader.dart';
+import '../features/library/pdf_install_store.dart';
+import '../features/library/pdf_reader_contracts.dart';
+import '../features/library/pdf_reader_controller.dart';
+import '../features/library/pdf_reader_page.dart';
+import '../features/library/verified_library_actions.dart';
+import '../features/resources/download_service.dart';
+import '../features/resources/download_storage_space.dart';
+import '../features/resources/resource_download_validator.dart';
+import '../core/design/siraj_navigation.dart';
+import '../features/library/library_controller.dart';
+import '../features/library/library_contracts.dart';
+import '../features/quiz/quiz_curriculum.dart';
+import 'resource_preparation_binding.dart';
+import 'dart:async';
+import 'package:flutter/material.dart';
+import '../data/conversation_repository.dart';
+import '../data/resource_repository.dart';
+import '../data/quiz_session_access.dart';
+import '../data/user_repository.dart';
+import '../features/auth/auth_models.dart';
+import '../features/auth/session_guard.dart';
+import '../features/chat/chat_page.dart';
+import '../features/chat/conversation_history_controller.dart';
+import '../features/chat/conversation_history_page.dart';
+import '../features/home/siraj_main_shell.dart';
+import '../features/library/library_page.dart';
+import '../features/quiz/quiz_cleanup_owner.dart';
+import '../features/quiz/quiz_controller.dart';
+import '../features/quiz/quiz_page.dart';
+import '../features/quiz/quiz_scorer.dart';
+import '../features/resources/resource_status_page.dart';
+import '../features/resources/resource_status_reader.dart';
+import '../features/settings/settings_page.dart';
+import '../integrations/ai/tutor_port.dart';
+import '../integrations/ai/quiz_port.dart';
+import 'app_session_controller.dart';
+
+/// Authenticated composition scope. Feature widgets contain no SQLite wiring.
+class AuthenticatedWorkspace extends StatefulWidget {
+  const AuthenticatedWorkspace({
+    super.key,
+    required this.session,
+    required this.identity,
+    required this.tutor,
+    required this.sources,
+    required this.quiz,
+    required this.numericPrecision,
+    required this.quizCleanup,
+    required this.pdfCleanup,
+    this.resourcePreparation,
+    this.curriculum = const UnavailableQuizCurriculum(),
+    this.library = const LibraryIntegration(),
+  });
+  final AppSessionController session;
+  final AuthSession identity;
+  final TutorPort tutor;
+  final SourceResolverPort sources;
+  final QuizPort quiz;
+  final NumericPrecisionPort numericPrecision;
+  final QuizCleanupOwner quizCleanup;
+  final ResourceCleanupOwner pdfCleanup;
+  final ResourcePreparationBinding? resourcePreparation;
+  final QuizCurriculumPort curriculum;
+  final LibraryIntegration library;
+  @override
+  State<AuthenticatedWorkspace> createState() => _AuthenticatedWorkspaceState();
+}
+
+class _AuthenticatedWorkspaceState extends State<AuthenticatedWorkspace> {
+  late final ConversationHistoryController _history =
+      ConversationHistoryController(
+        session: widget.identity,
+        conversations: ConversationRepository(widget.session.runtime.database),
+        guard: SessionGuard(UserRepository(widget.session.runtime.database)),
+        tutor: widget.tutor,
+        sources: widget.sources,
+      );
+  late final QuizController _quiz = QuizController(
+    session: widget.identity,
+    access: SqliteQuizSessionAccess(
+      database: widget.session.runtime.database,
+      session: widget.identity,
+    ),
+    port: widget.quiz,
+    sources: widget.sources,
+    scorer: QuizScorer(precision: widget.numericPrecision),
+    cleanup: widget.quizCleanup,
+  );
+  late final LibraryController _library = LibraryController(
+    catalog: widget.library.catalog,
+    actions: _libraryActions,
+  );
+  late final LibraryBookActions _libraryActions =
+      widget.library.actions is UnavailableLibraryActions && Platform.isAndroid
+      ? VerifiedLibraryActions(
+          storage: () async {
+            final support = await NativePdfReader.appSupport();
+            const space = AndroidDownloadSpaceProbe();
+            return PdfLibraryStorage(
+              PdfInstallStore(support, space),
+              DownloadService(
+                appSupportDirectory: support,
+                spaceProbe: space,
+                validator: const ResourceDownloadValidator(),
+              ),
+            );
+          },
+          reader: const NativePdfReader(),
+          cleanup: widget.pdfCleanup,
+          present: (controller, book) => _readPdf(controller, book),
+        )
+      : widget.library.actions;
+  Future<void> _readPdf(
+    PdfReaderController controller,
+    LibraryBook book,
+  ) async {
+    if (!mounted ||
+        !await widget.session.authorizeNavigation(widget.identity) ||
+        !mounted ||
+        controller.closed) {
+      throw const PdfFailure(PdfFailureCode.sessionExpired);
+    }
+    SirajTabScope.maybeOf(context)?.setContext(2);
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => PdfReaderPage(
+          controller: controller,
+          arabicTitle: book.arabicTitle,
+          englishTitle: book.englishTitle,
+        ),
+      ),
+    );
+  }
+
+  bool _opening = false;
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_history.load());
+  }
+
+  Future<void> _push(Widget Function() page) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      if (!await widget.session.authorizeNavigation(widget.identity) ||
+          !mounted) {
+        return;
+      }
+      unawaited(
+        Navigator.of(
+          context,
+        ).push<void>(MaterialPageRoute(builder: (_) => page())),
+      );
+    } finally {
+      _opening = false;
+    }
+  }
+
+  void _resources() => unawaited(
+    _push(
+      () => ResourceStatusPage(
+        preparation: widget.resourcePreparation,
+        reader: ResourceStatusReader(
+          ResourceRepository(widget.session.runtime.database),
+        ),
+      ),
+    ),
+  );
+  Future<void> _chat([String? id]) async {
+    if (_opening) return;
+    _opening = true;
+    try {
+      if (!await widget.session.authorizeNavigation(widget.identity) ||
+          !mounted) {
+        return;
+      }
+      final chat = id == null
+          ? await _history.openDraft()
+          : await _history.openConversation(id);
+      if (!mounted) {
+        chat?.dispose();
+        return;
+      }
+      if (chat != null) {
+        SirajTabScope.maybeOf(context)?.setContext(1);
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) => ChatPage(
+              coordinator: chat,
+              onOpenHistory: () => Navigator.of(context).pop(),
+            ),
+          ),
+        );
+      }
+      if (mounted) await _history.load();
+    } finally {
+      _opening = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _history,
+    builder: (context, _) => SirajMainShell(
+      onOpenChat: () => unawaited(_chat()),
+      onOpenResources: _resources,
+      onOpenHistory: () => unawaited(
+        _push(
+          () => ConversationHistoryPage(
+            controller: ConversationHistoryController(
+              session: widget.identity,
+              conversations: ConversationRepository(
+                widget.session.runtime.database,
+              ),
+              guard: SessionGuard(
+                UserRepository(widget.session.runtime.database),
+              ),
+              tutor: widget.tutor,
+              sources: widget.sources,
+            ),
+          ),
+        ),
+      ),
+      onOpenSettings: () => unawaited(
+        _push(
+          () => SettingsPage(
+            session: widget.session,
+            onOpenResources: _resources,
+          ),
+        ),
+      ),
+      latestConversationTitle: _history.conversations.isEmpty
+          ? null
+          : _history.conversations.first.title,
+      onOpenLatest: _history.conversations.isEmpty
+          ? null
+          : () => unawaited(_chat(_history.conversations.first.id)),
+      assistantPage: ConversationHistoryPage(controller: _history),
+      libraryPage: LibraryPage(
+        controller: _library,
+        onOpenResources: _resources,
+      ),
+      quizPage: QuizPage(controller: _quiz, curriculum: widget.curriculum),
+    ),
+  );
+}

@@ -1,0 +1,31 @@
+{
+  "identity": "reference-monogram",
+  "official_logo_verified": false,
+  "source_sha256": "78b4ac08cc498ee12aa55d5334a4d1e122967b24d457cb69e59ead6a21c82825",
+  "source_dimensions": [
+    1024,
+    1024
+  ],
+  "adaptive_safe_zone": "66dp within 108dp",
+  "generated": {
+    "android/app/src/main/res/mipmap-mdpi/ic_launcher.png": "c3cf319877821d7c72030bdc89d840f156fc437ef1740044c348fca1bdc68a31",
+    "android/app/src/main/res/drawable-mdpi/siraj_splash_mark.png": "91f383a4e13884848c34f3b89b4356a8b473c9efebfeca9c024a6a292bac9b63",
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": "907ab3d2feaa1402819afb869331f4a3a66224106542c27053a0763fc74abc7d",
+    "android/app/src/main/res/drawable-hdpi/siraj_splash_mark.png": "9b5d44098da7785c82b59037f8a6a1856c3c673ff923ea98528b1af38952c746",
+    "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": "c66f2cbe24ef4546106f54c4df8ce0a02a67514ed7d169feeb6e7095d97fbddc",
+    "android/app/src/main/res/drawable-xhdpi/siraj_splash_mark.png": "1cc47d58bc4a0ba5a67eaf7cb0817b3072c2fd028012a72a618b6e495cd2c8c5",
+    "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": "3fa881f34b9170167ea9d44ce5ae7611a297a25cd9340573ad5817a83b442b38",
+    "android/app/src/main/res/drawable-xxhdpi/siraj_splash_mark.png": "953cb6a38ad5e0e228c3ebb3a65fa46dfc5b1dcf742a70e16ab5d86ebeef5bbf",
+    "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": "3b0e400f094da09c3d2f4474c439eba01af856a3a7d84324ac19558ab670605e",
+    "android/app/src/main/res/drawable-xxxhdpi/siraj_splash_mark.png": "da83d37d7b7bfd7158f1d77c94229f4d72e278bba78d19d8b2b214f7cf0dcc03",
+    "android/app/src/main/res/drawable-nodpi/siraj_launcher_foreground.png": "13dd1cfdd7556528c247715df61a4643a3d1296bc6e5ae282dbab89bb4ba0089",
+    "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml": "1fd51891691e47635fab5f09a7f73d4fac33837917c06188eb5465262aa9ec45",
+    "android/app/src/main/res/values/siraj_brand_colors.xml": "a5280ae2dfa89cd02dbdc0883cec77337cffc07d9b9d760b7287c6df8fc2453f",
+    "android/app/src/main/res/values-night/siraj_brand_colors.xml": "c2c089f4a7b6ac56d3dc7bc6bec4f8014d30778d2662f44def046bfa9a55c7ce",
+    "android/app/src/main/res/drawable/launch_background.xml": "39d29cf26f2c1a77734b866d4ce56880aeab9ff1ba671d06eff48348eb2d136d",
+    "android/app/src/main/res/drawable-v21/launch_background.xml": "39d29cf26f2c1a77734b866d4ce56880aeab9ff1ba671d06eff48348eb2d136d",
+    "android/app/src/main/res/values-v31/styles.xml": "dbe9d5a5197e8bf223817c3bb15706a0ce482f329035575548be8f348472038a",
+    "android/app/src/main/res/values-night-v31/styles.xml": "860669824a76e4c71bd32751eeaf0103b231ab1c3e7f9e94216c8bd744bcd2f6",
+    "assets/branding/app_mark.png": "b5cbab179d84a3637b39d3a38ac5fe20ca212f7866b582500126ad999e72b051"
+  }
+}

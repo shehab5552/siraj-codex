@@ -27,8 +27,11 @@ void main() {
         final file = File('${temp.path}${Platform.pathSeparator}auth.sqlite');
         AppDatabase? db;
 
-        // Test-only fast KDF. DO NOT use 1000 iterations for production.
-        final hasher = PasswordHasher(iterations: 1000);
+        // Candidate security work factor. Its performance is NOT yet approved
+        // on Android; this test must exercise it rather than a fast test value.
+        final hasher = PasswordHasher(
+          iterations: PasswordHasher.candidateIterations,
+        );
         const username = 'طالب اختبار سراج';
         const password = 'SIRAJ_B04_Device_Test_Only_2026!';
         const stamp = '2026-10-21T00:00:00.000Z';
@@ -53,7 +56,7 @@ void main() {
                 password: password,
                 confirmation: password,
               )
-              .timeout(const Duration(seconds: 25));
+              .timeout(const Duration(seconds: 90));
           expect(await auth.checkSession(original), isTrue);
           expect(await markerStore.read(), isNotNull);
           debugPrint('SIRAJ_B04_ANDROID step=signup_secure_marker PASS');
@@ -92,6 +95,19 @@ void main() {
           debugPrint('SIRAJ_B04_ANDROID step=logout_invalidates PASS');
 
           debugPrint('SIRAJ_B04_ACCEPT step=login_started');
+          await expectLater(
+            afterLogout.login(
+              username: username,
+              password: 'deliberately-wrong',
+            ),
+            throwsA(
+              isA<AuthFailure>().having(
+                (e) => e.code,
+                'code',
+                AuthFailureCode.invalidCredentials,
+              ),
+            ),
+          );
           final loggedIn = await afterLogout.login(
             username: username,
             password: password,
