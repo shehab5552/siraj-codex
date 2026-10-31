@@ -180,7 +180,7 @@ void main() {
             await t.tap(find.byKey(const Key('settings-logout')));
             await flush();
             await capture('logout');
-            await t.tap(find.text('إلغاء').last);
+            await t.tap(find.byKey(const Key('cancel-account-action')));
             await flush();
             await t.ensureVisible(find.byKey(const Key('settings-delete')));
             await flush();
@@ -198,7 +198,7 @@ void main() {
             await t.tap(find.byKey(const Key('delete-account-checkbox')));
             await flush();
             await capture('delete_acknowledged');
-            await t.tap(find.text('إلغاء').last);
+            await t.tap(find.byKey(const Key('cancel-account-action')));
             await flush();
             await t.ensureVisible(find.byKey(const Key('settings-logout')));
             await flush();

@@ -304,7 +304,20 @@ class _QuizPageState extends State<QuizPage> {
       animation: c,
       builder: (context, _) => Scaffold(
         appBar: SirajAppBar(
-          title: context.tr('اختبر فهمك'),
+          title: context.copy(
+            switch (c.phase) {
+              QuizPhase.question => 'جلسة الاختبار',
+              QuizPhase.review => 'مراجعة الإجابات',
+              QuizPhase.summary => 'نتيجة الاختبار',
+              _ => 'اختبر معلوماتك',
+            },
+            switch (c.phase) {
+              QuizPhase.question => 'Quiz session',
+              QuizPhase.review => 'Review answers',
+              QuizPhase.summary => 'Quiz result',
+              _ => 'Test your knowledge',
+            },
+          ),
           subtitle: context.copy(
             'حدد المادة والوحدة ونوع الأسئلة',
             'Choose subject, unit and question type',

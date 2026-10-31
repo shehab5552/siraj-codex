@@ -207,6 +207,7 @@ abstract final class SirajTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
+        barrierColor: const Color(0xA60A2037),
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

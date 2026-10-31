@@ -23,7 +23,7 @@ class AuthFormFrame extends StatelessWidget {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: SirajAppBar(
-        title: context.copy('الحساب المحلي', 'Local account'),
+        title: context.copy('حساب سراج', 'SIRAJ account'),
         subtitle: context.copy(
           'خصوصية أكبر على جهازك',
           'Privacy on your device',

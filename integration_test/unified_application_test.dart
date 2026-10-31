@@ -1,4 +1,5 @@
 import 'support/native_results.dart';
+import 'support/unified_flow.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,7 @@ void main() {
     'unified real Android startup auth navigation and fail-closed AI',
     (tester) async {
       expect(Platform.isAndroid, isTrue);
+      final flow = UnifiedFlow(tester);
       bool converted = false;
       Future<void> screenshot(String name) async {
         if (!converted) {
@@ -38,7 +40,7 @@ void main() {
 
       await tester.pumpWidget(const SirajApp());
       await until(find.text('تخطي'));
-      await tester.tap(find.text('تخطي'));
+      await flow.tap(find.text('تخطي'));
       await tester.pumpAndSettle();
       await until(find.byKey(const Key('signup-username')));
       expect(
@@ -60,26 +62,26 @@ void main() {
         'SIRAJ_native_test_only_2026!',
       );
       await tester.ensureVisible(find.byKey(const Key('signup-submit')));
-      await tester.tap(find.byKey(const Key('signup-submit')));
+      await flow.tap(find.byKey(const Key('signup-submit')));
       await until(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
       await screenshot('siraj-unified-home');
       await tester.ensureVisible(find.byKey(const Key('open-resource-status')));
-      await tester.tap(find.byKey(const Key('open-resource-status')));
+      await flow.tap(find.byKey(const Key('open-resource-status')));
       await tester.pumpAndSettle();
       expect(find.text('لا توجد موارد مسجلة في هذا القسم.'), findsWidgets);
-      await tester.tap(find.byType(BackButton));
+      await flow.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('المساعد التعليمي').last);
+      await flow.tap(find.text('المساعد التعليمي').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('history-new-chat')));
+      await flow.tap(find.byKey(const Key('history-new-chat')));
       await tester.pumpAndSettle();
       await tester.enterText(
         find.byKey(const Key('chat-question-input')),
         'SYNTHETIC UI persistence check, no scientific answer expected',
       );
       await tester.pump();
-      await tester.tap(find.byKey(const Key('chat-send-enabled')));
+      await flow.tap(find.byKey(const Key('chat-send-enabled')));
       await until(find.byKey(const Key('chat-saved-question')));
       await tester.pumpAndSettle();
       expect(
@@ -87,27 +89,27 @@ void main() {
         findsOneWidget,
       );
       await screenshot('siraj-unified-chat-unavailable');
-      await tester.tap(find.byType(BackButton));
+      await flow.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('الرئيسية').last);
+      await flow.tap(find.text('الرئيسية').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('open-settings')));
+      await flow.tap(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
       // Exercise the real account-scoped SQLite appearance writer on Android.
-      await tester.tap(find.byKey(const Key('settings-theme-dark')));
+      await flow.tap(find.byKey(const Key('settings-theme-dark')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('settings-language-en')));
+      await flow.tap(find.byKey(const Key('settings-language-en')));
       await tester.pumpAndSettle();
       expect(find.text('Settings'), findsOneWidget);
       await screenshot('siraj-unified-settings-en-dark');
-      await tester.tap(find.byKey(const Key('settings-language-ar')));
+      await flow.tap(find.byKey(const Key('settings-language-ar')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('settings-theme-system')));
+      await flow.tap(find.byKey(const Key('settings-theme-system')));
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.byKey(const Key('settings-logout')));
-      await tester.tap(find.byKey(const Key('settings-logout')));
+      await flow.tap(find.byKey(const Key('settings-logout')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('confirm-account-action')));
+      await flow.tap(find.byKey(const Key('confirm-account-action')));
       await until(find.byKey(const Key('login-submit')));
       await tester.pumpAndSettle();
       await tester.enterText(
@@ -119,10 +121,10 @@ void main() {
         'SIRAJ_native_test_only_2026!',
       );
       await tester.ensureVisible(find.byKey(const Key('login-submit')));
-      await tester.tap(find.byKey(const Key('login-submit')));
+      await flow.tap(find.byKey(const Key('login-submit')));
       await until(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('open-settings')));
+      await flow.tap(find.byKey(const Key('open-settings')));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
         find.byKey(const Key('settings-delete')),
@@ -134,7 +136,7 @@ void main() {
         find.byKey(const Key('settings-delete')).hitTestable(),
         findsOneWidget,
       );
-      await tester.tap(find.byKey(const Key('settings-delete')));
+      await flow.tap(find.byKey(const Key('settings-delete')));
       await tester.pumpAndSettle();
       expect(
         tester
@@ -144,9 +146,9 @@ void main() {
             .onPressed,
         isNull,
       );
-      await tester.tap(find.byKey(const Key('delete-account-checkbox')));
+      await flow.tap(find.byKey(const Key('delete-account-checkbox')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('confirm-account-action')));
+      await flow.tap(find.byKey(const Key('confirm-account-action')));
       await until(find.byKey(const Key('signup-submit')));
       await tester.pumpAndSettle();
       debugPrint(

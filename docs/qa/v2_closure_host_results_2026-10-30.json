@@ -16,7 +16,28 @@
     "failed": 0,
     "skipped": 0
   },
-  "analysis": "No issues found",
-  "engine_failure": "flutter_tester SIGSEGV; no native stack/core available; cause unproven; serialization did not eliminate it",
-  "build_acceptance_source": "current CI generated CI_ACCEPTANCE.json, not these local runs"
+  "analysis": "Analyzing siraj-codex-unified...                                \nNo issues found! (ran in 2.3s)",
+  "engine_failure": "Historical flutter_tester SIGSEGV. Separate Flutter processes overlapped while sharing build/unit_test_assets; subsequent isolated full runs passed. Native root cause remains unproven.",
+  "build_acceptance_source": "current CI generated CI_ACCEPTANCE.json, not these local runs",
+  "latest_isolated_full_suite": {
+    "passed": 609,
+    "failed": 0,
+    "skipped": 0,
+    "success": true
+  },
+  "latest_suite_stderr_bytes": 0,
+  "android_previous_run": {
+    "sha": "9904b4f2ac4ee1fcc6deddf2748eb61bd69c1d18",
+    "run": 41119371662,
+    "build_and_compiled_branding": "passed",
+    "native_kdf_passed": 10,
+    "native_pdf_passed": 1,
+    "application": "failed: logout tap offscreen (y727 vs height640); existing safe UnifiedFlow helper applied; fresh native verification required",
+    "restart": "not run"
+  },
+  "android_branding_python_tests": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0
+  }
 }

@@ -33,7 +33,8 @@ class SettingsPage extends StatelessWidget {
             fontFamily: 'NotoSansArabic',
             fontSize: 15,
             height: 2.1,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
+            fontVariations: const [FontVariation('wght', 700)],
             color: Theme.of(context).colorScheme.onSurface,
           ),
           contentTextStyle: TextStyle(
@@ -49,24 +50,31 @@ class SettingsPage extends StatelessWidget {
               height: 43,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFF44341C)
-                    : const Color(0xFFFFF3DF),
+                color: const Color(0xFFFFF3DF),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: SirajV2Icon(
                 'alert',
                 size: 22,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? const Color(0xFFFFCD80)
-                    : const Color(0xFF9F640B),
+                color: const Color(0xFF9F640B),
               ),
             ),
           ),
-          title: Text(context.tr(delete ? 'حذف الحساب' : 'تسجيل الخروج')),
+          actionsAlignment: MainAxisAlignment.start,
+          title: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              context.copy(
+                delete ? 'حذف الحساب نهائيًا؟' : 'هل تريد تسجيل الخروج؟',
+                delete ? 'Delete account permanently?' : 'Log out?',
+              ),
+              textAlign: TextAlign.start,
+            ),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   delete
@@ -78,6 +86,13 @@ class SettingsPage extends StatelessWidget {
                           'ستنتهي الجلسة الحالية وستحتاج إلى تسجيل الدخول مجددًا. ستبقى بيانات الحساب ومحادثاتك وموارد LLM وRAG وPDF المحلية على الجهاز.',
                           'The current session ends and you will need to log in again. Your account, conversations and local LLM, RAG and PDF resources remain on this device.',
                         ),
+                  style: delete
+                      ? TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontVariations: const [FontVariation('wght', 800)],
+                          color: Theme.of(context).colorScheme.error,
+                        )
+                      : null,
                 ),
                 if (delete)
                   Padding(
@@ -120,8 +135,14 @@ class SettingsPage extends StatelessWidget {
           ),
           actions: [
             OutlinedButton(
+              key: const Key('cancel-account-action'),
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(context.tr('إلغاء')),
+              child: Text(
+                context.copy(
+                  delete ? 'إلغاء، لا تحذف' : 'البقاء في التطبيق',
+                  delete ? 'Cancel deletion' : 'Stay in the app',
+                ),
+              ),
             ),
             FilledButton(
               key: const Key('confirm-account-action'),
@@ -129,7 +150,12 @@ class SettingsPage extends StatelessWidget {
               onPressed: delete && !checked
                   ? null
                   : () => Navigator.pop(dialogContext, true),
-              child: Text(context.tr(delete ? 'حذف الحساب' : 'تسجيل الخروج')),
+              child: Text(
+                context.copy(
+                  delete ? 'تأكيد الحذف' : 'تأكيد الخروج',
+                  delete ? 'Confirm deletion' : 'Confirm logout',
+                ),
+              ),
             ),
           ],
         ),

@@ -47,7 +47,7 @@ class _LibraryPageState extends State<LibraryPage> {
     animation: c,
     builder: (context, _) => Scaffold(
       appBar: SirajAppBar(
-        title: context.copy('مكتبة الكتب', 'Book library'),
+        title: context.copy('المكتبة الدراسية', 'Study library'),
         subtitle: context.copy(
           'كتب PDF مستقلة ومحلية',
           'Independent, local PDF books',

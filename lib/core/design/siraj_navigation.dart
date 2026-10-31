@@ -63,7 +63,7 @@ class SirajAdaptiveNavigation extends StatelessWidget {
           child: ExcludeSemantics(excluding: suspended, child: child),
         ),
         if (suspended)
-          const Positioned.fill(child: ColoredBox(color: Colors.black54)),
+          const Positioned.fill(child: ColoredBox(color: Color(0xA60A2037))),
       ],
     );
     if (MediaQuery.sizeOf(context).width >= SirajBreakpoints.expanded) {

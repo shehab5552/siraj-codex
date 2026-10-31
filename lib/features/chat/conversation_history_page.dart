@@ -80,9 +80,9 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
         final history = widget.controller;
         return Scaffold(
           appBar: SirajAppBar(
-            title: context.copy('سجل المحادثات', 'Conversation history'),
+            title: context.copy('المحادثات المحفوظة', 'Saved conversations'),
             subtitle: context.copy(
-              'حتى عشر محادثات محفوظة',
+              'حتى 10 محادثات',
               'Up to ten saved conversations',
             ),
             actions: [
@@ -211,11 +211,21 @@ class _ConversationHistoryPageState extends State<ConversationHistoryPage> {
                                   context,
                                 ).colorScheme.primaryContainer,
                                 minimumSize: const Size(48, 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(13),
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                 ),
                               ),
-                              child: Text(context.copy('فتح', 'Open')),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(context.copy('فتح', 'Open')),
+                                  const SizedBox(width: 7),
+                                  const SirajV2Icon('arrow', size: 10),
+                                ],
+                              ),
                             ),
                           ),
                         ],

@@ -138,7 +138,11 @@ class SirajIconTile extends StatelessWidget {
       width: size,
       height: height ?? size,
       decoration: BoxDecoration(
-        color: teal ? c.secondary.withValues(alpha: .1) : c.primaryContainer,
+        color: teal
+            ? (Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF163B3A)
+                  : const Color(0xFFE9F9F5))
+            : c.primaryContainer,
         borderRadius: BorderRadius.circular(13),
       ),
       child: Center(

@@ -141,7 +141,7 @@ void main() {
           await t.tap(find.byKey(const Key('settings-logout')));
           await t.pumpAndSettle();
           expect(find.textContaining('لن تُحفظ ردود متأخرة'), findsOneWidget);
-          await t.tap(find.text('إلغاء').last);
+          await t.tap(find.byKey(const Key('cancel-account-action')));
           await t.pumpAndSettle();
           await t.ensureVisible(find.byKey(const Key('settings-delete')));
           await t.tap(find.byKey(const Key('settings-delete')));
