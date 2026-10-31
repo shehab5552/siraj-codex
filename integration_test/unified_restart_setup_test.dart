@@ -16,15 +16,15 @@ void main() {
       // Executed after the full app test deletes its synthetic account. Device
       // onboarding is already complete; this is not a production reset endpoint.
       await flow.until(find.byKey(const Key('signup-submit')));
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-username')),
         UnifiedFlow.username,
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-password')),
         UnifiedFlow.password,
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-confirmation')),
         UnifiedFlow.password,
       );
@@ -33,7 +33,7 @@ void main() {
       await flow.tab(1);
       await flow.tap(find.byKey(const Key('history-new-chat')));
       await flow.until(find.byKey(const Key('chat-question-input')));
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('chat-question-input')),
         UnifiedFlow.question,
       );

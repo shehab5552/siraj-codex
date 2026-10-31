@@ -62,14 +62,25 @@ void main() {
       await tester.pumpAndSettle();
       await flow.tap(find.byKey(const Key('confirm-account-action')));
       await flow.until(find.byKey(const Key('login-submit')));
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('login-username')),
         UnifiedFlow.username,
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('login-password')),
         UnifiedFlow.password,
       );
+      for (final (key, expected) in [
+        ('login-username', UnifiedFlow.username),
+        ('login-password', UnifiedFlow.password),
+      ]) {
+        expect(
+          tester.widget<TextFormField>(find.byKey(Key(key))).controller?.text ==
+              expected,
+          isTrue,
+          reason: 'Synthetic login input must remain intact before submit',
+        );
+      }
       await flow.tap(find.byKey(const Key('login-submit')));
       await flow.until(find.byKey(const Key('open-settings')));
       await flow.tap(find.byKey(const Key('open-settings')));

@@ -15,7 +15,56 @@ class UnifiedFlow {
         watch.elapsed < const Duration(seconds: 90)) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    if (finder.evaluate().isEmpty) {
+      // Only fixed UI errors and presence booleans; never credentials/nonces.
+      final error = find.byKey(const Key('login-error'));
+      bool populated(String key) {
+        final field = find.byKey(Key(key));
+        return field.evaluate().length == 1 &&
+            (tester.widget<TextFormField>(field).controller?.text.isNotEmpty ??
+                false);
+      }
+
+      debugPrint(
+        'SIRAJ_NATIVE_WAIT_FAILED login_error='
+        '${error.evaluate().isEmpty ? 'none' : tester.widget<Text>(error).data} '
+        'username_present=${populated('login-username')} '
+        'password_present=${populated('login-password')}',
+      );
+    }
     expect(finder, findsWidgets);
+  }
+
+  bool _enabled(Finder finder) => switch (tester.widget(finder)) {
+    ButtonStyleButton(:final onPressed) => onPressed != null,
+    IconButton(:final onPressed) => onPressed != null,
+    TextFormField(:final enabled) => enabled != false,
+    TextField(:final enabled, :final readOnly) => enabled != false && !readOnly,
+    _ => true,
+  };
+
+  Future<void> enterText(Finder finder, String value) async {
+    await until(finder);
+    var stable = 0;
+    for (var attempt = 0; attempt < 30 && stable < 2; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      stable = finder.evaluate().length == 1 && _enabled(finder)
+          ? stable + 1
+          : 0;
+    }
+    expect(stable, 2, reason: 'Wait for an enabled form before entering text');
+    await tester.enterText(finder, value);
+    await tester.pump();
+    final editable = find.descendant(
+      of: finder,
+      matching: find.byType(EditableText),
+    );
+    expect(editable, findsOneWidget);
+    expect(
+      tester.widget<EditableText>(editable).controller.text == value,
+      isTrue,
+      reason: 'Synthetic test input must be accepted exactly once',
+    );
   }
 
   Future<void> tap(Finder finder) async {
@@ -27,6 +76,10 @@ class UnifiedFlow {
     var stable = 0;
     for (var attempt = 0; attempt < 30 && stable < 2; attempt++) {
       await tester.pump(const Duration(milliseconds: 100));
+      if (finder.evaluate().length != 1) {
+        stable = 0;
+        continue;
+      }
       if (tester.view.viewInsets.bottom > 0) {
         stable = 0;
         FocusManager.instance.primaryFocus?.unfocus();
@@ -37,6 +90,7 @@ class UnifiedFlow {
       await tester.pump(const Duration(milliseconds: 100));
       stable =
           tester.view.viewInsets.bottom == 0 &&
+              _enabled(finder) &&
               finder.hitTestable().evaluate().isNotEmpty
           ? stable + 1
           : 0;

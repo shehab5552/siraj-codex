@@ -49,15 +49,15 @@ void main() {
             .enabled,
         isTrue,
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-username')),
         'Synthetic Android Student',
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-password')),
         'SIRAJ_native_test_only_2026!',
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('signup-confirmation')),
         'SIRAJ_native_test_only_2026!',
       );
@@ -76,7 +76,7 @@ void main() {
       await tester.pumpAndSettle();
       await flow.tap(find.byKey(const Key('history-new-chat')));
       await tester.pumpAndSettle();
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('chat-question-input')),
         'SYNTHETIC UI persistence check, no scientific answer expected',
       );
@@ -112,11 +112,11 @@ void main() {
       await flow.tap(find.byKey(const Key('confirm-account-action')));
       await until(find.byKey(const Key('login-submit')));
       await tester.pumpAndSettle();
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('login-username')),
         'Synthetic Android Student',
       );
-      await tester.enterText(
+      await flow.enterText(
         find.byKey(const Key('login-password')),
         'SIRAJ_native_test_only_2026!',
       );
