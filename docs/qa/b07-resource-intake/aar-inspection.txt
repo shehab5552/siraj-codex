@@ -1,0 +1,134 @@
+Actual AAR: litertlm-android-0.19.0.aar
+SHA256 e5c7a86048225efba8ab6d35fcd91f5870c86c65ca2538c07c3c1f63d02efa2b
+Inspection date: 2026-11-05 UTC / 2026-11-06 Asia/Aden
+No runtime execution. Selected signatures below are from javap, not proposed APIs.
+
+AndroidManifest.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.google.ai.edge.litertlm">
+    <uses-sdk android:minSdkVersion="24" />
+    <application>
+    </application>
+</manifest>
+Class metadata: Java major65 (Java21); Kotlin mv=[2,4,0].
+
+public final class com.google.ai.edge.litertlm.Conversation implements java.lang.AutoCloseable {
+  public final void cancelProcess();
+  public void close();
+  public final com.google.ai.edge.litertlm.Message sendMessage(java.lang.String);
+  public final void sendMessageAsync(java.lang.String, com.google.ai.edge.litertlm.MessageCallback);
+public final class com.google.ai.edge.litertlm.EmbeddingEngine implements java.lang.AutoCloseable {
+  public com.google.ai.edge.litertlm.EmbeddingEngine(com.google.ai.edge.litertlm.EmbeddingEngineConfig);
+  public final boolean isInitialized();
+  public final void initialize();
+  public final com.google.ai.edge.litertlm.EmbeddingResponse computeEmbedding(java.util.List<? extends com.google.ai.edge.litertlm.InputData>, com.google.ai.edge.litertlm.EmbeddingOptions);
+  public final java.lang.Object computeEmbeddingAsync(java.util.List<? extends com.google.ai.edge.litertlm.InputData>, com.google.ai.edge.litertlm.EmbeddingOptions, kotlin.coroutines.Continuation<? super com.google.ai.edge.litertlm.EmbeddingResponse>);
+  public final void computeEmbeddingAsync(java.util.List<? extends com.google.ai.edge.litertlm.InputData>, com.google.ai.edge.litertlm.EmbeddingCallback<com.google.ai.edge.litertlm.EmbeddingResponse>, com.google.ai.edge.litertlm.EmbeddingOptions);
+  public void close();
+  public final com.google.ai.edge.litertlm.EmbeddingResponse computeEmbedding(java.util.List<? extends com.google.ai.edge.litertlm.InputData>);
+  public final void computeEmbeddingAsync(java.util.List<? extends com.google.ai.edge.litertlm.InputData>, com.google.ai.edge.litertlm.EmbeddingCallback<com.google.ai.edge.litertlm.EmbeddingResponse>);
+public final class com.google.ai.edge.litertlm.EmbeddingEngineConfig {
+  public final java.lang.String getModelPath();
+  public final java.lang.Integer getMaxInputLength();
+public final class com.google.ai.edge.litertlm.EmbeddingOptions {
+  public final java.lang.Boolean getNormalize();
+  public final java.lang.Boolean getInsertSpecialTokens();
+  public final java.lang.Integer getOutputSize();
+public final class com.google.ai.edge.litertlm.EmbeddingResponse {
+  public final float[] getEmbedding();
+public final class com.google.ai.edge.litertlm.Engine implements java.lang.AutoCloseable {
+  public com.google.ai.edge.litertlm.Engine(com.google.ai.edge.litertlm.EngineConfig);
+  public final boolean isInitialized();
+  public final void initialize();
+  public void close();
+  public final com.google.ai.edge.litertlm.Conversation createConversation(com.google.ai.edge.litertlm.ConversationConfig);
+  public final com.google.ai.edge.litertlm.Session createSession(com.google.ai.edge.litertlm.SessionConfig);
+public final class com.google.ai.edge.litertlm.EngineConfig {
+  public final java.lang.String getModelPath();
+public abstract class com.google.ai.edge.litertlm.ModelInfo implements java.lang.AutoCloseable {
+  public void close();
+public final class com.google.ai.edge.litertlm.SamplerConfig {
+  public final int getTopK();
+  public final double getTopP();
+  public final double getTemperature();
+  public final int getSeed();
+
+Native ELF evidence:
+jni_arm64-v8a_liblitertlm_jni.so.readelf.txt
+Class:                             ELF64
+Machine:                           AArch64
+0x0000000000000001 (NEEDED)             Shared library: [libandroid.so]
+0x0000000000000001 (NEEDED)             Shared library: [libz.so]
+0x0000000000000001 (NEEDED)             Shared library: [libGLESv2.so]
+0x0000000000000001 (NEEDED)             Shared library: [libEGL.so]
+0x0000000000000001 (NEEDED)             Shared library: [libm.so]
+0x0000000000000001 (NEEDED)             Shared library: [liblog.so]
+0x0000000000000001 (NEEDED)             Shared library: [libdl.so]
+0x0000000000000001 (NEEDED)             Shared library: [libGLESv3.so]
+0x0000000000000001 (NEEDED)             Shared library: [libc.so]
+0x000000000000000e (SONAME)             Library soname: [liblitertlm_jni.so]
+jni_x86_64_liblitertlm_jni.so.readelf.txt
+Class:                             ELF64
+Machine:                           Advanced Micro Devices X86-64
+0x0000000000000001 (NEEDED)             Shared library: [libandroid.so]
+0x0000000000000001 (NEEDED)             Shared library: [libz.so]
+0x0000000000000001 (NEEDED)             Shared library: [libGLESv2.so]
+0x0000000000000001 (NEEDED)             Shared library: [libEGL.so]
+0x0000000000000001 (NEEDED)             Shared library: [libm.so]
+0x0000000000000001 (NEEDED)             Shared library: [liblog.so]
+0x0000000000000001 (NEEDED)             Shared library: [libdl.so]
+0x0000000000000001 (NEEDED)             Shared library: [libGLESv3.so]
+0x0000000000000001 (NEEDED)             Shared library: [libc.so]
+0x000000000000000e (SONAME)             Library soname: [liblitertlm_jni.so]
+
+jdeps (classpath deliberately AAR-only; missing means external dependency, not absent from a resolved Android app):
+classes.jar -> java.base
+classes.jar -> not found
+   com.google.ai.edge.litertlm                        -> com.google.ai.edge.litertlm                        classes.jar
+   com.google.ai.edge.litertlm                        -> com.google.gson                                    not found
+   com.google.ai.edge.litertlm                        -> java.io                                            java.base
+   com.google.ai.edge.litertlm                        -> java.lang                                          java.base
+   com.google.ai.edge.litertlm                        -> java.lang.annotation                               java.base
+   com.google.ai.edge.litertlm                        -> java.lang.invoke                                   java.base
+   com.google.ai.edge.litertlm                        -> java.lang.runtime                                  java.base
+   com.google.ai.edge.litertlm                        -> java.util                                          java.base
+   com.google.ai.edge.litertlm                        -> java.util.concurrent                               java.base
+   com.google.ai.edge.litertlm                        -> java.util.concurrent.atomic                        java.base
+   com.google.ai.edge.litertlm                        -> kotlin                                             not found
+   com.google.ai.edge.litertlm                        -> kotlin.annotation                                  not found
+   com.google.ai.edge.litertlm                        -> kotlin.collections                                 not found
+   com.google.ai.edge.litertlm                        -> kotlin.coroutines                                  not found
+   com.google.ai.edge.litertlm                        -> kotlin.coroutines.intrinsics                       not found
+   com.google.ai.edge.litertlm                        -> kotlin.coroutines.jvm.internal                     not found
+   com.google.ai.edge.litertlm                        -> kotlin.enums                                       not found
+   com.google.ai.edge.litertlm                        -> kotlin.io                                          not found
+   com.google.ai.edge.litertlm                        -> kotlin.io.encoding                                 not found
+   com.google.ai.edge.litertlm                        -> kotlin.jdk7                                        not found
+   com.google.ai.edge.litertlm                        -> kotlin.jvm                                         not found
+   com.google.ai.edge.litertlm                        -> kotlin.jvm.functions                               not found
+   com.google.ai.edge.litertlm                        -> kotlin.jvm.internal                                not found
+   com.google.ai.edge.litertlm                        -> kotlin.ranges                                      not found
+   com.google.ai.edge.litertlm                        -> kotlin.reflect                                     not found
+   com.google.ai.edge.litertlm                        -> kotlin.reflect.full                                not found
+   com.google.ai.edge.litertlm                        -> kotlin.text                                        not found
+   com.google.ai.edge.litertlm                        -> kotlinx.coroutines                                 not found
+   com.google.ai.edge.litertlm                        -> kotlinx.coroutines.channels                        not found
+   com.google.ai.edge.litertlm                        -> kotlinx.coroutines.flow                            not found
+
+Direct Kotlin2.2.20 compile probe (exit1, JVM target17, JDK21 host, no version bypass):
+error: incompatible classes were found in dependencies. Remove them from the classpath or use '-Xskip-metadata-version-check' to suppress errors
+$PRIVATE_STAGING/aar-inspection/classes.jar!/META-INF/third_party.odml.litert_lm.kotlin.java.com.google.ai.edge.litertlm_litertlm-android.kotlin_module: error: module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 2.4.0, expected version is 2.2.0.
+$PRIVATE_STAGING/aar-inspection/ModelProbe.kt:3:29: error: class 'com.google.ai.edge.litertlm.EngineConfig' was compiled with an incompatible version of Kotlin. The actual metadata version is 2.4.0, but the compiler version 2.2.0 can read versions up to 2.3.0.
+The class is loaded from $PRIVATE_STAGING/aar-inspection/classes.jar!/com/google/ai/edge/litertlm/EngineConfig.class
+fun stagedModelPath(config: EngineConfig) = config.modelPath
+                            ^^^^^^^^^^^^
+$PRIVATE_STAGING/aar-inspection/ModelProbe.kt:3:45: error: class 'com.google.ai.edge.litertlm.EngineConfig' was compiled with an incompatible version of Kotlin. The actual metadata version is 2.4.0, but the compiler version 2.2.0 can read versions up to 2.3.0.
+The class is loaded from $PRIVATE_STAGING/aar-inspection/classes.jar!/com/google/ai/edge/litertlm/EngineConfig.class
+fun stagedModelPath(config: EngineConfig) = config.modelPath
+                                            ^^^^^^
+$PRIVATE_STAGING/aar-inspection/ModelProbe.kt:3:45: error: class 'com.google.ai.edge.litertlm.EngineConfig' was compiled with an incompatible version of Kotlin. The actual metadata version is 2.4.0, but the compiler version 2.2.0 can read versions up to 2.3.0.
+The class is loaded from $PRIVATE_STAGING/aar-inspection/classes.jar!/com/google/ai/edge/litertlm/EngineConfig.class
+fun stagedModelPath(config: EngineConfig) = config.modelPath
+                                            ^^^^^^^^^^^^^^^^
+

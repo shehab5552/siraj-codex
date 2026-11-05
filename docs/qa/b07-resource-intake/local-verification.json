@@ -1,0 +1,23 @@
+{
+  "passed": 184,
+  "failed": 0,
+  "skipped": 0,
+  "success": true,
+  "sdk": {
+    "flutter": "3.38.5",
+    "dart": "3.10.4"
+  },
+  "python_tests": {
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0
+  },
+  "native_storage_tests": {
+    "defined": 2,
+    "status": "NOT RUN locally; CI pending"
+  },
+  "model_execution": "NOT RUN",
+  "physical_device": "PENDING DEVICE TEST",
+  "g2": "NOT RUN",
+  "g3": "NOT RUN"
+}

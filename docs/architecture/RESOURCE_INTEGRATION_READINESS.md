@@ -2,6 +2,17 @@
 
 تاريخ التحقق: 2026-10-22. مرجع القرارات: المواصفة الرسمية P0 v1.0.1 المصححة، DD-01/02/03، FR-12/21/22، §6.4–6.6 و§9–10، وخطة B المعدّلة. هذه الوثيقة تصف عقد الدمج والعمل المتبقي؛ لا تشهد بجاهزية الموارد أو الإنتاج.
 
+**تحديث 2026-11-05 UTC / 2026-11-06 عدن:** الجرد أدناه تاريخي لمرحلة أكتوبر. وصلت الآن خمسة Artifacts من Release `siraj-ai-resources-staging-v1`؛ طابقت الأحجام وSHA-256 الفعلية القيم المعتمدة. هذا اعتماد STAGING للبايتات فقط. راجع [تقرير الاستلام](../reports/B-07_RESOURCE_INTAKE_AND_DOWNLOAD_01_AR.md) والأدلة تحت `docs/qa/b07-resource-intake/` للحالة الأحدث. لم يُدمج Runtime أو تُفعّل موارد.
+
+| المدخل الجديد | الحالة المثبتة | مانع الدمج/القبول |
+|---|---|---|
+| Qwen3-0.6B.litertlm | بايتات سليمة؛ حاوية1.7.0 وHF BPE tokenizer | فاحص LLM الحالي GGUF-only؛ التشغيل على Runtime/Android `PENDING_VERIFICATION` |
+| EmbeddingGemma | بايتات سليمة؛ SentencePiece section؛ متجهات الوحدتين مرتبطة ببصمته | Pooling/خيارات normalization الفعلية ومطابقة Windows/Android غير مثبتة |
+| Biology Units01/02 | ZIP وCRC و48 checksum و14 manifest-entry و130 صف متجه سليمة | معرّفات Catalog/Source/Lesson وdataset_revision غير مربوطة؛ Pilot منفصل عن الإنتاج |
+| AAR0.19.0 | Manifest minSDK24 وarm64-v8a/x86_64 وAPI فعلية مفحوصة | Kotlin metadata2.4.0 يفشل استهلاكها مباشرة بمترجم2.2.20 الحالي؛ Java bytecode65؛ التبعيات/الترخيص/Android تحتاج إغلاقًا |
+
+القرار: لا READY/ACTIVE/RAG_READY، لا تجاوز GGUF policy، لا تعديل Gradle/اختيار Runtime بديل أو تغيير سياسة علمية تلقائيًا. اختبارات التنزيل مستقلة عن إثبات تشغيل النموذجين.
+
 ## 1. الحالة الفعلية
 
 المستودع المستهدف هو `shehab5552/siraj-codex` فقط. التنفيذ مستقل من قاعدة Codex الحالية؛ لا يتطلب نقل كود المشروع الأصلي. لا توجد في هذه الشريحة موارد إنتاجية أو نتائج Android مثبتة، ولا اختيار معتمد لمحرك LLM أو Query Embedding أو النموذج أو ABI أو عتباته.
