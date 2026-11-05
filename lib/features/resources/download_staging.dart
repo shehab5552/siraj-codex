@@ -98,7 +98,22 @@ class DownloadStaging {
     try {
       // Decode raw, bounded bytes explicitly; malformed UTF-8 is never a
       // File.readAsString fallback or accepted as replacement characters.
-      final data = jsonDecode(utf8.decode(bytes, allowMalformed: false));
+      final text = utf8.decode(bytes, allowMalformed: false);
+      final data = jsonDecode(text);
+      // jsonDecode silently keeps the last duplicate key. Never let that hide
+      // a completed candidate (including an escaped spelling of "complete").
+      // Returning null here would authorize the caller to discard its payload.
+      // The schema is flat; tokenize strings only AFTER JSON syntax validation.
+      final keys = <String>{};
+      for (final token in RegExp(r'"(?:[^"\\]|\\.)*"').allMatches(text)) {
+        if (text.substring(token.end).trimLeft().startsWith(':') &&
+            !keys.add(jsonDecode(token.group(0)!) as String)) {
+          throw const DownloadFailure(
+            DownloadFailureCode.candidateExists,
+            detail: 'ambiguousProvenance',
+          );
+        }
+      }
       // Completed candidates belong to the next validation/promotion stage.
       // Even another requested identity cannot authorize their replacement.
       if (data is Map<String, dynamic> && data['complete'] == true) {

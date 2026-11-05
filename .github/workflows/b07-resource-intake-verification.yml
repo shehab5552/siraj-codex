@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: b07-intake-${{ github.ref }}
+  group: b07-intake-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
           cache: true
       - run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
       - run: flutter pub get --enforce-lockfile
-      - run: dart format --output=none --set-exit-if-changed tool/staging_resource_integrity_probe.dart integration_test/b07_download_storage_test.dart
+      - run: dart format --output=none --set-exit-if-changed lib/features/resources/download_staging.dart test/b07_download_service_test.dart tool/staging_resource_integrity_probe.dart integration_test/b07_download_storage_test.dart
       - run: flutter analyze --no-pub
       - name: Full Flutter regression
         run: flutter test --no-pub --machine > "$RUNNER_TEMP/flutter-tests.jsonl"

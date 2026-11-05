@@ -1,5 +1,5 @@
 {
-  "passed": 184,
+  "passed": 187,
   "failed": 0,
   "skipped": 0,
   "success": true,
@@ -8,7 +8,7 @@
     "dart": "3.10.4"
   },
   "python_tests": {
-    "passed": 29,
+    "passed": 30,
     "failed": 0,
     "skipped": 0
   },

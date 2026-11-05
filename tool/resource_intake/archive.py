@@ -6,6 +6,7 @@ from pathlib import PurePosixPath, PureWindowsPath
 import re
 import stat
 import zipfile
+import zlib
 
 from .common import IntakeError
 
@@ -110,6 +111,6 @@ def inspect_zip(data: bytes, *, max_bytes=134217728, max_members=4096, max_depth
         visit(data, (), 0)
     except IntakeError:
         raise
-    except (zipfile.BadZipFile, ValueError, RuntimeError, NotImplementedError, UnicodeError, EOFError) as error:
+    except (zipfile.BadZipFile, zlib.error, ValueError, RuntimeError, NotImplementedError, UnicodeError, EOFError) as error:
         raise IntakeError('invalidZip') from error
     return result

@@ -10,7 +10,7 @@
 - Fetch والتحقق من GitHub: `main = 651af0d62d05761c80d9a8cbc9d1f51b836929eb`، مطابق للقاعدة المطلوبة.
 - الفرع المطلوب موجود أصلًا: `codex/b07-independent-download-01`؛ HEAD قبل هذا العمل `27ff8e5265e03092ccf84fedeae39d5bb4d008a7`، وmerge-base مطابق للقاعدة أعلاه. PR #3 **OPEN**، وGitHub أظهر `CLEAN` قبل تحديثه.
 - أعيد استخدام الفرع وPR #3 بدل استبدال الفرع أو نسخ DownloadService أو إنشاء PR مكرر. تغييرات التنزيل الأصلية موجودة في `b2e96d1` و`256399e` ثم تقارير `cd18c57` و`27ff8e5`؛ ليست إعادة تنفيذ في هذه الجولة.
-- فرق PR الأصلي مقابل main يحتوي16 ملفًا خاصًا بالتنزيل؛ الإضافات الحالية أدوات تدقيق واختبارات وتوثيق وCI فقط. لا تغييرات Auth/Chat/Quiz/Schema/Gradle أو نقل من فرع UI/PR #12. آخر SHA قابل للتحقق في رأس PR؛ لا يوضع SHA ذاتي داخل الملف الذي ينشئه الالتزام.
+- فرق PR الأصلي مقابل main يحتوي16 ملفًا خاصًا بالتنزيل؛ الإضافات الحالية أدوات تدقيق واختبارات وتوثيق وCI، وتصحيح محدد لحقول Provenance المكررة في DownloadStaging. لا تغييرات Auth/Chat/Quiz/Schema/Gradle أو نقل من فرع UI/PR #12. آخر SHA قابل للتحقق في رأس PR؛ لا يوضع SHA ذاتي داخل الملف الذي ينشئه الالتزام.
 - لم يُدمج أي PR، ولم يُفتح `siraj-p0` أو جهاز المالك.
 
 ## 2. Artifact Inventory
@@ -26,6 +26,8 @@
 | SIRAJ_AI_RESOURCES_MANIFEST.json | 2494 | PASS |
 
 استُخدم GitHub CLI/API الرسمي والحساب المتصل المصرح له، دون طباعة بيانات المصادقة أو signed redirect URLs. تمت التنزيلات الخمسة بنجاح؛ لا فشل HTTP/حظر نطاق لتنزيل هذه الموارد. نطاقا API/الأصول المستخدمان `api.github.com` و`release-assets.githubusercontent.com`؛ لا نزعم تسجيل كل HTTP hop إذ CLI اتبعها داخليًا. جلب مرجع مساعد غير موجود `schema/core/litertlm_header.cc` من upstream أعاد **HTTP404** من **api.github.com** وCLI exit1؛ أُعيد التحقق من HTTP status بالـAPI. السبب: المسار غير موجود عند commit المرجع المثبت؛ استُخدم FBS الفعلي وbuilder بدل تخمينه. ليس ذلك حظر شبكة أو فشل Artifact من الملفات الخمسة.
+
+**عائق شبكة منفصل عند جلب سجل CI:** `productionresultssa15.blob.core.windows.net` أعاد **Proxy CONNECT403**؛ لم تصل استجابة origin (origin HTTP status غير متاح). أُثبت بمسبار لا يطبع الرابط الموقّع؛ لا توجد بيانات اعتماد في التقرير. يظل GitHub API متاحًا لمعرفة حالات Jobs/Steps؛ حجب تنزيل السجل لا يعني فشل تنفيذ Job أو تنزيل موارد STAGING.
 
 ## 3. SHA-256 Verification
 
@@ -123,6 +125,8 @@ Proto max_input_length **1024**؛ min_input_length/min_runtime_version غير م
 
 Resume يتطلب **strong ETag** وIf-Range وContent-Range متسقة؛ ضعف/غياب ETag يعيد من الصفر حتى مع Last-Modified. هذه سياسة أمان قائمة موثقة، لا اعتماد Last-Modified وحده كهوية. تجاهل Range بـ200 يعيد الكتابة من الصفر؛ ETag مختلف أو416 يؤدي إلى full restart محدود؛ malformed206 لا يلحق بايتات بالجزء. لا redirect/token leakage تلقائيًا؛ Production redirects تحتاج سياسة صريحة.
 
+تصحيح هذه الجولة محدود في DownloadStaging: `jsonDecode` كان يقبل آخر مفتاح مكرر، وقد يخفي complete=true ويسمح بالحذف عند Cancel. الاختبارات أثبتت الفشل ثم الإصلاح. الآن تُفحص أسماء المفاتيح بعد التحقق من syntax مع فك Unicode escapes؛ أي تكرار يعيد protected `candidateExists/ambiguousProvenance` ويمنع Resume/HTTP/الحذف، حتى عند Cancel فوري. لا يرجع null لأن مسار null يجيز discard. هذا ليس إعادة كتابة للخدمة.
+
 Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوية الطلب والـrevision/hash/size/URL/destination/maxBytes؛ لا raw URL tokens في السجل. التلف/invalidUTF8/oversize يرفض الاستكمال. completed staging immutable؛ خطأ طلب مختلف لا يحذف المورد المكتمل. Restart/control races مغطاة.
 
 الخدمة لا تكتب SQLite أو READY/ACTIVE/RAG_READY، ونجاح Result هو نقل+فحص أولي؛ Atomic Activation مسار B-12 مستقل غير مضاف هنا. لم نربط Biology Pilot بعقد إنتاج خمس مواد أو نغير policy لصالح مدخل لا يجتازها.
@@ -133,10 +137,11 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 
 | الملفات | المسؤولية |
 |---|---|
+| lib/features/resources/download_staging.dart وtest/b07_download_service_test.dart | منع فقد علامة اكتمال بسبب مفاتيح JSON مكررة، وثلاث حالات Regression تحفظ الملف عند Start/Cancel |
 | tool/resource_intake/{common,manifest,archive,biology}.py | تدقيق developer read-only: pins/JSON/ZIP/vector binding؛ لا استخراج أو activation |
 | tool/resource_intake_audit.py وREADME | CLI وقيود الفحص وإعادة إنتاج النتائج |
 | tool/staging_resource_integrity_probe.dart | استدعاء الفاحصين الحاليين على الملفات الحقيقية |
-| tool/tests/test_*.py |29 اختبارًا مع ملفات مصغرة مولدة داخل Temp فقط |
+| tool/tests/test_*.py |30 اختبارًا مع ملفات مصغرة مولدة داخل Temp فقط |
 | integration_test/b07_download_storage_test.dart | اختباران native للتخزين الخاص ورفض المسار الخارجي |
 | .github/workflows/b07-resource-intake-verification.yml | Flutter/Python/إعادة تنزيل STAGING والـhash وأرشفة أدلة صغيرة، واختبار تخزين Android منفصل |
 | docs/qa/b07-resource-intake/* | أدلة JSON/text؛ لا ملفات تعليمية أو Models/ZIP/AAR |
@@ -144,11 +149,11 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 | docs/spec/RESOURCE_INTAKE_USER_REQUEST_2026-11-06_AR.md وdocs/superpowers/plans/2026-11-06-resource-intake.md | متطلبات المالك وخطة العمل المتتبعة |
 | هذا التقرير | النتائج والموانع وحدود القبول |
 
-**لا Dependencies جديدة** أو DB/Migration/Resource IDs أو Runtime/Gradle/Widgets changes. أدوات Python خارج طبقات التطبيق. لا merge أو نسخ implementations من فروع أخرى. بقاء الفرع main-based يعني أن نتائج184 تخص قاعدة B-07 هذه؛ لا تُنسب إلى فرع UI أو اختبارات615 القديمة.
+**لا Dependencies جديدة** أو DB/Migration/Resource IDs أو Runtime/Gradle/Widgets changes. أدوات Python خارج طبقات التطبيق. لا merge أو نسخ implementations من فروع أخرى. بقاء الفرع main-based يعني أن نتائج187 تخص قاعدة B-07 هذه؛ لا تُنسب إلى فرع UI أو اختبارات615 القديمة.
 
 ## 11. Security Review
 
-استُخدمت مهارة code-review لمراجعتين مستقلتين: Standards وSpec، مع تثبيت base وHEAD؛ نتائج المراجعة وإصلاحاتها تضاف إلى سجل التسليم. لا يُستبدل التنفيذ بعبارة «المراجع وافق»؛ تُفحص النتائج والاختبارات الفعلية.
+استُخدمت مهارة code-review لمراجعتين مستقلتين: Standards وSpec، مع تثبيت base وHEAD؛ [سجل المراجعة](../qa/b07-resource-intake/review.md) يفصل المحورين: Spec بلا ملاحظات إضافية؛ Standards وجد عيب duplicate Provenance P2، وأُصلح مع إعادة إنتاج مستقلة تؤكد حفظ الملف عند Cancel. أُصلح أيضًا raw zlib.error في أداة ZIP إلى invalidZip بعد RED/GREEN. لا يُستبدل التنفيذ بعبارة «المراجع وافق»؛ تُفحص النتائج والاختبارات الفعلية.
 
 حدود الأدوات: private directory دون concurrent writers، رفض symlinks/المسارات غير الآمنة وstat-before/after وO_NOFOLLOW متى توفر، stream SHA64KiB. JSON محدود وصارم. ZIP بلا extraction وبحد128MiB expanded/4096 entries/depth3 مع فحص CRC/checksums. stdlib يقرأ central directory قبل budget؛ الأداة ليست sandbox لخدمة public uploads أو OS-level attacker. لا تُقدم تلك الحدود كسياسة تشغيل AI معتمدة.
 
@@ -166,12 +171,12 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 | flutter pub get --enforce-lockfile | PASS؛ lockfile دون تغيير؛35 تحديثًا أحدث غير متوافق معلومات فقط |
 | dart format للملفين Dart الجديدين | PASS |
 | flutter analyze --no-pub | PASS؛ No issues found |
-| flutter test --no-pub --machine، كامل | **184 passed /0 failed /0 skipped**؛ success=true وstderr فارغ |
-| Python adversarial audits | **29 passed /0 failed /0 skipped** |
+| flutter test --no-pub --machine، كامل | **187 passed /0 failed /0 skipped**؛ success=true وstderr فارغ |
+| Python adversarial audits | **30 passed /0 failed /0 skipped** |
 | تدقيق الموارد الخمسة الفعلية | PASS في البايتات/التغليف فقط |
 | Dart validators على3 موارد حقيقية | Hash/size PASS؛ format status وحدود الفحوص موثقة منفصلة |
 | Kotlin2.2.20 + AAR compile probe | **FAIL**؛ metadata2.4.0 غير مقبولة؛ خطأ توافق حقيقي لا regression في Flutter |
-| Android native storage test2 | NOT RUN محليًا؛ CI مستقل مضاف |
+| Android native storage test2 | NOT RUN محليًا؛ CI مستقل مضاف، نتيجته النهائية أدناه |
 
 التغطية المطلوبة14 حالة:
 
@@ -183,7 +188,7 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 | فشل بديل يحافظ على السابق | اختبارات transport/checkpoint وsentinel في اختبار رفضZIP |
 | لا تفعيل غير معتمد | tests الحالية لحالات repository/integrity/transport، وغياب أي persistence/activation API من أداة الاستلام |
 
-TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف5 (24)، وvector bundle أضاف5 (29). تشمل الطفرات generated bad bytes والـrow binding والـNaN/zero vectors. هذه fixtures اختبارية معزولة وليست بيانات إنتاج. نتائج CI تربط أدناه بعد التشغيل الفعلي؛ تعريف workflow وحده ليس PASS.
+TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف5 (24)، وvector bundle أضاف5 (29)، ثم اختبار DEFLATE معطوب (30). أضيفت3 اختبارات Flutter للحالة المثبتة في Provenance فصار المجموع187 بعد إعادة التشغيل الكامل. تشمل الطفرات generated bad bytes والـrow binding والـNaN/zero vectors. هذه fixtures اختبارية معزولة وليست بيانات إنتاج. نتائج CI تربط أدناه بعد التشغيل الفعلي؛ تعريف workflow وحده ليس PASS.
 
 ## 13. Android Validation Status
 

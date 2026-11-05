@@ -199,6 +199,43 @@ void main() {
     expect(await getPartial().readAsBytes(), before);
   });
 
+  for (final duplicateKey in ['complete', r'\u0063omplete', 'identity']) {
+    test(
+      'ambiguous $duplicateKey provenance cannot replace a candidate',
+      () async {
+        expect(
+          (await service.start(spec).result).state,
+          DownloadState.downloaded,
+        );
+        final before = await getPartial().readAsBytes();
+        final metadata = await getMetadata().readAsString();
+        final extra = duplicateKey == 'identity'
+            ? '"identity":"different-identity"'
+            : '"$duplicateKey":false';
+        await getMetadata().writeAsString(
+          '${metadata.substring(0, metadata.length - 1)},$extra}',
+        );
+        final requestCount = server.requests.length;
+        final handle = service.start(spec);
+        final result = await handle.result;
+        expect(result.failure?.code, DownloadFailureCode.candidateExists);
+        expect(result.failure?.detail, 'ambiguousProvenance');
+        expect(server.requests.length, requestCount);
+        expect(await getPartial().readAsBytes(), before);
+        expect(
+          (await service.cancel(handle)).failure?.code,
+          DownloadFailureCode.candidateExists,
+        );
+        expect(await getPartial().readAsBytes(), before);
+        final immediate = service.start(spec);
+        final cancelled = await service.cancel(immediate);
+        expect(cancelled.failure?.code, DownloadFailureCode.candidateExists);
+        expect(server.requests.length, requestCount);
+        expect(await getPartial().readAsBytes(), before);
+      },
+    );
+  }
+
   test(
     'changed ETag in 206 triggers a clean GET instead of concatenation',
     () async {

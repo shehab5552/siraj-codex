@@ -7,6 +7,12 @@ metadata. No model, ZIP, AAR, content text or generated scientific data belongs
 in Git. No new dependency is required (Python standard library / existing Dart
 packages only).
 
+The application staging fix in this delivery rejects duplicate decoded JSON
+keys as protected `candidateExists/ambiguousProvenance`. It preserves the
+candidate even during cancellation, since a conflicting completion marker must
+not authorize deletion. Other existing malformed-partial restart policies stay
+covered by the transport regression suite.
+
 Use a private, quiescent directory outside application files:
 
 ```sh

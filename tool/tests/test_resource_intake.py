@@ -78,6 +78,13 @@ class ZipTest(unittest.TestCase):
         with self.assertRaisesRegex(IntakeError, 'invalidZip'):
             inspect_zip(make_zip([('a', b'abc')])[:-8])
 
+    def test_invalid_deflate_is_typed(self):
+        data = bytearray(make_zip([('data', b'compressible' * 100)]))
+        # The generated member has a four-byte name, no extra local fields.
+        data[34] = 0x06  # Reserved DEFLATE block type, rejected by zlib.
+        with self.assertRaisesRegex(IntakeError, 'invalidZip'):
+            inspect_zip(bytes(data))
+
     def test_crc_corruption(self):
         data = make_zip([('a', b'UNIQUE_PAYLOAD')], stored=True).replace(b'UNIQUE_PAYLOAD', b'BROKEN_PAYLOAD')
         with self.assertRaisesRegex(IntakeError, 'invalidZip'):
