@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class RuntimeManagerTest {
   static final class Fake implements RuntimeBackend {
     volatile Callback callback;
-    volatile boolean cancelled, throwCancel;
+    volatile boolean cancelled, throwCancel, throwCloseOnce;
     final CountDownLatch cancelEntered=new CountDownLatch(1);
     volatile int closed, conversations;
     volatile float[] vector = vector();
@@ -21,7 +21,7 @@ public final class RuntimeManagerTest {
           public void close() { closed++; }
         };
       }
-      public void close() { closed++; }
+      public void close() { if(throwCloseOnce) {throwCloseOnce=false;throw new IllegalStateException("test close failure");}closed++; }
     }; }
     public Embedding loadEmbedding(File path) { return new Embedding() {
       public float[] embed(String input) { return vector; }
@@ -39,6 +39,7 @@ public final class RuntimeManagerTest {
   }
   static void check(boolean b) { if(!b)throw new AssertionError(); }
   public static void main(String[] args) throws Exception {
+    Thread.setDefaultUncaughtExceptionHandler((thread,error)-> {error.printStackTrace();System.exit(1);});
     AtomicInteger passed=new AtomicInteger();
     Fake b=new Fake();List<String> es=new CopyOnWriteArrayList<>();RuntimeManager m=create(b,es);
     failure(m.generate("r0","system","input"),RuntimeFailure.Code.notInitialized);passed.incrementAndGet();
@@ -65,6 +66,12 @@ public final class RuntimeManagerTest {
     try { pending.get(50,TimeUnit.MILLISECONDS);throw new AssertionError("must drain native first"); }
     catch(TimeoutException expected) { /* Quarantined until actual terminal. */ }
     throwing.callback.done();failure(pending,RuntimeFailure.Code.generationFailed);check(!guarded.llmLoaded());check(throwing.closed==2);passed.incrementAndGet();
+    Fake retry=new Fake();retry.throwCancel=true;retry.throwCloseOnce=true;RuntimeManager recovering=create(retry,new CopyOnWriteArrayList<>());
+    await(recovering.initialize("llm",false));await(recovering.generate("close-failure","system","input"));
+    CompletableFuture<Void> firstClose=recovering.close(false);retry.callback.done();failure(firstClose,RuntimeFailure.Code.generationFailed);
+    await(recovering.close(false));retry.throwCancel=false;
+    await(recovering.initialize("llm",false));await(recovering.generate("clean-reload","system","input"));
+    CompletableFuture<Void> secondClose=recovering.close(false);retry.callback.done();await(secondClose);await(recovering.dispose());passed.incrementAndGet();
     System.out.println("RuntimeManagerTest: "+passed+" passed (fake contracts, not inference)");
   }
 }

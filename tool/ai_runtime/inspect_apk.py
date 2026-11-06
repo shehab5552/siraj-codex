@@ -24,6 +24,10 @@ def main():
         subprocess.run([args.apkanalyzer,'dex','code','--class',name,str(args.apk)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     native=[]
     with zipfile.ZipFile(args.apk) as archive, tempfile.TemporaryDirectory() as temp:
+        expected_prefix='assets/licenses/litertlm-android-0.19.0/'
+        if expected_prefix+'LICENSE.txt' not in archive.namelist():
+            available=[name for name in archive.namelist() if name.startswith('assets/') and 'license' in name.lower()]
+            raise AssertionError('Runtime notice assets absent; existing license assets: '+repr(available[:20]))
         for name in ('LICENSE','THIRD_PARTY_NOTICE'):
             assert len(archive.read('assets/licenses/litertlm-android-0.19.0/'+name+'.txt'))>0, 'Runtime license notice missing'
         for abi,machine in [('arm64-v8a',183),('x86_64',62)]:

@@ -1,5 +1,10 @@
 import java.security.MessageDigest
 import java.util.zip.ZipFile
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 
 plugins { id("com.android.library") }
 
@@ -55,15 +60,13 @@ tasks.named("preBuild").configure { dependsOn(verifyRuntimeIdentity) }
 
 // Preserve the verified SDK's redistribution notices in the resulting APK.
 // These generated text assets never enter Git and contain no model weights.
-val noticesDirectory = layout.buildDirectory.dir("generated/runtime-notices")
-val generateRuntimeNotices by tasks.registering {
-    dependsOn(verifyRuntimeIdentity)
-    inputs.files(runtimeIdentity)
-    outputs.dir(noticesDirectory)
-    doLast {
-        val output = noticesDirectory.get().dir("licenses/litertlm-android-0.19.0").asFile
+abstract class RuntimeNoticesTask : DefaultTask() {
+    @get:InputFile abstract val runtimeAar: RegularFileProperty
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun generate() {
+        val output = outputDirectory.get().dir("licenses/litertlm-android-0.19.0").asFile
         check(output.mkdirs() || output.isDirectory)
-        ZipFile(runtimeIdentity.singleFile).use { archive ->
+        ZipFile(runtimeAar.get().asFile).use { archive ->
             for ((name, destination) in mapOf(
                 "LICENSE" to "LICENSE.txt",
                 "THIRD_PARTY_NOTICE.txt" to "THIRD_PARTY_NOTICE.txt",
@@ -76,6 +79,15 @@ val generateRuntimeNotices by tasks.registering {
         }
     }
 }
-// TaskProvider carries both the directory and its producing-task dependency to
-// every consumer (asset merge and release lint model), independent of task names.
-android.sourceSets.getByName("main").assets.srcDir(generateRuntimeNotices)
+val generateRuntimeNotices = tasks.register<RuntimeNoticesTask>("generateRuntimeNotices") {
+    dependsOn(verifyRuntimeIdentity)
+    runtimeAar.set(layout.file(providers.provider { runtimeIdentity.singleFile }))
+    outputDirectory.set(layout.buildDirectory.dir("generated/runtime-notices"))
+}
+// AGP's generated-source API registers both the real directory and its producer
+// for every variant/consumer, including lint, AAR packaging and APK asset merge.
+androidComponents.onVariants { variant ->
+    variant.sources.assets?.addGeneratedSourceDirectory(
+        generateRuntimeNotices, RuntimeNoticesTask::outputDirectory,
+    )
+}

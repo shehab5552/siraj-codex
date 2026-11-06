@@ -117,7 +117,8 @@ public final class RuntimeManager {
     else emit(r,"generationCompleted",null,null);
     if(closingLlm!=null) {
       CompletableFuture<Void> f=closingLlm;closingLlm=null;
-      try { closeIdleLlm();if(closeFailure!=null)f.completeExceptionally(new RuntimeFailure(closeFailure));else f.complete(null);closeFailure=null; }catch(Throwable e) { f.completeExceptionally(sanitized(e,RuntimeFailure.Code.generationFailed)); }
+      RuntimeFailure.Code pendingCloseFailure=closeFailure;closeFailure=null;
+      try { closeIdleLlm();if(pendingCloseFailure!=null)f.completeExceptionally(new RuntimeFailure(pendingCloseFailure));else f.complete(null); }catch(Throwable e) { f.completeExceptionally(sanitized(e,RuntimeFailure.Code.generationFailed)); }
     }
   }
   public CompletableFuture<Void> cancel(String id) {
