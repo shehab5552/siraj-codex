@@ -1,0 +1,68 @@
+name: B08 LiteRT runtime verification
+
+on:
+  push:
+    branches: [codex/b08-litertlm-android-runtime-01]
+  pull_request:
+    branches: [codex/b07-independent-download-01, main]
+    paths:
+      - 'android/**'
+      - 'lib/**'
+      - 'test/**'
+      - 'integration_test/b08_*'
+      - 'tool/ai_runtime/**'
+      - '.github/workflows/b08-runtime-verification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: b08-runtime-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility-investigation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Actual fixed Maven POM and AAR identity
+        run: python3 -B tool/ai_runtime/audit_maven.py "$RUNNER_TEMP/b08-maven"
+      - name: Resolve actual dependency graph with Gradle8.14
+        run: |
+          mkdir -p "$RUNNER_TEMP/b08-graph"
+          cat > "$RUNNER_TEMP/b08-graph/settings.gradle" <<'GRADLE'
+          rootProject.name = 'siraj-b08-dependency-audit'
+          GRADLE
+          cat > "$RUNNER_TEMP/b08-graph/build.gradle" <<'GRADLE'
+          plugins { id 'java' }
+          repositories { google(); mavenCentral() }
+          dependencies { implementation 'com.google.ai.edge.litertlm:litertlm-android:0.19.0' }
+          tasks.register('auditGraph') {
+            doLast {
+              def result = configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.collect {
+                [coordinate: it.moduleVersion.id.toString(), extension: it.extension]
+              }.sort { it.coordinate }
+              def json = groovy.json.JsonOutput.toJson(result)
+              new File(projectDir, 'resolved-graph.json').text = json
+              println '::notice title=B08 resolved graph::' + json
+            }
+          }
+          GRADLE
+          bash android/gradlew -p "$RUNNER_TEMP/b08-graph" dependencies auditGraph --no-daemon > "$RUNNER_TEMP/b08-maven/dependency-graph.log" 2>&1
+          sed -n '/::notice title=B08 resolved graph::/p' "$RUNNER_TEMP/b08-maven/dependency-graph.log"
+          cp "$RUNNER_TEMP/b08-graph/resolved-graph.json" "$RUNNER_TEMP/b08-maven/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-dependency-investigation
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/b08-maven/*.json
+            ${{ runner.temp }}/b08-maven/*.pom
+            ${{ runner.temp }}/b08-maven/*.log
+          if-no-files-found: warn
