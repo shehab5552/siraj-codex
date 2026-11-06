@@ -32,8 +32,13 @@ final class ArtifactIntegrityMatch extends ArtifactIntegrityResult {
     required this.bytesRead,
     required this.sha256,
     required this.sha256Matched,
+    required String canonicalPath,
+    required FileStat fileStat,
     required List<int> prefix,
-  }) : prefix = List.unmodifiable(prefix);
+  }) : _canonicalPath = canonicalPath,
+       _modified = fileStat.modified,
+       _changed = fileStat.changed,
+       prefix = List.unmodifiable(prefix);
 
   final ResourceContractKind kind;
   final String relativePath;
@@ -41,6 +46,22 @@ final class ArtifactIntegrityMatch extends ArtifactIntegrityResult {
   final String sha256;
   final bool sha256Matched;
   final List<int> prefix;
+  final String _canonicalPath;
+  final DateTime _modified;
+  final DateTime _changed;
+
+  /// Binds a later parser to this validated file snapshot without exposing the
+  /// private absolute path. Callers must still hold the same staging lease;
+  /// these ordinary stat checks are not an OS-level anti-adversary file lock.
+  bool matchesFileSnapshot({
+    required String canonicalPath,
+    required FileStat stat,
+  }) =>
+      canonicalPath == _canonicalPath &&
+      stat.type == FileSystemEntityType.file &&
+      stat.size == bytesRead &&
+      stat.modified == _modified &&
+      stat.changed == _changed;
 }
 
 class ArtifactIntegrityValidator {
@@ -161,6 +182,8 @@ class ArtifactIntegrityValidator {
           bytesRead: bytesRead,
           sha256: sha256,
           sha256Matched: expectedSha256 != null,
+          canonicalPath: file.path,
+          fileStat: after,
           prefix: prefix,
         );
       } finally {

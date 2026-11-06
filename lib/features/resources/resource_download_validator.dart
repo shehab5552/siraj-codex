@@ -1,14 +1,21 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'artifact_integrity_validator.dart';
 import 'download_contracts.dart';
+import 'litertlm_format_validator.dart';
 import 'resource_format_preflight.dart';
 import 'resource_validation_contracts.dart';
 
 class ResourceDownloadEvidence {
-  const ResourceDownloadEvidence(this.integrity, this.format);
+  const ResourceDownloadEvidence(
+    this.integrity,
+    this.format, {
+    this.liteRtContainer,
+  });
   final ArtifactIntegrityMatch integrity;
   final ResourceFormatPreflightResult format;
+  final LiteRtLmFormatMatch? liteRtContainer;
 }
 
 class ResourceDownloadValidator
@@ -51,6 +58,26 @@ class ResourceDownloadValidator
         detail: format.status.name,
       );
     }
-    return ResourceDownloadEvidence(match, format);
+    LiteRtLmFormatMatch? container;
+    if ({
+          ResourceContractKind.llm,
+          ResourceContractKind.ragEmbedding,
+        }.contains(spec.kind) &&
+        match.prefix.length >= 8 &&
+        ascii.decode(match.prefix.take(8).toList(), allowInvalid: true) ==
+            'LITERTLM') {
+      final specialized = await const LiteRtLmFormatValidator().inspect(
+        stagingRoot: stagingDirectory,
+        artifact: match,
+      );
+      if (specialized is LiteRtLmFormatFailure) {
+        throw DownloadFailure(
+          DownloadFailureCode.formatRejected,
+          detail: specialized.code.name,
+        );
+      }
+      container = specialized as LiteRtLmFormatMatch;
+    }
+    return ResourceDownloadEvidence(match, format, liteRtContainer: container);
   }
 }
