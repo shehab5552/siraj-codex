@@ -14,6 +14,9 @@ import '../features/auth/signup_page.dart';
 import '../features/auth/session_marker_store.dart';
 import '../features/auth/startup_session_resolver.dart';
 import '../features/chat/conversation_draft_controller.dart';
+import '../features/chat/chat_turn_coordinator.dart';
+import '../features/chat/grounded_tutor_service.dart';
+import '../features/ai_runtime/method_channel_ai_runtime_client.dart';
 import '../features/home/home_page.dart';
 import '../features/resources/resource_status_page.dart';
 import '../features/resources/resource_status_reader.dart';
@@ -148,14 +151,26 @@ class _AppBootstrapState extends State<AppBootstrap> {
                   unawaited(_openResourceStatus(session, runtime)),
               onOpenChat: () {
                 final users = UserRepository(runtime.database);
+                final guard = SessionGuard(users);
+                final conversations = ConversationRepository(runtime.database);
+                final draft = ConversationDraftController(
+                  conversations: conversations,
+                  guard: guard,
+                );
+                final ai = MethodChannelAiRuntimeClient();
+                final turns = ChatTurnCoordinator(
+                  draft: draft,
+                  conversations: conversations,
+                  guard: guard,
+                  tutor: GroundedTutorService(runtime: ai),
+                  onDispose: ai.dispose,
+                );
                 Navigator.of(context).pushNamed(
                   AppRoutes.chat,
                   arguments: AuthenticatedChatRoute(
                     session: session,
-                    draftController: ConversationDraftController(
-                      conversations: ConversationRepository(runtime.database),
-                      guard: SessionGuard(users),
-                    ),
+                    draftController: draft,
+                    turns: turns,
                   ),
                 );
               },
