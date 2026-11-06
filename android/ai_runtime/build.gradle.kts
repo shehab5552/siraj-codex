@@ -56,7 +56,6 @@ tasks.named("preBuild").configure { dependsOn(verifyRuntimeIdentity) }
 // Preserve the verified SDK's redistribution notices in the resulting APK.
 // These generated text assets never enter Git and contain no model weights.
 val noticesDirectory = layout.buildDirectory.dir("generated/runtime-notices")
-android.sourceSets.getByName("main").assets.srcDir(noticesDirectory)
 val generateRuntimeNotices by tasks.registering {
     dependsOn(verifyRuntimeIdentity)
     inputs.files(runtimeIdentity)
@@ -77,5 +76,6 @@ val generateRuntimeNotices by tasks.registering {
         }
     }
 }
-tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
-    .configureEach { dependsOn(generateRuntimeNotices) }
+// TaskProvider carries both the directory and its producing-task dependency to
+// every consumer (asset merge and release lint model), independent of task names.
+android.sourceSets.getByName("main").assets.srcDir(generateRuntimeNotices)

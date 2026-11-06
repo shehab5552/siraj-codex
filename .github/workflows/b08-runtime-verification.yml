@@ -21,6 +21,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  model-license-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Public license provenance for exact pinned weights (no inference)
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py "$RUNNER_TEMP/b08-licenses"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-model-license-evidence
+          retention-days: 14
+          path: ${{ runner.temp }}/b08-licenses/*.json
+
   compatibility-investigation:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -105,9 +119,8 @@ jobs:
           python3 tool/ai_runtime/run_build_logged.py "$RUNNER_TEMP/b08-gradle-build.log" gradle -p android :app:dependencies :app:assembleDebug :app:assembleRelease --no-daemon
       - name: Inspect actual APKs and native ELF ABIs
         run: |
-          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-debug.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" > "$RUNNER_TEMP/b08-debug-inspection.json"
-          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-release.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --mapping build/app/outputs/mapping/release/mapping.txt > "$RUNNER_TEMP/b08-release-inspection.json"
-          sed -n '/::notice title=B08 APK inspection::/p' "$RUNNER_TEMP/b08-debug-inspection.json" "$RUNNER_TEMP/b08-release-inspection.json"
+          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-debug.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --report "$RUNNER_TEMP/b08-debug-inspection.json"
+          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-release.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --mapping build/app/outputs/mapping/release/mapping.txt --report "$RUNNER_TEMP/b08-release-inspection.json"
           gradle --stop
       - uses: actions/upload-artifact@v4
         if: always()

@@ -15,6 +15,7 @@ def main():
     parser.add_argument('apk',type=Path)
     parser.add_argument('--apkanalyzer',required=True)
     parser.add_argument('--mapping',type=Path)
+    parser.add_argument('--report',required=True,type=Path)
     args=parser.parse_args()
     if args.mapping is not None:
         assert args.mapping.is_file() and args.mapping.stat().st_size>0, 'R8 mapping missing'
@@ -41,7 +42,7 @@ def main():
     report=dict(apk=args.apk.name,size_bytes=args.apk.stat().st_size,sha256=digest.hexdigest(),
                 classes_verified=classes,native=native,r8_mapping_verified=args.mapping is not None,
                 model_execution='NOT RUN',g2='NOT RUN',g3='NOT RUN')
-    print(json.dumps(report,indent=2))
+    args.report.write_text(json.dumps(report,indent=2)+"\n")
     print('::notice title=B08 APK inspection::'+json.dumps(report,separators=(',',':')))
 
 
