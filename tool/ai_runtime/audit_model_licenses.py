@@ -52,12 +52,20 @@ def audit(label,pin,candidates):
             if not matches:continue
             revision=value['sha'];license_id=value.get('cardData',{}).get('license')
             report.update(model=model,revision=revision,artifact_matched=True,weight_files=matches,declared_license=license_id)
+            report['card_data']=value.get('cardData',{})
+            card_url='https://huggingface.co/'+quote(model,safe='/')+'/raw/'+quote(revision,safe='')+'/README.md'
+            card,card_http=fetch(card_url,65536)
+            report.update(model_card_source=card_url,model_card_http=card_http,model_card_text=card.decode('utf8','strict'))
             filenames={f['rfilename'] for f in value.get('siblings',[])}
             chosen=next((name for name in ['LICENSE','LICENSE.txt','LICENSE.md'] if name in filenames),None)
             if chosen:
                 url='https://huggingface.co/'+quote(model,safe='/')+'/resolve/'+quote(revision,safe='')+'/'+chosen
                 raw,source=fetch(url,65536);text=raw.decode('utf8','strict')
                 report.update(license_source=url,license_http=source,license_sha256=hashlib.sha256(raw).hexdigest(),license_text=text)
+            elif license_id=='apache-2.0':
+                url='https://www.apache.org/licenses/LICENSE-2.0.txt'
+                raw,source=fetch(url,65536)
+                report.update(license_source=url,license_http=source,license_sha256=hashlib.sha256(raw).hexdigest(),license_text=raw.decode('utf8','strict'))
             elif license_id=='gemma':
                 url='https://ai.google.dev/gemma/terms'
                 raw,source=fetch(url,2*1024*1024);parser=MainText();parser.feed(raw.decode('utf8','strict'))
