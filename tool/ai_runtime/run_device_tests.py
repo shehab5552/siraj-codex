@@ -41,7 +41,20 @@ def main():
         process=subprocess.run(['flutter','test','integration_test/'+target+'.dart','--no-pub','-d','emulator-5554','--machine'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,encoding='utf8',errors='replace')
         metrics,counts,done=parse_output(process.stdout)
         failures=re.findall(r'SIRAJ_B08_MODEL_FAILURE ([A-Za-z]+)',process.stdout)
-        evidence_passed=done and len(metrics)==1 and metrics[0].get('status')=='PASS' and counts['failed']==0 and counts['skipped']==0
+        model=metrics[0] if len(metrics)==1 else {}
+        model_scope_valid=(model.get('status')=='PASS'
+            and model.get('scope')=='X86_64_EMULATOR_ENGINEERING_ONLY'
+            and model.get('modelInferenceExecuted') is True
+            and model.get('productionResourcesApproved') is False
+            and model.get('g2')=='BLOCKED' and model.get('g3')=='BLOCKED'
+            and model.get('embeddingQueryCount')==3
+            and model.get('assertedNonemptyCompletionCount')==4
+            and model.get('nativeCancellationTerminal')=='generationCancelled')
+        # All six visible cases are mandatory: DB, secure session, two storage,
+        # JNI, and the genuine-model case. A print + done with zero/partial cases
+        # is never a successful acceptance run.
+        evidence_passed=(done and len(metrics)==1 and model_scope_valid
+            and counts==dict(passed=6,failed=0,skipped=0))
         success=process.returncode==0 and evidence_passed
         result=dict(target=target,status='PASS' if success else 'FAIL',exit_code=process.returncode,
                     evidence_complete=evidence_passed,errors=failures,metrics=metrics,flutter_reported_cases=counts)
