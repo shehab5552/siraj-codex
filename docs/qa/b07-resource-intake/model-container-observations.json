@@ -1,0 +1,145 @@
+[
+  {
+    "file": "Qwen3-0.6B.litertlm",
+    "container_version": "1.7.0",
+    "header_end": 552,
+    "system_metadata": {
+      "Authors": "ODML team",
+      "uuid": "88b9e2cb-d61f-4a99-a789-6476fdee28e9",
+      "creation_timestamp": "2026-10-13T01:29:51.050303+00:00"
+    },
+    "sections": [
+      {
+        "type_number": 5,
+        "begin": 16384,
+        "end": 19631,
+        "size": 3247,
+        "metadata": {},
+        "sha256": "ed4231ff6c3a50be8aaffdb96aa127f8e40ab71a994f448419a46f39d05df747",
+        "protobuf_observations": {
+          "max_num_tokens": [
+            4096
+          ],
+          "min_runtime_version": "NOT PRESENT",
+          "jinja_template_present": true,
+          "sampler_fields": {
+            "type_number": [
+              2
+            ],
+            "k": [
+              20
+            ],
+            "p": [
+              0.949999988079071
+            ],
+            "temperature": [
+              0.6000000238418579
+            ],
+            "seed": null
+          }
+        }
+      },
+      {
+        "type_number": 6,
+        "begin": 32768,
+        "end": 2174917,
+        "size": 2142149,
+        "metadata": {},
+        "sha256": "f8c60e814140eff4ea766b3de0354f1236ac945273984a40b6a51bff3f2b8050",
+        "tokenizer_json_observations": {
+          "version": "1.0",
+          "truncation": null,
+          "padding": null,
+          "model_type": "BPE",
+          "vocab_size": 151643
+        }
+      },
+      {
+        "type_number": 3,
+        "begin": 2179072,
+        "end": 613722264,
+        "size": 611543192,
+        "metadata": {
+          "model_type": "tf_lite_prefill_decode"
+        }
+      }
+    ],
+    "runtime_execution": "NOT RUN",
+    "compatibility": "PENDING_VERIFICATION"
+  },
+  {
+    "file": "embeddinggemma-2-text-270m.litertlm",
+    "container_version": "1.7.0",
+    "header_end": 880,
+    "system_metadata": {
+      "author": "The ODML Authors",
+      "uuid": "a9b53e53-46c2-4bf3-a5b1-aa5043bdc029",
+      "creation_timestamp": "2026-09-30T18:56:28.714497+00:00"
+    },
+    "sections": [
+      {
+        "type_number": 8,
+        "begin": 16384,
+        "end": 16508,
+        "size": 124,
+        "metadata": {},
+        "sha256": "2428dbabd02c154f9629cf63e187e7ea422d7b3122b8589894f070baebba80a0",
+        "protobuf_observations": {
+          "min_input_length": null,
+          "max_input_length": [
+            1024
+          ],
+          "min_runtime_version": "NOT PRESENT",
+          "pooling": "NOT PROVEN",
+          "output_dimensions": "NOT PROVEN"
+        }
+      },
+      {
+        "type_number": 4,
+        "begin": 32768,
+        "end": 4721781,
+        "size": 4689013,
+        "metadata": {},
+        "sha256": "e594c8a90eb08d8bda498ff4747977dc827ae0c3c56b5c0d41a605a22d02ef03"
+      },
+      {
+        "type_number": 3,
+        "begin": 4734976,
+        "end": 7884056,
+        "size": 3149080,
+        "metadata": {
+          "model_type": "tf_lite_embedder"
+        }
+      },
+      {
+        "type_number": 3,
+        "begin": 7897088,
+        "end": 29147808,
+        "size": 21250720,
+        "metadata": {
+          "model_type": "tf_lite_text_encoder"
+        }
+      },
+      {
+        "type_number": 7,
+        "begin": 29163520,
+        "end": 96272384,
+        "size": 67108864,
+        "metadata": {
+          "model_type": "tf_lite_embedder"
+        }
+      },
+      {
+        "type_number": 7,
+        "begin": 96272384,
+        "end": 164626432,
+        "size": 68354048,
+        "metadata": {
+          "model_type": "tf_lite_text_encoder"
+        }
+      }
+    ],
+    "runtime_execution": "NOT RUN",
+    "compatibility": "PENDING_VERIFICATION"
+  }
+]

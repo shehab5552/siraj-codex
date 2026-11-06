@@ -1,0 +1,190 @@
+{
+  "status": "PASS",
+  "scope": "PINNED_STAGING_STATIC_INTAKE_ONLY",
+  "release_tag": "siraj-ai-resources-staging-v1",
+  "artifacts": {
+    "Biology.zip": {
+      "size_bytes": 873028,
+      "sha256": "8111e6cedd0a045e3368b02905ac2a15776e850ec50ea54794c32e3bdf6c015c"
+    },
+    "embeddinggemma-2-text-270m.litertlm": {
+      "size_bytes": 164626432,
+      "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb"
+    },
+    "litertlm-android-0.19.0.aar": {
+      "size_bytes": 21197249,
+      "sha256": "e5c7a86048225efba8ab6d35fcd91f5870c86c65ca2538c07c3c1f63d02efa2b"
+    },
+    "Qwen3-0.6B.litertlm": {
+      "size_bytes": 613722264,
+      "sha256": "c5f39b4191926786c3e6668b62af4d6eb15248dfc7a5348252a9b406f33f2108"
+    },
+    "SIRAJ_AI_RESOURCES_MANIFEST.json": {
+      "size_bytes": 2494,
+      "sha256": "1a1fdf3e4cde89feb3f089583ba54efcf8dbc9f188967d63cbecb20d582eb4f4"
+    }
+  },
+  "manifest": {
+    "status": "PASS",
+    "classification": "STAGING_NOT_PRODUCTION_APPROVED",
+    "resource_entries": 4,
+    "resource_urls": "NOT PROVIDED",
+    "model_revisions": "NOT PROVIDED",
+    "runtime_version": "0.19.0"
+  },
+  "biology": {
+    "status": "PASS",
+    "scope": "STATIC_BYTES_AND_BINDINGS_ONLY",
+    "archives": 11,
+    "files": 68,
+    "expanded_bytes": 2254248,
+    "checksum_files": 10,
+    "verified_checksums": 48,
+    "verified_manifest_file_entries": 14,
+    "units": [
+      {
+        "archive": "Biology/Unit_01/SIRAJ_Biology_Unit1_RAG_Integration_STAGING_v1.0.0.zip",
+        "vectors": {
+          "rows": 67,
+          "dimensions": 768,
+          "vector_bytes": 205824,
+          "all_values_finite": true,
+          "nonzero_rows": 67,
+          "min_l2_norm": 0.9999994280112149,
+          "max_l2_norm": 1.0000008388024655,
+          "model_sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
+          "index_kind": "EXACT_FLAT_RAW_VECTORS_NO_SEPARATE_INDEX_FILE",
+          "query_prefix": "task: search result | query: ",
+          "document_prefix": "title: none | text: ",
+          "normalization_declared": "No explicit normalization before storing; compute cosine with norms",
+          "tie_break_provisional": "sort descending by (cosine, chunk_id)",
+          "filter_provisional": "content_type != assessment_question",
+          "null_catalog_ids": {
+            "pack_id": 67,
+            "subject_id": 67,
+            "source_id": 67,
+            "lesson_id": 67
+          },
+          "hashes": {
+            "content.jsonl": "59839417d33ef1f7c75c9e43afe607019c1fd3c65956e479b486c0007a5f5164",
+            "vector_map.jsonl": "bc2db7cafad548e3c4544ace576f2ec406ca041c876778cca8de2c55fd98cd88",
+            "vectors.f32le": "b682d5022b52bcbf45e07d7c29ce610a164fbe7417b892e1b0629f0b57a85180"
+          },
+          "scientific_approval": "NOT RUN",
+          "android_parity": "PENDING DEVICE TEST"
+        },
+        "source_archive_dependencies": {
+          "content": {
+            "sha256": "6caa7640d0a59d1e61488046c7f99f11c40fbfd109a75ea1f8de292434269899",
+            "present_in_supplied_container": true
+          },
+          "embeddings": {
+            "sha256": "8f692e5d36e948606daa989adfd47219b70c394d6d6d787360413816696d744b",
+            "present_in_supplied_container": true
+          },
+          "flat": {
+            "sha256": "81ded5d8638504ebf770e0c5c4cf1d46fe0f1e8a342d3f92420a6b6c0c677e7f",
+            "present_in_supplied_container": true
+          },
+          "golden": {
+            "sha256": "d8a4a04cd58c98328f7e874e6277dd2be18bd8774860cf0ba8e36ae54833339e",
+            "present_in_supplied_container": false
+          },
+          "policy": {
+            "sha256": "dbe937915500de9ec7a90d1c92daf17bc66d38435ef12035d002ae698a11219a",
+            "present_in_supplied_container": true
+          },
+          "validation": {
+            "sha256": "d331d5d2dfd2f60149b2b602a3872e270481b347bf564e9c90fa224196699574",
+            "present_in_supplied_container": false
+          }
+        },
+        "dataset_revision": null,
+        "rag_ready_declared": false,
+        "identity_status": "BLOCKED_UNTIL_VERIFIED_FLUTTER_CATALOG_AND_SOURCE_REGISTER"
+      },
+      {
+        "archive": "Biology/Unit_02/SIRAJ_Biology_Unit2_RAG_Integration_STAGING_v1.0.0.zip",
+        "vectors": {
+          "rows": 63,
+          "dimensions": 768,
+          "vector_bytes": 193536,
+          "all_values_finite": true,
+          "nonzero_rows": 63,
+          "min_l2_norm": 0.9999995215765067,
+          "max_l2_norm": 1.0000005141666073,
+          "model_sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
+          "index_kind": "EXACT_FLAT_RAW_VECTORS_NO_SEPARATE_INDEX_FILE",
+          "query_prefix": "task: search result | query: ",
+          "document_prefix": "title: none | text: ",
+          "normalization_declared": "Engine default normalization; cosine scoring with norms",
+          "tie_break_provisional": "cosine descending then chunk_id ascending for exact ties",
+          "filter_provisional": "NOT_DECIDED_STEP05: question_block needs section-aware review",
+          "null_catalog_ids": {
+            "pack_id": 63,
+            "subject_id": 63,
+            "source_id": 63,
+            "lesson_id": 63
+          },
+          "hashes": {
+            "content.jsonl": "61c2394acd4d87d7f03c86c7a2c5f63d41ffc3ccab8b552b43b901287204b790",
+            "vector_map.jsonl": "e717341f990975aeed038ce91322a029b33fd176b2a15f50f0777a337614c8d8",
+            "vectors.f32le": "2f97ebbae72d75beb8d0a85c3e2339226bfe956824f7ec04f16a867760a78232"
+          },
+          "scientific_approval": "NOT RUN",
+          "android_parity": "PENDING DEVICE TEST"
+        },
+        "source_archive_dependencies": {
+          "content": {
+            "sha256": "3264ff2f360409a924552213e535f765b2cb736525e7b20c8590df2d5d94d83e",
+            "present_in_supplied_container": true
+          },
+          "embeddings": {
+            "sha256": "6e7d3b979804843f1e57660d9e9f13fa4a9dd3219101d277db855d962d9db683",
+            "present_in_supplied_container": true
+          },
+          "flat": {
+            "sha256": "041001dd9771c9b199e203cea6333952967b341576e9349ee7a34d96a4d5b73d",
+            "present_in_supplied_container": true
+          },
+          "golden": {
+            "sha256": "41925daa8540692cdfb5fefc080b15c1c93fec512553ab503b5591bf9e2d4a97",
+            "present_in_supplied_container": false
+          },
+          "live": {
+            "sha256": "ca1d91d780ce1d6ac835c103c532af947a7db4a7ae75d0a5e2aabc97e2411280",
+            "present_in_supplied_container": false
+          },
+          "policy": {
+            "sha256": "b7c0485ce9dc996e7b44eac15d7452e1fb9838a55c14a8f98bf11442608e77da",
+            "present_in_supplied_container": true
+          },
+          "validation": {
+            "sha256": "bdda3cd41622a717b9b3c3a071bc584d3ebf316a3a6ed2519b11bc91d07ced91",
+            "present_in_supplied_container": false
+          }
+        },
+        "dataset_revision": null,
+        "rag_ready_declared": false,
+        "identity_status": {
+          "binding_status": "PENDING_ACTUAL_FLUTTER_SCHEMA",
+          "lesson_id": null,
+          "pack_id": null,
+          "source_id": null,
+          "subject_id": null
+        }
+      }
+    ],
+    "production_schema_compatible": "BLOCKED",
+    "production_approval": "BLOCKED"
+  },
+  "aar_archive": {
+    "status": "PASS",
+    "archives": 2,
+    "files": 107,
+    "expanded_bytes": 52483984
+  },
+  "runtime_compatibility": "PENDING_VERIFICATION",
+  "device_validation": "PENDING DEVICE TEST",
+  "activation_performed": false
+}

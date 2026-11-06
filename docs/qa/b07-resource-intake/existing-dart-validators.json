@@ -1,0 +1,55 @@
+[
+  {
+    "file": "Biology.zip",
+    "kind": "RAG_PACK",
+    "integrity": "PASS",
+    "size_bytes": 873028,
+    "sha256": "8111e6cedd0a045e3368b02905ac2a15776e850ec50ea54794c32e3bdf6c015c",
+    "header_status": "specializedValidatorRequired",
+    "remaining_checks": [
+      "archiveIntegrity",
+      "safeArchiveExtraction",
+      "transferComplete",
+      "validChunkReferences",
+      "validIndexFormat",
+      "validIndexVersion",
+      "validPackSchema",
+      "vectorDimensionsCompatible"
+    ],
+    "activation_performed": false
+  },
+  {
+    "file": "embeddinggemma-2-text-270m.litertlm",
+    "kind": "RAG_EMBEDDING",
+    "integrity": "PASS",
+    "size_bytes": 164626432,
+    "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
+    "header_status": "specializedValidatorRequired",
+    "remaining_checks": [
+      "androidSampleQueryPassed",
+      "embeddingModelCompatible",
+      "normalizationCompatible",
+      "poolingCompatible",
+      "tokenizerCompatible",
+      "transferComplete",
+      "vectorDimensionsCompatible"
+    ],
+    "activation_performed": false
+  },
+  {
+    "file": "Qwen3-0.6B.litertlm",
+    "kind": "LLM",
+    "integrity": "PASS",
+    "size_bytes": 613722264,
+    "sha256": "c5f39b4191926786c3e6668b62af4d6eb15248dfc7a5348252a9b406f33f2108",
+    "header_status": "unrecognizedHeader",
+    "remaining_checks": [
+      "deviceCompatible",
+      "modelLoadProven",
+      "runtimeCompatible",
+      "supportedModelFormat",
+      "transferComplete"
+    ],
+    "activation_performed": false
+  }
+]

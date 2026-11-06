@@ -1,0 +1,146 @@
+{
+  "run_id": 42133037645,
+  "head_sha": "cab246d0957955197d1fb241ac8626d0be13776b",
+  "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42133037645",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 127614721493,
+      "name": "host-and-intake",
+      "conclusion": "success",
+      "started_at": "2026-11-05T23:57:02Z",
+      "completed_at": "2026-11-05T23:58:18Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run sudo apt-get update && sudo apt-get install -y libsqlite3-dev",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter pub get --enforce-lockfile",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run dart format --output=none --set-exit-if-changed lib/features/resources/download_staging.dart test/b07_download_service_test.dart tool/staging_resource_integrity_probe.dart integration_test/b07_download_storage_test.dart",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter analyze --no-pub",
+          "conclusion": "success"
+        },
+        {
+          "name": "Full Flutter regression",
+          "conclusion": "success"
+        },
+        {
+          "name": "Adversarial static intake tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Download pinned STAGING artifacts outside the app",
+          "conclusion": "success"
+        },
+        {
+          "name": "Actual bytes, strict manifest and nested archive audit",
+          "conclusion": "success"
+        },
+        {
+          "name": "Existing Dart integrity and format policy",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 127614721931,
+      "name": "android-storage",
+      "conclusion": "success",
+      "started_at": "2026-11-05T23:57:02Z",
+      "completed_at": "2026-11-06T00:03:11Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter pub get --enforce-lockfile",
+          "conclusion": "success"
+        },
+        {
+          "name": "Enable emulator KVM",
+          "conclusion": "success"
+        },
+        {
+          "name": "Native Android storage boundary (no AI AAR linked)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "native_scope": "Android API33 x86_64 emulator; app-private StatFs and outside-path rejection only",
+  "native_test_definitions": 2,
+  "printed_ci_counters_observed": false,
+  "ci_log_download": {
+    "hostname": "productionresultssa15.blob.core.windows.net",
+    "proxy_connect_status": 403,
+    "origin_http_status": null
+  },
+  "model_execution": "NOT RUN",
+  "physical_device": "PENDING DEVICE TEST",
+  "g2": "NOT RUN",
+  "g3": "NOT RUN"
+}
