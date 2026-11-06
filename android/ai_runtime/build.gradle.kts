@@ -5,7 +5,7 @@ plugins { id("com.android.library") }
 
 android {
     namespace = "com.example.siraj.ai_runtime"
-    // Matches the pinned Flutter3.38.5 Android SDK values; no toolchain upgrade.
+    // Matches the pinned Flutter3.38.5 Android SDK values.
     compileSdk = 36
     defaultConfig {
         minSdk = 24

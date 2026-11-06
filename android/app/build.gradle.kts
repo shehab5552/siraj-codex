@@ -45,7 +45,8 @@ android {
 }
 
 dependencies {
-    // Java facade hides implementation-only Kotlin2.4 metadata from app KGP2.2.
+    // Plain Java facade isolates runtime types. KGP2.3 is still required by
+    // the resolved Kotlin stdlib2.4 metadata; see the compatibility evidence.
     implementation(project(":ai_runtime"))
 }
 
