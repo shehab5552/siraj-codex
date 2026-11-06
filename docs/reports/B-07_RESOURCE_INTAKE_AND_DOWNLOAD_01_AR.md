@@ -1,6 +1,6 @@
 # SIRAJ P0 — Resource Intake & Independent Download 01
 
-تاريخ الفحص: **2026-11-05 UTC / 2026-11-06 عدن**. النطاق: استلام STAGING وتدقيقه، وإعادة التحقق من B-07 القائمة. المرجع التنفيذي: [طلب المالك الكامل](../spec/RESOURCE_INTAKE_USER_REQUEST_2026-11-06_AR.md)، وعقود P0 المشار إليها في [وثيقة الجاهزية](../architecture/RESOURCE_INTEGRATION_READINESS.md). لا يعني هذا التقرير اعتماد الموارد أو إتمام التطبيق.
+تاريخ الفحص: **2026-11-05–06 UTC / 2026-11-06 عدن**. النطاق: استلام STAGING وتدقيقه، وإعادة التحقق من B-07 القائمة. المرجع التنفيذي: [طلب المالك الكامل](../spec/RESOURCE_INTAKE_USER_REQUEST_2026-11-06_AR.md)، وعقود P0 المشار إليها في [وثيقة الجاهزية](../architecture/RESOURCE_INTEGRATION_READINESS.md). لا يعني هذا التقرير اعتماد الموارد أو إتمام التطبيق.
 
 النتيجة: **سلامة البايتات والتغليف PASS؛ الدمج المباشر لـAAR بمترجم Kotlin الحالي FAIL؛ تشغيل النموذجين PENDING_VERIFICATION؛ G2/G3 NOT RUN.** لا READY/ACTIVE/RAG_READY أو تشغيل Runtime أو تغيير سياسة علمية.
 
@@ -10,7 +10,8 @@
 - Fetch والتحقق من GitHub: `main = 651af0d62d05761c80d9a8cbc9d1f51b836929eb`، مطابق للقاعدة المطلوبة.
 - الفرع المطلوب موجود أصلًا: `codex/b07-independent-download-01`؛ HEAD قبل هذا العمل `27ff8e5265e03092ccf84fedeae39d5bb4d008a7`، وmerge-base مطابق للقاعدة أعلاه. PR #3 **OPEN**، وGitHub أظهر `CLEAN` قبل تحديثه.
 - أعيد استخدام الفرع وPR #3 بدل استبدال الفرع أو نسخ DownloadService أو إنشاء PR مكرر. تغييرات التنزيل الأصلية موجودة في `b2e96d1` و`256399e` ثم تقارير `cd18c57` و`27ff8e5`؛ ليست إعادة تنفيذ في هذه الجولة.
-- فرق PR الأصلي مقابل main يحتوي16 ملفًا خاصًا بالتنزيل؛ الإضافات الحالية أدوات تدقيق واختبارات وتوثيق وCI، وتصحيح محدد لحقول Provenance المكررة في DownloadStaging. لا تغييرات Auth/Chat/Quiz/Schema/Gradle أو نقل من فرع UI/PR #12. آخر SHA قابل للتحقق في رأس PR؛ لا يوضع SHA ذاتي داخل الملف الذي ينشئه الالتزام.
+- فرق PR الأصلي مقابل main يحتوي16 ملفًا خاصًا بالتنزيل؛ الإضافات الحالية أدوات تدقيق واختبارات وتوثيق وCI، وتصحيح محدد لحقول Provenance المكررة في DownloadStaging. لا تغييرات Auth/Chat/Quiz/Schema/Gradle أو نقل من فرع UI/PR #12. التزام التدقيق `f3b42107944cd9d7059e97a97eabf1e1d517010b` وتصحيح Provenance `cab246d0957955197d1fb241ac8626d0be13776b` مرفوعان. الالتزام اللاحق لتحديث النتائج توثيق فقط؛ أحدث SHA في رأس PR. الإجمالي40 ملفًا مقابل main، منها16 ملفًا في التسليم السابق؛ لا تكرار Resource Validation المدمجة. لا يوضع SHA ذاتي داخل الملف الذي ينشئه الالتزام.
+- تعذر `gh pr edit` بخطأ GraphQL عن Projects Classic deprecated؛ نجح تحديث PR عبر GitHub REST الرسمي (open/merged=false). لا تجاوز صلاحيات أو Branch Protection.
 - لم يُدمج أي PR، ولم يُفتح `siraj-p0` أو جهاز المالك.
 
 ## 2. Artifact Inventory
@@ -176,7 +177,7 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 | تدقيق الموارد الخمسة الفعلية | PASS في البايتات/التغليف فقط |
 | Dart validators على3 موارد حقيقية | Hash/size PASS؛ format status وحدود الفحوص موثقة منفصلة |
 | Kotlin2.2.20 + AAR compile probe | **FAIL**؛ metadata2.4.0 غير مقبولة؛ خطأ توافق حقيقي لا regression في Flutter |
-| Android native storage test2 | NOT RUN محليًا؛ CI مستقل مضاف، نتيجته النهائية أدناه |
+| Android native storage target ذو2 حالات | PASS لوظيفة المحاكي؛ NOT RUN محليًا؛ لا AI AAR linked |
 
 التغطية المطلوبة14 حالة:
 
@@ -188,13 +189,15 @@ Metadata Provenance محدودة16KiB وUTF-8 صارم، ومربوطة بهوي
 | فشل بديل يحافظ على السابق | اختبارات transport/checkpoint وsentinel في اختبار رفضZIP |
 | لا تفعيل غير معتمد | tests الحالية لحالات repository/integrity/transport، وغياب أي persistence/activation API من أداة الاستلام |
 
-TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف5 (24)، وvector bundle أضاف5 (29)، ثم اختبار DEFLATE معطوب (30). أضيفت3 اختبارات Flutter للحالة المثبتة في Provenance فصار المجموع187 بعد إعادة التشغيل الكامل. تشمل الطفرات generated bad bytes والـrow binding والـNaN/zero vectors. هذه fixtures اختبارية معزولة وليست بيانات إنتاج. نتائج CI تربط أدناه بعد التشغيل الفعلي؛ تعريف workflow وحده ليس PASS.
+TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف5 (24)، وvector bundle أضاف5 (29)، ثم اختبار DEFLATE معطوب (30). أضيفت3 اختبارات Flutter للحالة المثبتة في Provenance فصار المجموع187 بعد إعادة التشغيل الكامل. تشمل الطفرات generated bad bytes والـrow binding والـNaN/zero vectors. هذه fixtures اختبارية معزولة وليست بيانات إنتاج. نتائج CI فعلية موثقة أدناه، مستقلة عن مجرد تعريف workflow.
 
 ## 13. Android Validation Status
 
 `flutter devices --machine` أظهر Linux فقط؛ لا adb/sdkmanager/emulator محليًا. لا ادعاء جهاز Android أو Samsung. الاختباران الجديدان يستدعيان MethodChannel الحقيقي للـStatFs ورفض Directory('/') على emulator فيCI، دون AI AAR أو تغيير Gradle.
 
-حتى نجاحهما يعني Android transport/storage boundary فقط؛ لا يثبت TLS/network/disk interruption على الهاتف ولا JNI/LLM/Embedding/airplane-mode/RAM/Latency. **G2/G3 وSamsung/arm64 physical device = PENDING DEVICE TEST /NOT RUN**. لا APK مبني مع هذه النماذج ولا Runtime initialization أو generation في المهمة.
+نجح تشغيل target الاختبارين على **Android API33 x86_64 emulator** في [CI الالتزام البرمجي cab246d](https://github.com/shehab5552/siraj-codex/actions/runs/42133037645). وظيفتا host-and-intake وandroid-storage بكل خطواتهما SUCCESS وفق GitHub API؛ [الأدلة](../qa/b07-resource-intake/ci-verification.json). تعذر جلب console logs بسبب CONNECT403 أعلاه، لذلك لم نقرأ عدّاد الحالات المطبوع من CI؛ الملف المحدد يحتوي testWidgets اثنتين بلا skip، ونجاح وظيفته هو الدليل المتاح. أعداد187/30 أعلاه محسوبة محليًا من التشغيل الكامل، ولا تُنسب إلى قراءة logs محجوبة.
+
+هذا النجاح يعني Android transport/storage boundary فقط؛ لا يثبت TLS/network/disk interruption على الهاتف ولا JNI/LLM/Embedding/airplane-mode/RAM/Latency. **G2/G3 وSamsung/arm64 physical device = PENDING DEVICE TEST /NOT RUN**. لا APK مبني مع هذه النماذج ولا Runtime initialization أو generation في المهمة.
 
 ## 14. Known Limitations
 
@@ -204,6 +207,7 @@ TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف
 - بيانات الوحدتين Pilot؛ source PDFs/Golden/بعض مراحل validation غير مرفقة. فحص JSON/finite vectors ليس Grounding أو Recall@5 أو Scientific Gold.
 - normalization/tie/filter متباينة أو مؤقتة، ولا يجوز تحويل defaults أو policy عابرة إلى قرار علمي.
 - أداة ZIP developer audit مستقلة عن أي extractor/pack validator في التطبيق؛ لا نزعم تنفيذ ذلك لمجرد نجاحها.
+- ظهرت تنبيهات CI إرشادية عن Node20/action versions وsetup-java v4 deprecated وانتقال ubuntu-latest؛ الوظائف انتهت SUCCESS. لم نغير toolchain لمعالجة تنبيه غير مانع في هذا التسليم.
 - هذه الجولة لا تكمل UI/Production Auth أو PR12 ولا تختبر كامل فرع التكامل؛ لا تغيير نطاق صامت.
 
 ## 15. Remaining Blockers
@@ -220,6 +224,6 @@ TDD: common/archive بدأ19 اختبارًا RED ثم GREEN؛ Manifest أضاف
 
 ## 16. Pull Request URL
 
-[PR #3 — codex/b07-independent-download-01 → main](https://github.com/shehab5552/siraj-codex/pull/3). يعاد استخدامه لأنه نفس الفرع المطلوب ونفس أساس B-07؛ يظل مفتوحًا دون Merge. آخر Commit وFiles Changed وروابط CI في رأسPR وسجل تسليمه. تُحدّث نتائج CI بعد ظهور تشغيل فعلي، ولا يصنف workflow المضاف وحده PASS.
+[PR #3 — codex/b07-independent-download-01 → main](https://github.com/shehab5552/siraj-codex/pull/3). يعاد استخدامه لأنه نفس الفرع المطلوب ونفس أساس B-07؛ يظل مفتوحًا دون Merge. [Commit التصحيح المختبر](https://github.com/shehab5552/siraj-codex/commit/cab246d0957955197d1fb241ac8626d0be13776b)؛ [CI ناجح لكلا الوظائف](https://github.com/shehab5552/siraj-codex/actions/runs/42133037645). تشغيل42133032037 للحدث المكرر أُلغي آليًا بواسطة concurrency، وليس إخفاق اختبار. آخر Commit توثيقي وFiles Changed في رأسPR؛ لم تتغير ملفات التنفيذ بعد الشاهد البرمجي المذكور. تشغيل CI على أي تحديث توثيقي لاحق يظهر في Checks دون الادعاء بنتيجته مسبقًا.
 
 مراجع format أولية مثبتة: [FBS schema](https://github.com/google-ai-edge/LiteRT-LM/blob/83ce6067f2e2a3fb697556928f93936693ded971/schema/core/litertlm_header_schema.fbs)، [core constants](https://github.com/google-ai-edge/LiteRT-LM/blob/83ce6067f2e2a3fb697556928f93936693ded971/python/litert_lm_builder/litertlm_core.py)، [tokenizer builder](https://github.com/google-ai-edge/LiteRT-LM/blob/83ce6067f2e2a3fb697556928f93936693ded971/python/litert_lm_builder/litertlm_builder.py)، [LLM proto](https://github.com/google-ai-edge/LiteRT-LM/blob/83ce6067f2e2a3fb697556928f93936693ded971/runtime/proto/llm_metadata.proto)، [embedding proto](https://github.com/google-ai-edge/LiteRT-LM/blob/83ce6067f2e2a3fb697556928f93936693ded971/runtime/proto/embedding_metadata.proto).

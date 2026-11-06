@@ -47,12 +47,12 @@ Files: `tool/staging_resource_integrity_probe.dart`, curated evidence under `doc
 
 Files: `integration_test/b07_download_storage_test.dart`, `.github/workflows/b07-resource-intake-verification.yml`.
 
-- [ ] Preserve and rerun existing real TLS transport regression cases covering success/interruption/resume/range/ETag/pause/cancel/IO/provenance/integrity/active-resource safety.
-- [ ] Add native Android tests for actual private-directory free space and outside-path rejection; no AI AAR is loaded or linked.
-- [ ] CI runs pinned SDK/lockfile/analyze/full Flutter/Python checks and isolated Android storage tests, with only small evidence outputs published. Physical device/model loading remain pending.
+- [x] Preserve and rerun existing real TLS transport regression cases covering success/interruption/resume/range/ETag/pause/cancel/IO/provenance/integrity/active-resource safety.
+- [x] Add native Android tests for actual private-directory free space and outside-path rejection; no AI AAR is loaded or linked.
+- [x] CI runs pinned SDK/lockfile/analyze/full Flutter/Python checks and isolated Android storage tests, with only small evidence outputs published. Physical device/model loading remain pending.
 
 ## Task4: Review and delivery
 
-- [ ] Run changed Dart format, full tests, diff review and two independent review axes; fix concrete findings.
-- [ ] Write all16 required report sections in `docs/reports/B-07_RESOURCE_INTAKE_AND_DOWNLOAD_01_AR.md`, link current evidence and update dated readiness notes.
-- [ ] Commit/push requested existing branch, update PR3 for review, record actual CI and exact errors. No merge and no automatic runtime integration/RAG activation.
+- [x] Run changed Dart format, full tests, diff review and two independent review axes; fix concrete findings.
+- [x] Write all16 required report sections in `docs/reports/B-07_RESOURCE_INTAKE_AND_DOWNLOAD_01_AR.md`, link current evidence and update dated readiness notes.
+- [x] Commit/push requested existing branch, update PR3 for review, record actual CI and exact errors. No merge and no automatic runtime integration/RAG activation.

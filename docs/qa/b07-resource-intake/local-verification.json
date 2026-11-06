@@ -14,7 +14,7 @@
   },
   "native_storage_tests": {
     "defined": 2,
-    "status": "NOT RUN locally; CI pending"
+    "status": "NOT RUN locally; successful emulator CI is recorded separately in ci-verification.json"
   },
   "model_execution": "NOT RUN",
   "physical_device": "PENDING DEVICE TEST",
