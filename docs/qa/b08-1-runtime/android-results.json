@@ -1,0 +1,467 @@
+{
+  "source_commit": "4951875ae5ce09ff5ff396fca827428ab4f58de8",
+  "run_id": 42301592619,
+  "ci_url": "https://github.com/shehab5552/siraj-codex/actions/runs/42301592619",
+  "conclusion": "success",
+  "completed_at": "2026-11-06T22:13:05Z",
+  "jobs": [
+    {
+      "id": 128180463444,
+      "name": "model-license-audit",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Python fixture and evidence regression tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Public license provenance for exact pinned weights (no inference)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Review Qwen3 model_card_text",
+          "conclusion": "success"
+        },
+        {
+          "name": "Review Qwen3 license_text",
+          "conclusion": "success"
+        },
+        {
+          "name": "Review EmbeddingGemma model_card_text",
+          "conclusion": "success"
+        },
+        {
+          "name": "Review EmbeddingGemma license_text",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 128180464061,
+      "name": "compatibility-investigation",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run gradle/actions/setup-gradle@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Actual fixed Maven POM and AAR identity",
+          "conclusion": "success"
+        },
+        {
+          "name": "Resolve actual dependency graph with Gradle8.14",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run gradle/actions/setup-gradle@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 128180705595,
+      "name": "android-build-and-jni",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run gradle/actions/setup-gradle@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter pub get --enforce-lockfile",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run dart format --output=none --set-exit-if-changed lib test integration_test/b08_runtime_library_test.dart integration_test/b08_real_models_test.dart integration_test/b08_android_acceptance_test.dart",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter analyze --no-pub",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run flutter test --no-pub --machine > \"$RUNNER_TEMP/b08-flutter-tests.jsonl\"",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run bash tool/ai_runtime/run_core_tests.sh",
+          "conclusion": "success"
+        },
+        {
+          "name": "Actual Flutter Debug and Release APK (D8 and R8)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Inspect actual APKs and native ELF ABIs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Approved licensed engineering model fixture preparation",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run sudo chmod 666 /dev/kvm",
+          "conclusion": "success"
+        },
+        {
+          "name": "Actual Android regression, JNI and licensed offline inference",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/upload-artifact@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run subosito/flutter-action@v2",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run gradle/actions/setup-gradle@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "apks": [
+    {
+      "apk": "app-release.apk",
+      "size_bytes": 104731977,
+      "sha256": "47e644fb8775957a10912e985fdd365b431482bffe87d525794554eccd103987",
+      "classes_verified": [
+        "com.google.ai.edge.litertlm.Engine",
+        "com.google.ai.edge.litertlm.EmbeddingEngine"
+      ],
+      "native": [
+        {
+          "abi": "arm64-v8a",
+          "machine": 183,
+          "size_bytes": 22692848,
+          "sha256": "dfa2ce1c9d13ec0bcc71d40937a26d0c9850715dca3339107cec35167286af2d",
+          "readelf_passed": true
+        },
+        {
+          "abi": "x86_64",
+          "machine": 62,
+          "size_bytes": 26847192,
+          "sha256": "687ad50b6d0baca890e4a957cf8706958f5bf037fed0928a6ecdc5a169f4dfb1",
+          "readelf_passed": true
+        }
+      ],
+      "r8_mapping_verified": true,
+      "model_execution": "NOT RUN",
+      "g2": "NOT RUN",
+      "g3": "NOT RUN"
+    },
+    {
+      "apk": "app-debug.apk",
+      "size_bytes": 206697040,
+      "sha256": "8ad5ea1cf384155e88c8d4054971ed61320fc9f3cff17b63bbd8dc0515ad554b",
+      "classes_verified": [
+        "com.google.ai.edge.litertlm.Engine",
+        "com.google.ai.edge.litertlm.EmbeddingEngine"
+      ],
+      "native": [
+        {
+          "abi": "arm64-v8a",
+          "machine": 183,
+          "size_bytes": 22692848,
+          "sha256": "dfa2ce1c9d13ec0bcc71d40937a26d0c9850715dca3339107cec35167286af2d",
+          "readelf_passed": true
+        },
+        {
+          "abi": "x86_64",
+          "machine": 62,
+          "size_bytes": 26847192,
+          "sha256": "687ad50b6d0baca890e4a957cf8706958f5bf037fed0928a6ecdc5a169f4dfb1",
+          "readelf_passed": true
+        }
+      ],
+      "r8_mapping_verified": false,
+      "model_execution": "NOT RUN",
+      "g2": "NOT RUN",
+      "g3": "NOT RUN"
+    }
+  ],
+  "android_targets": [
+    {
+      "target": "b08_android_acceptance_test",
+      "status": "PASS",
+      "exit_code": 0,
+      "evidence_complete": true,
+      "errors": [],
+      "metrics": [
+        {
+          "scope": "X86_64_EMULATOR_ENGINEERING_ONLY",
+          "g2": "BLOCKED",
+          "g3": "BLOCKED",
+          "productionResourcesApproved": false,
+          "benchmarkPolicy": "SDK experimental counters enabled in Debug only; absent/invalid counters remain unmeasured",
+          "applicationNetworkProbe": "api.github.com:443 connection unavailable",
+          "embeddingInitializeMs": 831,
+          "embeddingQueries": [
+            {
+              "dimensions": 768,
+              "l2Norm": 1.0000002301778477,
+              "elapsedMs": 372.291537,
+              "finite": true,
+              "zero": false
+            },
+            {
+              "dimensions": 768,
+              "l2Norm": 1.0000001706119175,
+              "elapsedMs": 368.812638,
+              "finite": true,
+              "zero": false
+            },
+            {
+              "dimensions": 768,
+              "l2Norm": 1.000000020491526,
+              "elapsedMs": 334.397506,
+              "finite": true,
+              "zero": false
+            }
+          ],
+          "embeddingOptions": "nullable SDK defaults; no adopted Dataset parity policy",
+          "embeddingCloseConfirmed": true,
+          "llmInitializeMs": 2569,
+          "llmGenerations": [
+            {
+              "firstTextChunkMs": 4195,
+              "totalMs": 6697,
+              "chunks": 3,
+              "characters": 7,
+              "terminalCount": 1,
+              "sdkBenchmark": {
+                "initializeSeconds": 3.674891453,
+                "firstTokenSeconds": 3.4096255885,
+                "prefillTokens": 5,
+                "decodeTokens": 7,
+                "prefillTokensPerSecond": 2.276663084044373,
+                "decodeTokensPerSecond": 5.62645166873837
+              },
+              "sdkBenchmarkStatus": "MEASURED"
+            },
+            {
+              "firstTextChunkMs": 2932,
+              "totalMs": 5633,
+              "chunks": 5,
+              "characters": 9,
+              "terminalCount": 1,
+              "sdkBenchmark": {
+                "initializeSeconds": 3.674877591,
+                "firstTokenSeconds": 2.351935069,
+                "prefillTokens": 7,
+                "decodeTokens": 9,
+                "prefillTokensPerSecond": 3.308130486152204,
+                "decodeTokensPerSecond": 6.909653799082243
+              },
+              "sdkBenchmarkStatus": "MEASURED"
+            },
+            {
+              "firstTextChunkMs": 2888,
+              "totalMs": 5532,
+              "chunks": 4,
+              "characters": 7,
+              "terminalCount": 1,
+              "sdkBenchmark": {
+                "initializeSeconds": 3.674872094,
+                "firstTokenSeconds": 2.2943019035,
+                "prefillTokens": 6,
+                "decodeTokens": 8,
+                "prefillTokensPerSecond": 2.754945125467109,
+                "decodeTokensPerSecond": 6.63704581327646
+              },
+              "sdkBenchmarkStatus": "MEASURED"
+            }
+          ],
+          "flutterNativeTerminalConsistent": true,
+          "nativeCancellationDrainMs": 148,
+          "cancellationProbeAndCloseTotalMs": 3149,
+          "nativeCancellationTerminal": "generationCancelled",
+          "cancellationAttempts": 1,
+          "llmReloadMs": 2219,
+          "status": "PASS",
+          "modelInferenceExecuted": true,
+          "failureCount": 0,
+          "assertedNonemptyCompletionCount": 4,
+          "generationAttemptCount": 5,
+          "cancelProbeNormalCompletions": 0,
+          "embeddingQueryCount": 3,
+          "memorySamples": 140,
+          "sampledPeakPssKb": 2033731,
+          "sampledPeakNativeHeapBytes": 1260897488,
+          "memorySamplePeriodMs": 250,
+          "memoryCaveat": "sampled app process peaks, not guaranteed absolute peaks or co-residency approval"
+        }
+      ],
+      "flutter_reported_cases": {
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "offline_preparation": [
+    {
+      "status": "PASS",
+      "scope": "DEBUG_ENGINEERING_FIXTURE_ONLY",
+      "model_bytes_verified": true,
+      "device_model_sha256_verified": true,
+      "controls": [
+        {
+          "command": "cmd connectivity airplane-mode enable",
+          "exit_code": 0
+        }
+      ],
+      "wifi_setting": "0",
+      "mobile_data_setting": "0",
+      "active_default_network": "none",
+      "default_route_count": 3,
+      "activation_performed": false
+    }
+  ],
+  "fixture_verification": [
+    {
+      "status": "PASS",
+      "scope": "CI_TEST_FIXTURE_ONLY",
+      "artifacts": [
+        {
+          "size_bytes": 613722264,
+          "sha256": "c5f39b4191926786c3e6668b62af4d6eb15248dfc7a5348252a9b406f33f2108"
+        },
+        {
+          "size_bytes": 164626432,
+          "sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb"
+        }
+      ],
+      "activation_performed": false
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13544957654,
+      "name": "b08-app-apks-and-build-evidence",
+      "size_bytes": 148999341,
+      "expired": false,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42301592619/artifacts/13544957654"
+    },
+    {
+      "id": 13544128164,
+      "name": "b08-model-license-evidence",
+      "size_bytes": 14884,
+      "expired": false,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42301592619/artifacts/13544128164"
+    },
+    {
+      "id": 13543789861,
+      "name": "b08-android-and-model-results",
+      "size_bytes": 2725,
+      "expired": false,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42301592619/artifacts/13543789861"
+    },
+    {
+      "id": 13543757660,
+      "name": "b08-dependency-investigation",
+      "size_bytes": 3288,
+      "expired": false,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42301592619/artifacts/13543757660"
+    }
+  ],
+  "historical_runs": [
+    {
+      "source_commit": "57943be95e8c289786f719d8b4d9da154116e4f6",
+      "run_id": 42299971567,
+      "conclusion": "success",
+      "android_cases": {
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0
+      },
+      "note": "Intermediate lifecycle implementation before Tutor/Coordinator final correction; not reused as final-source proof"
+    }
+  ],
+  "physical_samsung": "PENDING DEVICE TEST",
+  "g2": "BLOCKED",
+  "g3": "BLOCKED"
+}
