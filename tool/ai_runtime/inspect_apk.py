@@ -19,8 +19,7 @@ def main():
     args=parser.parse_args()
     if args.mapping is not None:
         assert args.mapping.is_file() and args.mapping.stat().st_size>0, 'R8 mapping missing'
-    classes=['com.google.ai.edge.litertlm.Engine','com.google.ai.edge.litertlm.EmbeddingEngine',
-             'com.example.siraj.ai_runtime.RuntimeLibraryProbe']
+    classes=['com.google.ai.edge.litertlm.Engine','com.google.ai.edge.litertlm.EmbeddingEngine']
     for name in classes:
         subprocess.run([args.apkanalyzer,'dex','code','--class',name,str(args.apk)],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
     native=[]
@@ -46,4 +45,11 @@ def main():
     print('::notice title=B08 APK inspection::'+json.dumps(report,separators=(',',':')))
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    try:main()
+    except Exception as error:
+        message=str(error)
+        if isinstance(error,subprocess.CalledProcessError):
+            message+=' '+(error.stderr or b'').decode('utf8','replace')[-2500:]
+        print('::error title=B08 APK inspection failed::'+message.replace('%','%25').replace('\n','%0A').replace('\r','%0D'))
+        raise

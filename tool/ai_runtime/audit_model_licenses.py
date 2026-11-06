@@ -96,8 +96,15 @@ def main():
     ]
     (directory/'model-license-audit.json').write_text(json.dumps(reports,indent=2)+'\n')
     for report in reports:
-        message=json.dumps(report,separators=(',',':')).replace('%','%25')
-        print('::notice title=B08 model license '+report['label']+'::'+message)
+        summary={k:v for k,v in report.items() if k not in ('license_text','model_card_text')}
+        print('::notice title=B08 model license '+report['label']+'::'+json.dumps(summary,separators=(',',':')).replace('%','%25'))
+        # Checks annotations truncate a single message at4096 characters. Keep
+        # bounded, numbered public-license evidence segments independently valid.
+        for field in ['model_card_text','license_text']:
+            text=report.get(field,'');parts=[text[i:i+1800] for i in range(0,len(text),1800)]
+            for index,part in enumerate(parts):
+                value=dict(label=report['label'],field=field,index=index,total=len(parts),text=part)
+                print('::notice title=B08 license document::'+json.dumps(value,separators=(',',':')).replace('%','%25'))
 
 
 if __name__=='__main__':main()
