@@ -58,7 +58,7 @@ class GroundedTutorService implements TutorPort {
             break;
         }
       }
-      if (!completed || text.isEmpty) {
+      if (!completed || text.toString().trim().isEmpty) {
         return TutorResult.error(TutorReason.generationFailed);
       }
       if (!evidence.isRevisionCurrent(context.revision)) {

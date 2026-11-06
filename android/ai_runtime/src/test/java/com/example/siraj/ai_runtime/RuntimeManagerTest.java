@@ -72,6 +72,9 @@ public final class RuntimeManagerTest {
     await(recovering.close(false));retry.throwCancel=false;
     await(recovering.initialize("llm",false));await(recovering.generate("clean-reload","system","input"));
     CompletableFuture<Void> secondClose=recovering.close(false);retry.callback.done();await(secondClose);await(recovering.dispose());passed.incrementAndGet();
+    Fake blank=new Fake();List<String> blankEvents=new CopyOnWriteArrayList<>();RuntimeManager blankManager=create(blank,blankEvents);
+    await(blankManager.initialize("llm",false));await(blankManager.generate("blank","system","input"));blank.callback.chunk("   ");blank.callback.done();await(blankManager.close(false));
+    check(blankEvents.stream().anyMatch(e->e.contains("generationFailed")));check(blankEvents.stream().noneMatch(e->e.contains("generationCompleted")));await(blankManager.dispose());passed.incrementAndGet();
     System.out.println("RuntimeManagerTest: "+passed+" passed (fake contracts, not inference)");
   }
 }

@@ -27,7 +27,7 @@ public final class RuntimeManager {
   private static final class Request {
     final String id; final AtomicBoolean terminal=new AtomicBoolean();
     RuntimeBackend.Conversation conversation; boolean cancelled; int sequence;
-    int characters; RuntimeFailure.Code failure;
+    int characters; boolean hasNonBlankText; RuntimeFailure.Code failure;
     Request(String id) { this.id=id; }
   }
   public RuntimeManager(RuntimeBackend backend,Resolver resolver,Events events) {
@@ -84,7 +84,7 @@ public final class RuntimeManager {
               if(text==null || request.characters+text.length()>262144) {
                 request.failure=RuntimeFailure.Code.generationFailed;request.conversation.cancel();return null;
               }
-              request.characters+=text.length();emit(request,"generationChunk",text,null);return null;
+              request.characters+=text.length();request.hasNonBlankText|=!text.trim().isEmpty();emit(request,"generationChunk",text,null);return null;
             });
           }
           public void done() { terminal(null); }
@@ -108,7 +108,7 @@ public final class RuntimeManager {
     if(active!=r)return;
     RuntimeMetrics metrics=null;
     if(r.conversation!=null) {
-      if(!r.cancelled && r.failure==null && code==null && r.characters>0) {
+      if(!r.cancelled && r.failure==null && code==null && r.hasNonBlankText) {
         try { metrics=r.conversation.metrics(); }
         catch(Throwable ignored) { /* Optional benchmark unavailable; no invented values. */ }
       }
@@ -119,7 +119,7 @@ public final class RuntimeManager {
     RuntimeFailure.Code failure=r.failure!=null?r.failure:code;
     if(r.cancelled)emit(r,"generationCancelled",null,null);
     else if(failure!=null)emit(r,"generationFailed",null,failure.name());
-    else if(r.characters==0)emit(r,"generationFailed",null,RuntimeFailure.Code.unsupportedContent.name());
+    else if(!r.hasNonBlankText)emit(r,"generationFailed",null,RuntimeFailure.Code.generationFailed.name());
     else emit(r,"generationCompleted",null,null,metrics);
     if(closingLlm!=null) {
       CompletableFuture<Void> f=closingLlm;closingLlm=null;

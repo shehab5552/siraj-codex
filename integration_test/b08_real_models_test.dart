@@ -144,6 +144,7 @@ void main() {
           ]) {
             stage = 'llmGenerate';
             final elapsed = Stopwatch()..start();
+            final actualText = StringBuffer();
             int? firstChunk;
             int chunks = 0, characters = 0, terminals = 0;
             AiGenerationEventType? terminal;
@@ -160,6 +161,7 @@ void main() {
                 firstChunk ??= elapsed.elapsedMilliseconds;
                 chunks++;
                 characters += event.text!.length;
+                actualText.write(event.text);
               }
               if ([
                 AiGenerationEventType.completed,
@@ -174,6 +176,7 @@ void main() {
             expect(terminal, AiGenerationEventType.completed);
             expect(terminals, 1);
             expect(characters, greaterThan(0));
+            expect(actualText.toString().trim().isNotEmpty, isTrue);
             generations.add({
               'firstTextChunkMs': firstChunk,
               'totalMs': elapsed.elapsedMilliseconds,

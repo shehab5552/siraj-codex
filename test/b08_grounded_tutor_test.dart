@@ -142,6 +142,24 @@ void main() {
     expect((await f).reason, TutorReason.cancelled);
     expect(runtime.cancels, 1);
   });
+  test(
+    'whitespace-only native output is a typed operational failure',
+    () async {
+      final result = GroundedTutorService(
+        runtime: runtime,
+        evidence: evidence,
+      ).ask('question', TutorCancellation());
+      await flush();
+      runtime.output.add(
+        const AiGenerationEvent(AiGenerationEventType.chunk, text: '   \n'),
+      );
+      runtime.output.add(
+        const AiGenerationEvent(AiGenerationEventType.completed),
+      );
+      unawaited(runtime.output.close());
+      expect((await result).reason, TutorReason.generationFailed);
+    },
+  );
   test('reference shape and mixed revisions rejected', () {
     expect(
       () => SourceReference(packId: '', chunkId: 'c', datasetRevision: 'r'),
