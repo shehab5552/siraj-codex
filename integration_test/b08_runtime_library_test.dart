@@ -14,5 +14,19 @@ void main() {
     expect(status?['abi'], anyOf('arm64-v8a', 'x86_64'));
     expect(status?['llmInitialized'], isFalse);
     expect(status?['embeddingInitialized'], isFalse);
+    await expectLater(
+      const MethodChannel('siraj/ai_runtime/methods_v1').invokeMethod<void>(
+        'initializeLlm',
+        {'resourceId': '/data/local/tmp/arbitrary-file'},
+      ),
+      throwsA(
+        isA<PlatformException>().having(
+          (error) => error.code,
+          'code',
+          'resourceUnavailable',
+        ),
+      ),
+    );
+    expect(status?['productionResourcesApproved'], isFalse);
   });
 }

@@ -1,0 +1,100 @@
+[
+  {
+    "label": "EmbeddingGemma",
+    "expected_sha256": "2d079ee2f6f066b1f368e8d7c819f55214eaef1d0513b312321901f30ab286fb",
+    "artifact_matched": true,
+    "permission_status": "PENDING ENGINEERING LICENSE REVIEW",
+    "attempts": [
+      {
+        "model": "litert-community/embeddinggemma-2-text-270m-litert-lm",
+        "hostname": "huggingface.co",
+        "http_status": 200
+      }
+    ],
+    "model": "litert-community/embeddinggemma-2-text-270m-litert-lm",
+    "revision": "9be6e8b90982095dc05c2bd162e4b954ee4dbac7",
+    "weight_files": [
+      "embeddinggemma-2-text-270m.litertlm"
+    ],
+    "declared_license": "apache-2.0",
+    "card_data": {
+      "license": "apache-2.0",
+      "base_model": [
+        "google/embeddinggemma-2"
+      ],
+      "tags": [
+        "litert-lm"
+      ]
+    },
+    "model_card_source": "https://huggingface.co/litert-community/embeddinggemma-2-text-270m-litert-lm/raw/9be6e8b90982095dc05c2bd162e4b954ee4dbac7/README.md",
+    "model_card_http": {
+      "hostname": "huggingface.co",
+      "http_status": 200
+    },
+    "license_source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "license_http": {
+      "hostname": "www.apache.org",
+      "http_status": 200
+    },
+    "license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "engineering_review": "PASS",
+    "permitted_scope": "isolated local engineering inference; no weight redistribution in APK/Git",
+    "license_sections_reviewed": "1-9 and appendix",
+    "production_catalog_approval": false,
+    "reviewed_card_text_sha256": "879eeccd38b0b26cad846ed848b36d5c6b198c2353915cd8797d6d84d3cc2826",
+    "card_review_rendering": "decorative SVG omitted; raw original retained in CI audit artifact"
+  },
+  {
+    "label": "Qwen3",
+    "expected_sha256": "c5f39b4191926786c3e6668b62af4d6eb15248dfc7a5348252a9b406f33f2108",
+    "artifact_matched": true,
+    "permission_status": "PENDING ENGINEERING LICENSE REVIEW",
+    "attempts": [
+      {
+        "model": "litert-community/Qwen3-0.6B",
+        "hostname": "huggingface.co",
+        "http_status": 200
+      }
+    ],
+    "model": "litert-community/Qwen3-0.6B",
+    "revision": "7c650468cc1598861b1a0deb0ab25be6b20cab13",
+    "weight_files": [
+      "Qwen3-0.6B.litertlm"
+    ],
+    "declared_license": "apache-2.0",
+    "card_data": {
+      "language": [
+        "en"
+      ],
+      "license": "apache-2.0",
+      "license_link": "https://huggingface.co/Qwen/Qwen3-0.6B/blob/main/LICENSE",
+      "pipeline_tag": "text-generation",
+      "base_model": "Qwen/Qwen3-0.6B",
+      "base_model_relation": "quantized",
+      "library_name": "litert-lm",
+      "tags": [
+        "litert-lm",
+        "litertlm",
+        "qwen",
+        "Qwen3"
+      ]
+    },
+    "model_card_source": "https://huggingface.co/litert-community/Qwen3-0.6B/raw/7c650468cc1598861b1a0deb0ab25be6b20cab13/README.md",
+    "model_card_http": {
+      "hostname": "huggingface.co",
+      "http_status": 200
+    },
+    "license_source": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+    "license_http": {
+      "hostname": "www.apache.org",
+      "http_status": 200
+    },
+    "license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "engineering_review": "PASS",
+    "permitted_scope": "isolated local engineering inference; no weight redistribution in APK/Git",
+    "license_sections_reviewed": "1-9 and appendix",
+    "production_catalog_approval": false,
+    "reviewed_card_text_sha256": "2e930457c873c21c8f326322a9462dd1f962c1b26bb845f19fdd770d11c61cc2",
+    "card_review_rendering": "decorative SVG omitted; raw original retained in CI audit artifact"
+  }
+]
