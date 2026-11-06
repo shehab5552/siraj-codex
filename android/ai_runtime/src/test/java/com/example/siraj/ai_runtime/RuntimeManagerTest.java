@@ -10,9 +10,19 @@ public final class RuntimeManagerTest {
     volatile Callback callback;
     volatile boolean cancelled, throwCancel, throwCloseOnce;
     final CountDownLatch cancelEntered=new CountDownLatch(1);
-    volatile int closed, conversations;
+    volatile int closed, conversations, initializations;
+    volatile boolean failInitialize;
+    volatile CountDownLatch initializeEntered, initializeRelease;
     volatile float[] vector = vector();
-    public Llm loadLlm(File path) { return new Llm() {
+    public Llm loadLlm(File path) {
+      initializations++;
+      if(initializeEntered!=null) {
+        initializeEntered.countDown();
+        try { if(!initializeRelease.await(3,TimeUnit.SECONDS))throw new AssertionError("test gate timed out"); }
+        catch(InterruptedException error) {Thread.currentThread().interrupt();throw new IllegalStateException("test interrupted");}
+      }
+      if(failInitialize)throw new IllegalStateException("isolated test initialization failure");
+      return new Llm() {
       public Conversation conversation(String system) {
         conversations++;
         return new Conversation() {
@@ -75,6 +85,13 @@ public final class RuntimeManagerTest {
     Fake blank=new Fake();List<String> blankEvents=new CopyOnWriteArrayList<>();RuntimeManager blankManager=create(blank,blankEvents);
     await(blankManager.initialize("llm",false));await(blankManager.generate("blank","system","input"));blank.callback.chunk("   ");blank.callback.done();await(blankManager.close(false));
     check(blankEvents.stream().anyMatch(e->e.contains("generationFailed")));check(blankEvents.stream().noneMatch(e->e.contains("generationCompleted")));await(blankManager.dispose());passed.incrementAndGet();
+    Fake gated=new Fake();gated.initializeEntered=new CountDownLatch(1);gated.initializeRelease=new CountDownLatch(1);
+    RuntimeManager serial=create(gated,new CopyOnWriteArrayList<>());CompletableFuture<Void> init1=serial.initialize("llm",false);
+    check(gated.initializeEntered.await(2,TimeUnit.SECONDS));CompletableFuture<Void> init2=serial.initialize("llm",false);check(!init2.isDone());
+    gated.initializeRelease.countDown();await(init1);failure(init2,RuntimeFailure.Code.busy);check(gated.initializations==1);await(serial.dispose());passed.incrementAndGet();
+    Fake broken=new Fake();broken.failInitialize=true;RuntimeManager retryInit=create(broken,new CopyOnWriteArrayList<>());
+    failure(retryInit.initialize("llm",false),RuntimeFailure.Code.initializationFailed);check(!retryInit.llmLoaded());broken.failInitialize=false;
+    await(retryInit.initialize("llm",false));check(retryInit.llmLoaded());await(retryInit.dispose());passed.incrementAndGet();
     System.out.println("RuntimeManagerTest: "+passed+" passed (fake contracts, not inference)");
   }
 }

@@ -3,6 +3,16 @@ name: B08 LiteRT runtime verification
 on:
   push:
     branches: [codex/b08-litertlm-android-runtime-01]
+    # Reports capture an already-verified source revision; updating evidence
+    # must not recursively rebuild different APK hashes. Program inputs such as
+    # model-license-review.json are deliberately NOT excluded.
+    paths-ignore:
+      - 'docs/reports/**'
+      - 'docs/qa/b08-runtime/android-build-history.json'
+      - 'docs/qa/b08-runtime/android-final-results.json'
+      - 'docs/qa/b08-runtime/local-final-results.json'
+      - 'docs/qa/b08-runtime/review.md'
+      - 'docs/qa/b08-runtime/files-changed.txt'
   pull_request:
     types: [opened, reopened]
     branches: [codex/b07-independent-download-01, main]
@@ -27,6 +37,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Python fixture and evidence regression tests
+        run: python3 -m unittest discover -s tool/tests
       - name: Public license provenance for exact pinned weights (no inference)
         run: python3 -B tool/ai_runtime/audit_model_licenses.py "$RUNNER_TEMP/b08-licenses"
       - name: Review Qwen3 model_card_text
