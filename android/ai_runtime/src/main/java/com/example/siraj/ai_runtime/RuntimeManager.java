@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  * No blocking work or future.get() runs on Android's main thread. */
 public final class RuntimeManager {
   public interface Resolver { File resolve(String id, boolean embedding); }
-  public interface Events { void event(String id, String type, int sequence, String text, String code); }
+  public interface Events { void event(String id, String type, int sequence, String text, String code, RuntimeMetrics metrics); }
   private final RuntimeBackend backend;
   private final Resolver resolver;
   private final Events events;
@@ -99,13 +99,19 @@ public final class RuntimeManager {
       return null;
     });
   }
-  private void emit(Request r,String type,String text,String code) {
-    try { events.event(r.id,type,r.sequence++,text,code); }
+  private void emit(Request r,String type,String text,String code) { emit(r,type,text,code,null); }
+  private void emit(Request r,String type,String text,String code,RuntimeMetrics metrics) {
+    try { events.event(r.id,type,r.sequence++,text,code,metrics); }
     catch(RuntimeException ignored) { /* Detached listener cannot leak native handles. */ }
   }
   private void finish(Request r,RuntimeFailure.Code code) {
     if(active!=r)return;
+    RuntimeMetrics metrics=null;
     if(r.conversation!=null) {
+      if(!r.cancelled && r.failure==null && code==null && r.characters>0) {
+        try { metrics=r.conversation.metrics(); }
+        catch(Throwable ignored) { /* Optional benchmark unavailable; no invented values. */ }
+      }
       try { r.conversation.close(); }
       catch(Throwable e) { code=sanitized(e,RuntimeFailure.Code.generationFailed).code; }
     }
@@ -114,7 +120,7 @@ public final class RuntimeManager {
     if(r.cancelled)emit(r,"generationCancelled",null,null);
     else if(failure!=null)emit(r,"generationFailed",null,failure.name());
     else if(r.characters==0)emit(r,"generationFailed",null,RuntimeFailure.Code.unsupportedContent.name());
-    else emit(r,"generationCompleted",null,null);
+    else emit(r,"generationCompleted",null,null,metrics);
     if(closingLlm!=null) {
       CompletableFuture<Void> f=closingLlm;closingLlm=null;
       RuntimeFailure.Code pendingCloseFailure=closeFailure;closeFailure=null;

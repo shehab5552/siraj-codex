@@ -7,6 +7,7 @@ import com.example.siraj.ai_runtime.TrustedResourceResolver;
  * in docs/qa/b08-runtime/model-license-review.json. No release source set,
  * production catalog, model URL, override or model binary is supplied here. */
 public final class AiResourceCatalog {
+  public static boolean benchmarkEnabled() { return true; }
   public static TrustedResourceResolver create(File files) {
     try {
       // Context.filesDir is trusted and may include an OS-managed alias. Pin

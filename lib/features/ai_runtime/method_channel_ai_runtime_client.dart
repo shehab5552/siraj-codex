@@ -171,7 +171,10 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
       case 'generationCompleted':
         _terminate(
           run,
-          const AiGenerationEvent(AiGenerationEventType.completed),
+          AiGenerationEvent(
+            AiGenerationEventType.completed,
+            benchmark: _benchmark(raw['benchmark']),
+          ),
         );
       case 'generationCancelled':
         _terminate(
@@ -189,6 +192,40 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
       default:
         _protocol(run);
     }
+  }
+
+  AiGenerationBenchmark? _benchmark(Object? raw) {
+    if (raw is! Map) return null;
+    const names = [
+      'initializeSeconds',
+      'firstTokenSeconds',
+      'prefillTokensPerSecond',
+      'decodeTokensPerSecond',
+    ];
+    if (names.any(
+      (key) =>
+          raw[key] is! num ||
+          !(raw[key] as num).isFinite ||
+          (raw[key] as num) < 0,
+    )) {
+      return null;
+    }
+    final prefill = raw['prefillTokens'], decode = raw['decodeTokens'];
+    if (prefill is! int ||
+        decode is! int ||
+        prefill < 0 ||
+        decode <= 0 ||
+        (raw['decodeTokensPerSecond'] as num) <= 0) {
+      return null;
+    }
+    return AiGenerationBenchmark(
+      initializeSeconds: (raw['initializeSeconds'] as num).toDouble(),
+      firstTokenSeconds: (raw['firstTokenSeconds'] as num).toDouble(),
+      prefillTokens: prefill,
+      decodeTokens: decode,
+      prefillTokensPerSecond: (raw['prefillTokensPerSecond'] as num).toDouble(),
+      decodeTokensPerSecond: (raw['decodeTokensPerSecond'] as num).toDouble(),
+    );
   }
 
   void _terminate(_Run run, AiGenerationEvent terminal) {

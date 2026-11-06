@@ -12,6 +12,7 @@ public interface RuntimeBackend {
   interface Conversation extends AutoCloseable {
     void start(String input, Callback callback);
     void cancel();
+    default RuntimeMetrics metrics() { return null; }
     void close();
   }
   interface Llm extends AutoCloseable {

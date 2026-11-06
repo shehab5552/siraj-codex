@@ -33,11 +33,13 @@ void main() {
           'g2': 'BLOCKED',
           'g3': 'BLOCKED',
           'productionResourcesApproved': false,
-          'firstTokenLatency': 'NOT MEASURED; text chunks only',
-          'tokensPerSecond': 'NOT MEASURED; no exact output token counter',
+          'benchmarkPolicy':
+              'SDK experimental counters enabled in Debug only; absent/invalid counters remain unmeasured',
         };
         int sampledPeakPssKb = 0, maxNativeHeapBytes = 0, samples = 0;
         bool sampling = false;
+        bool clientDisposed = false;
+        String stage = 'offlineApplicationProbe';
         Future<void> sample() async {
           if (sampling) return;
           sampling = true;
@@ -83,6 +85,7 @@ void main() {
           );
           metrics['applicationNetworkProbe'] =
               'api.github.com:443 connection unavailable';
+          stage = 'jniStatus';
           final status = await client.status();
           expect(status.jniLoaded, isTrue);
           expect(status.abi, 'x86_64');
@@ -90,6 +93,7 @@ void main() {
             client.initializeLlm('/data/local/tmp/arbitrary-model'),
             throwsA(isA<AiRuntimeFailure>()),
           );
+          stage = 'embeddingInitialize';
           var watch = Stopwatch()..start();
           await client
               .initializeEmbedding('b08-embedding-staging-v1')
@@ -101,6 +105,7 @@ void main() {
             'ما وظيفة الخلية؟',
             'Local embedding engineering test',
           ]) {
+            stage = 'embeddingQuery';
             final result = await client
                 .embed(query)
                 .timeout(const Duration(minutes: 2));
@@ -121,9 +126,11 @@ void main() {
           metrics['embeddingQueries'] = embeddingResults;
           metrics['embeddingOptions'] =
               'nullable SDK defaults; no adopted Dataset parity policy';
+          stage = 'embeddingClose';
           await client.closeEmbedding();
           expect((await client.status()).embeddingLoaded, isFalse);
           await sample();
+          stage = 'llmInitialize';
           watch = Stopwatch()..start();
           await client
               .initializeLlm('b08-qwen3-staging-v1')
@@ -135,10 +142,12 @@ void main() {
             'أجب بكلمة مرحبًا فقط. /no_think',
             'Reply with just the word SIRAJ. /no_think',
           ]) {
+            stage = 'llmGenerate';
             final elapsed = Stopwatch()..start();
             int? firstChunk;
             int chunks = 0, characters = 0, terminals = 0;
             AiGenerationEventType? terminal;
+            AiGenerationBenchmark? benchmark;
             final run = await client.generate(
               systemInstruction:
                   'This is an isolated runtime engineering test. Give a short answer only.',
@@ -158,6 +167,7 @@ void main() {
                 AiGenerationEventType.cancelled,
               ].contains(event.type)) {
                 terminal = event.type;
+                benchmark = event.benchmark;
                 terminals++;
               }
             }
@@ -170,10 +180,15 @@ void main() {
               'chunks': chunks,
               'characters': characters,
               'terminalCount': terminals,
+              'sdkBenchmark': benchmark?.toJson(),
+              'sdkBenchmarkStatus': benchmark == null
+                  ? 'NOT MEASURED'
+                  : 'MEASURED',
             });
           }
           metrics['llmGenerations'] = generations;
           watch = Stopwatch()..start();
+          stage = 'nativeCancellation';
           String? cancellationTerminal;
           var cancellationAttempts = 0;
           for (; cancellationAttempts < 3; cancellationAttempts++) {
@@ -222,10 +237,12 @@ void main() {
           metrics['nativeCancellationTerminal'] = cancellationTerminal;
           metrics['cancellationAttempts'] = cancellationAttempts + 1;
           expect((await client.status()).llmLoaded, isFalse);
+          stage = 'llmReload';
           watch = Stopwatch()..start();
           await client
               .initializeLlm('b08-qwen3-staging-v1')
               .timeout(const Duration(minutes: 5));
+          stage = 'llmGenerateAfterReload';
           metrics['llmReloadMs'] = watch.elapsedMilliseconds;
           final reloaded = await client.generate(
             systemInstruction: 'Answer briefly.',
@@ -244,6 +261,9 @@ void main() {
           );
           await client.closeLlm();
           await sample();
+          stage = 'clientDispose';
+          await client.dispose().timeout(const Duration(minutes: 1));
+          clientDisposed = true;
           metrics.addAll({
             'status': 'PASS',
             'modelInferenceExecuted': true,
@@ -261,12 +281,28 @@ void main() {
           });
           debugPrint('SIRAJ_B08_MODEL_METRICS ${jsonEncode(metrics)}');
           return true;
-        } on AiRuntimeFailure catch (error) {
-          debugPrint('SIRAJ_B08_MODEL_FAILURE ${error.code.name}');
+        } catch (error) {
+          final code = error is AiRuntimeFailure
+              ? error.code.name
+              : error.runtimeType.toString();
+          metrics.addAll({
+            'status': 'FAIL',
+            'failedStage': stage,
+            'errorType': error.runtimeType.toString(),
+            'errorCode': code,
+          });
+          debugPrint('SIRAJ_B08_MODEL_FAILURE $code');
+          debugPrint('SIRAJ_B08_MODEL_METRICS ${jsonEncode(metrics)}');
           rethrow;
         } finally {
           memoryTimer.cancel();
-          await client.dispose();
+          if (!clientDisposed) {
+            try {
+              await client.dispose().timeout(const Duration(minutes: 1));
+            } catch (_) {
+              /* Preserve the primary failure. */
+            }
+          }
         }
       });
       expect(passed, isTrue);

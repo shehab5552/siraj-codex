@@ -34,10 +34,36 @@ class AiRuntimeFailure implements Exception {
 enum AiGenerationEventType { started, chunk, completed, failed, cancelled }
 
 class AiGenerationEvent {
-  const AiGenerationEvent(this.type, {this.text, this.error});
+  const AiGenerationEvent(this.type, {this.text, this.error, this.benchmark});
   final AiGenerationEventType type;
   final String? text;
   final AiRuntimeErrorCode? error;
+  final AiGenerationBenchmark? benchmark;
+}
+
+/// Optional, validated counters returned by the real SDK's benchmark API.
+class AiGenerationBenchmark {
+  const AiGenerationBenchmark({
+    required this.initializeSeconds,
+    required this.firstTokenSeconds,
+    required this.prefillTokens,
+    required this.decodeTokens,
+    required this.prefillTokensPerSecond,
+    required this.decodeTokensPerSecond,
+  });
+  final double initializeSeconds,
+      firstTokenSeconds,
+      prefillTokensPerSecond,
+      decodeTokensPerSecond;
+  final int prefillTokens, decodeTokens;
+  Map<String, num> toJson() => {
+    'initializeSeconds': initializeSeconds,
+    'firstTokenSeconds': firstTokenSeconds,
+    'prefillTokens': prefillTokens,
+    'decodeTokens': decodeTokens,
+    'prefillTokensPerSecond': prefillTokensPerSecond,
+    'decodeTokensPerSecond': decodeTokensPerSecond,
+  };
 }
 
 class AiGeneration {

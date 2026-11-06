@@ -216,6 +216,51 @@ void main() {
     await run.cancel();
     expect(methods.where((method) => method == 'cancelGeneration'), isEmpty);
   });
+  test('actual SDK counters are optional typed generation evidence', () async {
+    final run = await client.generate(
+      systemInstruction: 'system',
+      input: 'input',
+    );
+    final received = run.events.toList();
+    event(run.requestId, 'generationStarted', 0);
+    events.add({
+      'requestId': run.requestId,
+      'type': 'generationCompleted',
+      'sequence': 1,
+      'benchmark': {
+        'initializeSeconds': 1.0,
+        'firstTokenSeconds': 0.2,
+        'prefillTokens': 10,
+        'decodeTokens': 4,
+        'prefillTokensPerSecond': 50.0,
+        'decodeTokensPerSecond': 8.0,
+      },
+    });
+    final terminal = (await received).last;
+    expect(terminal.benchmark!.decodeTokens, 4);
+  });
+  test('invalid benchmark numbers are never exposed as measurements', () async {
+    final run = await client.generate(
+      systemInstruction: 'system',
+      input: 'input',
+    );
+    final received = run.events.toList();
+    event(run.requestId, 'generationStarted', 0);
+    events.add({
+      'requestId': run.requestId,
+      'type': 'generationCompleted',
+      'sequence': 1,
+      'benchmark': {
+        'initializeSeconds': 1.0,
+        'firstTokenSeconds': double.nan,
+        'prefillTokens': 10,
+        'decodeTokens': 4,
+        'prefillTokensPerSecond': 50.0,
+        'decodeTokensPerSecond': 8.0,
+      },
+    });
+    expect((await received).last.benchmark, isNull);
+  });
   test('disposed client rejects new work', () async {
     await client.dispose();
     await expectLater(

@@ -35,7 +35,7 @@ public final class RuntimeManagerTest {
     catch(ExecutionException e) { if (!(e.getCause() instanceof RuntimeFailure r) || r.code!=expected) throw new AssertionError(e); }
   }
   static RuntimeManager create(Fake b,List<String> events) {
-    return new RuntimeManager(b,(id,embedding)->new File("verified-test-only"),(id,type,seq,text,code)->events.add(id+":"+type+":"+seq));
+    return new RuntimeManager(b,(id,embedding)->new File("verified-test-only"),(id,type,seq,text,code,metrics)->events.add(id+":"+type+":"+seq));
   }
   static void check(boolean b) { if(!b)throw new AssertionError(); }
   public static void main(String[] args) throws Exception {

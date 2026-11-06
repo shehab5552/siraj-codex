@@ -6,6 +6,8 @@ import java.util.Collections;
 
 /** Real SDK0.19.0 adapter. No scientific defaults or fake answers. */
 public final class LiteRtBackend implements RuntimeBackend {
+  private final boolean benchmarkEnabled;
+  public LiteRtBackend(boolean benchmarkEnabled) { this.benchmarkEnabled=benchmarkEnabled; }
   private static void privateLogging() {
     // Official Engine.kt LogSeverity.INFINITY(1000): suppress native logs that
     // could contain token/prompt snippets, including native exception text.
@@ -13,6 +15,7 @@ public final class LiteRtBackend implements RuntimeBackend {
   }
   @Override public Llm loadLlm(File path) {
     privateLogging();
+    ExperimentalFlags.INSTANCE.setEnableBenchmark(benchmarkEnabled);
     Engine engine=new Engine(new EngineConfig(path.getAbsolutePath(),new Backend.CPU()));
     try { engine.initialize(); }
     catch(Throwable error) {
@@ -21,8 +24,10 @@ public final class LiteRtBackend implements RuntimeBackend {
     }
     return new Llm() {
       public RuntimeBackend.Conversation conversation(String system) {
+        // No tools are registered: disable SDK automatic tool execution so
+        // unexpected tool calls reach our explicit unsupported-content gate.
         com.google.ai.edge.litertlm.Conversation c=engine.createConversation(
-            new ConversationConfig(Contents.Companion.of(system)));
+            new ConversationConfig(Contents.Companion.of(system),Collections.emptyList(),Collections.emptyList(),null,false));
         return new RuntimeBackend.Conversation() {
           public void start(String input,RuntimeBackend.Callback callback) {
             c.sendMessageAsync(input,new MessageCallback() {
@@ -44,6 +49,11 @@ public final class LiteRtBackend implements RuntimeBackend {
             },Collections.emptyMap(),null,null,null,256);
           }
           public void cancel() { c.cancelProcess(); }
+          public RuntimeMetrics metrics() {
+            if(!benchmarkEnabled)return null;
+            BenchmarkInfo b=c.getBenchmarkInfo();
+            return new RuntimeMetrics(b.getInitTimeInSecond(),b.getTimeToFirstTokenInSecond(),b.getLastPrefillTokenCount(),b.getLastDecodeTokenCount(),b.getLastPrefillTokensPerSecond(),b.getLastDecodeTokensPerSecond());
+          }
           public void close() { c.close(); }
         };
       }

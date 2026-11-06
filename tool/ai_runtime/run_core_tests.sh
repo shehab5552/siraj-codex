@@ -7,6 +7,7 @@ java --module jdk.compiler/com.sun.tools.javac.Main -source 17 -target 17 \
   -d "$ai_test_dir" \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RuntimeFailure.java \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RuntimeLibraryProbe.java \
+  android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RuntimeMetrics.java \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RuntimeBackend.java \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RuntimeManager.java \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/RequestOwnership.java \

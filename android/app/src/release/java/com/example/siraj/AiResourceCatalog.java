@@ -4,6 +4,7 @@ import java.util.Collections;
 import com.example.siraj.ai_runtime.TrustedResourceResolver;
 /** Production remains closed without an approved resource catalog. */
 public final class AiResourceCatalog {
+  public static boolean benchmarkEnabled() { return false; }
   public static TrustedResourceResolver create(File files) {
     try {
       // Context.filesDir is trusted and may include an OS-managed alias. Pin

@@ -22,8 +22,9 @@ public final class SirajAiRuntimeChannel implements EventChannel.StreamHandler {
   private volatile long listenerEpoch;
   private final RequestOwnership requestListeners=new RequestOwnership();
   public SirajAiRuntimeChannel(Context context,BinaryMessenger messenger) {
-    runtime=new RuntimeManager(new LiteRtBackend(),AiResourceCatalog.create(context.getFilesDir()),(id,type,seq,text,code)-> {
+    runtime=new RuntimeManager(new LiteRtBackend(AiResourceCatalog.benchmarkEnabled()),AiResourceCatalog.create(context.getFilesDir()),(id,type,seq,text,code,metrics)-> {
       Map<String,Object> data=new HashMap<>();data.put("requestId",id);data.put("type",type);data.put("sequence",seq);
+      if(metrics!=null)data.put("benchmark",metrics.toMap());
       if(text!=null)data.put("text",text);if(code!=null)data.put("code",code);
       RequestOwnership.Lease lease=requestListeners.current(id);
       if(type.equals("generationCompleted") || type.equals("generationFailed") || type.equals("generationCancelled"))requestListeners.release(id,lease);
