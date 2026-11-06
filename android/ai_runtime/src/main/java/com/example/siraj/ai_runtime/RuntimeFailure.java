@@ -7,7 +7,7 @@ public final class RuntimeFailure extends RuntimeException {
     resourceUnavailable, unsafeResourcePath, integrityFailure, formatRejected,
     initializationFailed, busy, notInitialized, disposed, cancelled,
     invalidRequest, embeddingDimension, nonFiniteEmbedding, zeroEmbedding,
-    generationFailed, unsupportedContent
+    generationFailed, unsupportedContent, cancelFailed, embeddingCloseFailed
   }
 
   public final Code code;

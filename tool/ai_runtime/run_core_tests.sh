@@ -15,8 +15,10 @@ java --module jdk.compiler/com.sun.tools.javac.Main -source 17 -target 17 \
   android/ai_runtime/src/main/java/com/example/siraj/ai_runtime/TrustedResourceResolver.java \
   android/ai_runtime/src/test/java/com/example/siraj/ai_runtime/TrustedResourceResolverTest.java \
   android/ai_runtime/src/test/java/com/example/siraj/ai_runtime/RuntimeManagerTest.java \
+  android/ai_runtime/src/test/java/com/example/siraj/ai_runtime/RuntimeLifecycleHardeningTest.java \
   android/ai_runtime/src/test/java/com/example/siraj/ai_runtime/RuntimeLibraryProbeTest.java
 java -cp "$ai_test_dir" com.example.siraj.ai_runtime.RuntimeLibraryProbeTest
 java -cp "$ai_test_dir" com.example.siraj.ai_runtime.RuntimeManagerTest
 java -cp "$ai_test_dir" com.example.siraj.ai_runtime.TrustedResourceResolverTest
 java -cp "$ai_test_dir" com.example.siraj.ai_runtime.RequestOwnershipTest
+java -cp "$ai_test_dir" com.example.siraj.ai_runtime.RuntimeLifecycleHardeningTest "$@"

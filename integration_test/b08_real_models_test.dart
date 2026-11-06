@@ -129,6 +129,8 @@ void main() {
           stage = 'embeddingClose';
           await client.closeEmbedding();
           expect((await client.status()).embeddingLoaded, isFalse);
+          expect((await client.status()).embeddingQuarantined, isFalse);
+          metrics['embeddingCloseConfirmed'] = true;
           await sample();
           stage = 'llmInitialize';
           watch = Stopwatch()..start();
@@ -205,6 +207,8 @@ void main() {
             );
             expect(cancelling.requestId, expectedId);
             bool requested = false;
+            AiGenerationEventType? flutterTerminal;
+            var flutterTerminalCount = 0;
             Stopwatch? cancelLatency;
             await for (final event in cancelling.events.timeout(
               const Duration(minutes: 3),
@@ -214,11 +218,26 @@ void main() {
                 cancelLatency = Stopwatch()..start();
                 await cancelling.cancel();
               }
+              if ([
+                AiGenerationEventType.completed,
+                AiGenerationEventType.failed,
+                AiGenerationEventType.cancelled,
+              ].contains(event.type)) {
+                flutterTerminal = event.type;
+                flutterTerminalCount++;
+              }
             }
             final actualTerminal = await nativeTerminal.timeout(
               const Duration(minutes: 1),
             );
             cancellationTerminal = actualTerminal['type'] as String;
+            expect(flutterTerminalCount, 1);
+            expect(flutterTerminal?.name, switch (cancellationTerminal) {
+              'generationCancelled' => 'cancelled',
+              'generationCompleted' => 'completed',
+              _ => 'failed',
+            });
+            metrics['flutterNativeTerminalConsistent'] = true;
             if (requested && cancellationTerminal == 'generationCancelled') {
               metrics['nativeCancellationDrainMs'] =
                   cancelLatency!.elapsedMilliseconds;

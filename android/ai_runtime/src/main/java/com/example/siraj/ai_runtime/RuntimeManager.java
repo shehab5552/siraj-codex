@@ -19,6 +19,12 @@ public final class RuntimeManager {
   private final Set<String> usedIds=new HashSet<>();
   private volatile RuntimeBackend.Llm llm;
   private volatile RuntimeBackend.Embedding embedding;
+  private volatile boolean embeddingQuarantined;
+  // Process ownership survives Activity recreation and missing terminal events.
+  // SDK0.19.0 embedding close is not transactional/idempotent: a failed-close
+  // embedding owner stays retained until process exit, without retrying delete.
+  private static final Object RUNTIME_LIFECYCLE=new Object();
+  private static RuntimeManager processOwner;
   private volatile boolean disposed;
   private Request active;
   private CompletableFuture<Void> closingLlm;
@@ -26,7 +32,8 @@ public final class RuntimeManager {
   private CompletableFuture<Void> disposal;
   private static final class Request {
     final String id; final AtomicBoolean terminal=new AtomicBoolean();
-    RuntimeBackend.Conversation conversation; boolean cancelled; int sequence;
+    RuntimeBackend.Conversation conversation; boolean cancelRequested; int sequence;
+    RuntimeFailure.Code cancelFailure;
     int characters; boolean hasNonBlankText; RuntimeFailure.Code failure;
     Request(String id) { this.id=id; }
   }
@@ -55,14 +62,19 @@ public final class RuntimeManager {
   public CompletableFuture<Void> initialize(String id,boolean isEmbedding) {
     return submit(()-> {
       if(disposed)throw new RuntimeFailure(RuntimeFailure.Code.disposed);
-      // Co-residency is deliberately closed until physical-device memory evidence.
-      if(llm!=null || embedding!=null || active!=null || closingLlm!=null)throw new RuntimeFailure(RuntimeFailure.Code.busy);
-      File path=resolver.resolve(id,isEmbedding);
-      try {
-        if(isEmbedding)embedding=backend.loadEmbedding(path);else llm=backend.loadLlm(path);
-      } catch(Throwable e) { throw sanitized(e,RuntimeFailure.Code.initializationFailed); }
-      if(disposed) { closeIdle();throw new RuntimeFailure(RuntimeFailure.Code.disposed); }
-      return null;
+      synchronized(RUNTIME_LIFECYCLE) {
+        if(processOwner!=null && processOwner.embeddingQuarantined)throw new RuntimeFailure(RuntimeFailure.Code.embeddingCloseFailed);
+        if(processOwner!=null && processOwner!=this)throw new RuntimeFailure(RuntimeFailure.Code.busy);
+        // Co-residency is deliberately closed until physical-device memory evidence.
+        if(llm!=null || embedding!=null || active!=null || closingLlm!=null)throw new RuntimeFailure(RuntimeFailure.Code.busy);
+        File path=resolver.resolve(id,isEmbedding);
+        processOwner=this;
+        try {
+          if(isEmbedding)embedding=backend.loadEmbedding(path);else llm=backend.loadLlm(path);
+        } catch(Throwable e) { releaseProcessOwner();throw sanitized(e,RuntimeFailure.Code.initializationFailed); }
+        if(disposed) { closeIdle();throw new RuntimeFailure(RuntimeFailure.Code.disposed); }
+        return null;
+      }
     });
   }
   public CompletableFuture<Void> generate(String id,String system,String input) {
@@ -80,7 +92,10 @@ public final class RuntimeManager {
           public void chunk(String text) {
             if(request.terminal.get())return;
             queue(()-> {
-              if(active!=request || request.cancelled || request.failure!=null)return null;
+              // In-flight text remains valid until Native terminates. A cancel
+              // can race normal completion; dropping its suffix fabricates a
+              // truncated completed answer. Tutor separately guards abandoned turns.
+              if(active!=request || request.failure!=null)return null;
               if(text==null || request.characters+text.length()>262144) {
                 request.failure=RuntimeFailure.Code.generationFailed;request.conversation.cancel();return null;
               }
@@ -108,7 +123,7 @@ public final class RuntimeManager {
     if(active!=r)return;
     RuntimeMetrics metrics=null;
     if(r.conversation!=null) {
-      if(!r.cancelled && r.failure==null && code==null && r.hasNonBlankText) {
+      if(r.failure==null && code==null && r.hasNonBlankText) {
         try { metrics=r.conversation.metrics(); }
         catch(Throwable ignored) { /* Optional benchmark unavailable; no invented values. */ }
       }
@@ -117,7 +132,8 @@ public final class RuntimeManager {
     }
     active=null;
     RuntimeFailure.Code failure=r.failure!=null?r.failure:code;
-    if(r.cancelled)emit(r,"generationCancelled",null,null);
+    if(failure==RuntimeFailure.Code.cancelled && r.cancelFailure!=null)failure=r.cancelFailure;
+    if(failure==RuntimeFailure.Code.cancelled)emit(r,"generationCancelled",null,null);
     else if(failure!=null)emit(r,"generationFailed",null,failure.name());
     else if(!r.hasNonBlankText)emit(r,"generationFailed",null,RuntimeFailure.Code.generationFailed.name());
     else emit(r,"generationCompleted",null,null,metrics);
@@ -135,18 +151,27 @@ public final class RuntimeManager {
   }
   private void cancelActive() {
     if(active==null)return;
-    active.cancelled=true;
+    if(active.cancelRequested) {
+      if(active.cancelFailure!=null)throw new RuntimeFailure(active.cancelFailure);
+      return;
+    }
+    active.cancelRequested=true;
     // This is the official asynchronous cancel API. Keep the handle alive until
     // the terminal callback; a missing callback leaves it quarantined/busy.
-    if(active.conversation!=null)active.conversation.cancel();
+    // A synchronous terminal callback only enqueues finish. This worker records
+    // acceptance/failure before finish can run, including callback-then-throw.
+    try { if(active.conversation!=null)active.conversation.cancel(); }
+    catch(Throwable error) {
+      active.cancelFailure=RuntimeFailure.Code.cancelFailed;
+      throw new RuntimeFailure(active.cancelFailure);
+    }
   }
   public CompletableFuture<Void> close(boolean isEmbedding) {
     return submit(()->requestClose(isEmbedding)).thenCompose(f->f);
   }
   private CompletableFuture<Void> requestClose(boolean isEmbedding) {
     if(isEmbedding) {
-      RuntimeBackend.Embedding e=embedding;embedding=null;
-      if(e!=null)e.close();return CompletableFuture.completedFuture(null);
+      closeIdleEmbedding();return CompletableFuture.completedFuture(null);
     }
     if(closingLlm!=null)return closingLlm;
     if(active!=null) {
@@ -160,11 +185,34 @@ public final class RuntimeManager {
     }
     closeIdleLlm();return CompletableFuture.completedFuture(null);
   }
-  private void closeIdleLlm() { RuntimeBackend.Llm old=llm;if(old!=null)old.close();llm=null; }
-  private void closeIdle() { closeIdleLlm();RuntimeBackend.Embedding old=embedding;embedding=null;if(old!=null)old.close(); }
+  private void releaseProcessOwner() {
+    synchronized(RUNTIME_LIFECYCLE) {
+      if(processOwner==this && llm==null && embedding==null && active==null)processOwner=null;
+    }
+  }
+  private void closeIdleLlm() {
+    synchronized(RUNTIME_LIFECYCLE) {
+      RuntimeBackend.Llm old=llm;if(old!=null)old.close();llm=null;releaseProcessOwner();
+    }
+  }
+  private void closeIdleEmbedding() {
+    synchronized(RUNTIME_LIFECYCLE) {
+      if(embeddingQuarantined)throw new RuntimeFailure(RuntimeFailure.Code.embeddingCloseFailed);
+      if(embedding==null)return;
+      try { embedding.close(); }
+      catch(Throwable error) {
+        embeddingQuarantined=true;
+        throw new RuntimeFailure(RuntimeFailure.Code.embeddingCloseFailed);
+      }
+      embedding=null;
+      releaseProcessOwner();
+    }
+  }
+  private void closeIdle() { closeIdleLlm();closeIdleEmbedding(); }
   public CompletableFuture<float[]> embed(String input) {
     return submit(()-> {
       if(embedding==null)throw new RuntimeFailure(RuntimeFailure.Code.notInitialized);
+      if(embeddingQuarantined)throw new RuntimeFailure(RuntimeFailure.Code.embeddingCloseFailed);
       validateText(input);float[] vector=embedding.embed(input);
       if(vector==null || vector.length!=768)throw new RuntimeFailure(RuntimeFailure.Code.embeddingDimension);
       double squares=0;
@@ -188,4 +236,5 @@ public final class RuntimeManager {
   }
   public boolean llmLoaded() { return llm!=null; }
   public boolean embeddingLoaded() { return embedding!=null; }
+  public boolean embeddingQuarantined() { return embeddingQuarantined; }
 }

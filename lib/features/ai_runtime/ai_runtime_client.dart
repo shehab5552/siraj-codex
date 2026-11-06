@@ -22,6 +22,8 @@ enum AiRuntimeErrorCode {
   unsupportedContent,
   channelUnavailable,
   protocolViolation,
+  cancelFailed,
+  embeddingCloseFailed,
 }
 
 class AiRuntimeFailure implements Exception {
@@ -70,6 +72,10 @@ class AiGeneration {
   const AiGeneration(this.requestId, this.events, this.cancel);
   final String requestId;
   final Stream<AiGenerationEvent> events;
+
+  /// Requests cancellation. Completion means Native accepted the request,
+  /// not that generation ended. Only [events] carries the terminal outcome.
+  /// A failed request throws a sanitized error; the run remains owned/busy.
   final Future<void> Function() cancel;
 }
 
@@ -80,9 +86,14 @@ class AiRuntimeStatus {
     required this.jniLoaded,
     required this.llmLoaded,
     required this.embeddingLoaded,
+    this.embeddingQuarantined = false,
   });
   final String version, abi;
   final bool jniLoaded, llmLoaded, embeddingLoaded;
+
+  /// Loaded denotes an owned handle, including failed-close quarantine.
+  /// A quarantined handle cannot embed, be replaced or be closed again safely.
+  final bool embeddingQuarantined;
 }
 
 class AiEmbedding {

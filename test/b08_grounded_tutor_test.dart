@@ -7,6 +7,7 @@ import 'package:siraj/features/chat/tutor_contracts.dart';
 class TestRuntime implements AiRuntimeClient {
   final output = StreamController<AiGenerationEvent>();
   int calls = 0, cancels = 0;
+  bool throwCancel = false;
   @override
   Future<AiGeneration> generate({
     required String systemInstruction,
@@ -15,6 +16,9 @@ class TestRuntime implements AiRuntimeClient {
     calls++;
     return AiGeneration('test', output.stream, () async {
       cancels++;
+      if (throwCancel) {
+        throw const AiRuntimeFailure(AiRuntimeErrorCode.cancelFailed);
+      }
       output.add(const AiGenerationEvent(AiGenerationEventType.cancelled));
     });
   }
@@ -158,6 +162,32 @@ void main() {
       );
       unawaited(runtime.output.close());
       expect((await result).reason, TutorReason.generationFailed);
+    },
+  );
+  test(
+    'rejected Native cancellation never leaks an unhandled Future or answer',
+    () async {
+      runtime.throwCancel = true;
+      final token = TutorCancellation();
+      var completed = false;
+      final result = GroundedTutorService(runtime: runtime, evidence: evidence)
+          .ask('question', token)
+          .then((value) {
+            completed = true;
+            return value;
+          });
+      await flush();
+      token.cancel();
+      await flush();
+      expect(completed, isFalse);
+      runtime.output.add(
+        const AiGenerationEvent(
+          AiGenerationEventType.failed,
+          error: AiRuntimeErrorCode.cancelFailed,
+        ),
+      );
+      expect((await result).reason, TutorReason.cancelled);
+      expect(runtime.cancels, 1);
     },
   );
   test('reference shape and mixed revisions rejected', () {

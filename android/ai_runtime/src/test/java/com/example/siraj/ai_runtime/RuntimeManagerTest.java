@@ -59,7 +59,7 @@ public final class RuntimeManagerTest {
     b.callback.chunk("a");b.callback.chunk("b");b.callback.done();b.callback.done();await(m.close(false));
     check(es.equals(List.of("r1:generationStarted:0","r1:generationChunk:1","r1:generationChunk:2","r1:generationCompleted:3")));passed.incrementAndGet();
     await(m.initialize("llm",false));await(m.generate("r3","system","input"));RuntimeBackend.Callback stale=b.callback;
-    await(m.cancel("r3"));check(b.cancelled);stale.chunk("late");stale.done();await(m.close(false));
+    await(m.cancel("r3"));check(b.cancelled);stale.failed(RuntimeFailure.Code.cancelled);stale.chunk("late");await(m.close(false));
     check(es.stream().filter(x->x.contains("r3:generationCancelled")).count()==1);check(es.stream().noneMatch(x->x.contains("r3:generationChunk")));passed.incrementAndGet();
     await(m.initialize("llm",false));await(m.generate("r4","system","input"));stale.chunk("old");b.callback.chunk("new");b.callback.done();await(m.close(false));
     check(es.stream().filter(x->x.contains("r4:generationChunk")).count()==1);check(b.conversations==3);passed.incrementAndGet();
@@ -75,7 +75,7 @@ public final class RuntimeManagerTest {
     CompletableFuture<Void> pending=guarded.dispose();check(throwing.cancelEntered.await(2,TimeUnit.SECONDS));
     try { pending.get(50,TimeUnit.MILLISECONDS);throw new AssertionError("must drain native first"); }
     catch(TimeoutException expected) { /* Quarantined until actual terminal. */ }
-    throwing.callback.done();failure(pending,RuntimeFailure.Code.generationFailed);check(!guarded.llmLoaded());check(throwing.closed==2);passed.incrementAndGet();
+    throwing.callback.done();failure(pending,RuntimeFailure.Code.cancelFailed);check(!guarded.llmLoaded());check(throwing.closed==2);passed.incrementAndGet();
     Fake retry=new Fake();retry.throwCancel=true;retry.throwCloseOnce=true;RuntimeManager recovering=create(retry,new CopyOnWriteArrayList<>());
     await(recovering.initialize("llm",false));await(recovering.generate("close-failure","system","input"));
     CompletableFuture<Void> firstClose=recovering.close(false);retry.callback.done();failure(firstClose,RuntimeFailure.Code.generationFailed);

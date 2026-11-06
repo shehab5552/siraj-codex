@@ -88,7 +88,16 @@ void main() {
       input: 'input',
     );
     final received = first.events.toList();
+    event(first.requestId, 'generationStarted', 0);
     await first.cancel();
+    await expectLater(
+      client.generate(
+        systemInstruction: 'system',
+        input: 'still native active',
+      ),
+      throwsA(failure(AiRuntimeErrorCode.busy)),
+    );
+    event(first.requestId, 'generationCancelled', 1);
     expect((await received).last.type, AiGenerationEventType.cancelled);
     final second = await client.generate(
       systemInstruction: 'system',
@@ -110,7 +119,229 @@ void main() {
     expect((await received).single.error, AiRuntimeErrorCode.protocolViolation);
     await Future<void>.delayed(Duration.zero);
     expect(methods, contains('cancelGeneration'));
+    await expectLater(
+      client.generate(systemInstruction: 'system', input: 'next'),
+      throwsA(failure(AiRuntimeErrorCode.channelUnavailable)),
+    );
   });
+  test(
+    'cancel acceptance is not terminal; duplicate requests share call',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = <AiGenerationEvent>[];
+      final subscription = run.events.listen(received.add);
+      event(run.requestId, 'generationStarted', 0);
+      await Future.wait([run.cancel(), run.cancel()]);
+      await Future<void>.delayed(Duration.zero);
+      expect(received.map((e) => e.type), [AiGenerationEventType.started]);
+      expect(methods.where((m) => m == 'cancelGeneration').length, 1);
+      await expectLater(
+        client.generate(systemInstruction: 'system', input: 'next'),
+        throwsA(failure(AiRuntimeErrorCode.busy)),
+      );
+      event(run.requestId, 'generationCancelled', 1);
+      event(run.requestId, 'generationCancelled', 2);
+      await Future<void>.delayed(Duration.zero);
+      expect(received.map((e) => e.type), [
+        AiGenerationEventType.started,
+        AiGenerationEventType.cancelled,
+      ]);
+      await subscription.cancel();
+    },
+  );
+  for (final terminal in ['generationCompleted', 'generationFailed']) {
+    test('cancel followed by $terminal preserves Native outcome', () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = run.events.toList();
+      event(run.requestId, 'generationStarted', 0);
+      await run.cancel();
+      events.add({
+        'requestId': run.requestId,
+        'type': terminal,
+        'sequence': 1,
+        'code': 'generationFailed',
+      });
+      expect(
+        (await received).last.type,
+        terminal == 'generationCompleted'
+            ? AiGenerationEventType.completed
+            : AiGenerationEventType.failed,
+      );
+    });
+  }
+  test(
+    'cancel exception stays sanitized and busy until Native terminal',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = run.events.toList();
+      event(run.requestId, 'generationStarted', 0);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            if (call.method == 'cancelGeneration') {
+              throw PlatformException(
+                code: 'cancelFailed',
+                message: 'private path and prompt',
+              );
+            }
+            return null;
+          });
+      await expectLater(
+        run.cancel(),
+        throwsA(failure(AiRuntimeErrorCode.cancelFailed)),
+      );
+      await expectLater(
+        run.cancel(),
+        throwsA(failure(AiRuntimeErrorCode.cancelFailed)),
+      );
+      expect(methods.where((m) => m == 'cancelGeneration').length, 1);
+      await expectLater(
+        client.generate(systemInstruction: 'system', input: 'next'),
+        throwsA(failure(AiRuntimeErrorCode.busy)),
+      );
+      events.add({
+        'requestId': run.requestId,
+        'type': 'generationFailed',
+        'sequence': 1,
+        'code': 'cancelFailed',
+      });
+      final result = await received;
+      expect(result.last.error, AiRuntimeErrorCode.cancelFailed);
+      expect(
+        result.any((e) => e.type == AiGenerationEventType.cancelled),
+        isFalse,
+      );
+    },
+  );
+  test(
+    'terminal inside cancel method reply is observable exactly once',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = run.events.toList();
+      event(run.requestId, 'generationStarted', 0);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'cancelGeneration') {
+              event(run.requestId, 'generationCancelled', 1);
+            }
+            return null;
+          });
+      await run.cancel();
+      expect(
+        (await received)
+            .where((e) => e.type == AiGenerationEventType.cancelled)
+            .length,
+        1,
+      );
+    },
+  );
+  test(
+    'dispose during cancel drains Native close without false local terminal',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = <AiGenerationEvent>[];
+      final subscription = run.events.listen(received.add);
+      event(run.requestId, 'generationStarted', 0);
+      await run.cancel();
+      final closeEntered = Completer<void>(), releaseClose = Completer<void>();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            if (call.method == 'closeLlm') {
+              closeEntered.complete();
+              await releaseClose.future;
+            }
+            return null;
+          });
+      var disposed = false;
+      final disposal = client.dispose().then((_) => disposed = true);
+      await closeEntered.future;
+      expect(disposed, isFalse);
+      expect(
+        received.any((e) => e.type == AiGenerationEventType.cancelled),
+        isFalse,
+      );
+      event(run.requestId, 'generationCancelled', 1);
+      releaseClose.complete();
+      await disposal;
+      expect(received.last.type, AiGenerationEventType.cancelled);
+      expect(methods, contains('closeEmbedding'));
+      await subscription.cancel();
+    },
+  );
+  test(
+    'dispose after rejected cancel still closes both handles; no fake cancellation',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = run.events.toList();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            methods.add(call.method);
+            if (call.method == 'cancelGeneration') {
+              throw PlatformException(code: 'cancelFailed');
+            }
+            return null;
+          });
+      await expectLater(
+        run.cancel(),
+        throwsA(failure(AiRuntimeErrorCode.cancelFailed)),
+      );
+      await client.dispose();
+      expect((await received).single.error, AiRuntimeErrorCode.disposed);
+      expect(methods, containsAll(['closeLlm', 'closeEmbedding']));
+    },
+  );
+  test(
+    'embedding failed-close status and typed error survive transport',
+    () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == 'getRuntimeStatus') {
+              return {
+                'declaredRuntimeVersion': '0.19.0',
+                'abi': 'x86_64',
+                'jniLoaded': true,
+                'llmInitialized': false,
+                'embeddingInitialized': true,
+                'embeddingQuarantined': true,
+              };
+            }
+            throw PlatformException(
+              code: 'embeddingCloseFailed',
+              details: 'private SDK details',
+            );
+          });
+      final status = await client.status();
+      expect(status.embeddingLoaded, isTrue);
+      expect(status.embeddingQuarantined, isTrue);
+      await expectLater(
+        client.closeEmbedding(),
+        throwsA(failure(AiRuntimeErrorCode.embeddingCloseFailed)),
+      );
+      await expectLater(
+        client.embed('query'),
+        throwsA(failure(AiRuntimeErrorCode.embeddingCloseFailed)),
+      );
+    },
+  );
   test('missing plugin sanitized', () async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);

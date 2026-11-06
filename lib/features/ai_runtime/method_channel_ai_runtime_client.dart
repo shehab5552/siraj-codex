@@ -62,6 +62,7 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
       jniLoaded: value['jniLoaded'] as bool,
       llmLoaded: value['llmInitialized'] as bool,
       embeddingLoaded: value['embeddingInitialized'] as bool,
+      embeddingQuarantined: value['embeddingQuarantined'] == true,
     );
   }
 
@@ -236,6 +237,8 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
   }
 
   void _protocol(_Run run) {
+    // Native ownership is unresolved. Never admit work on this transport again.
+    _eventsLost = true;
     _terminate(
       run,
       const AiGenerationEvent(
@@ -256,8 +259,9 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
 
   Future<void> _cancel(_Run run) async {
     if (!identical(_active, run)) return;
-    _terminate(run, const AiGenerationEvent(AiGenerationEventType.cancelled));
-    await _cancelNative(run.id);
+    await (run.cancelling ??= _invoke('cancelGeneration', {
+      'requestId': run.id,
+    }).then<void>((_) {}));
   }
 
   @override
@@ -296,8 +300,8 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
   @override
   Future<void> closeLlm() async {
     _check();
-    final run = _active;
-    if (run != null) await _cancel(run);
+    // Native close requests cancellation and drains to the true terminal even
+    // when the cancel API fails. Do not short-circuit cleanup on that failure.
     await _invoke('closeLlm');
   }
 
@@ -311,8 +315,6 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
   Future<void> dispose() => _disposing ??= _dispose();
   Future<void> _dispose() async {
     _disposed = true;
-    final run = _active;
-    if (run != null) await _cancel(run);
     for (final method in ['closeLlm', 'closeEmbedding']) {
       try {
         await _invoke(method);
@@ -322,6 +324,17 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
     }
     await _subscription?.cancel();
     _subscription = null;
+    final run = _active;
+    if (run != null) {
+      // A detached/absent Native channel is a failure, never a false cancellation.
+      _terminate(
+        run,
+        const AiGenerationEvent(
+          AiGenerationEventType.failed,
+          error: AiRuntimeErrorCode.disposed,
+        ),
+      );
+    }
   }
 }
 
@@ -330,4 +343,5 @@ class _Run {
   final String id;
   final controller = StreamController<AiGenerationEvent>();
   int sequence = 0, characters = 0;
+  Future<void>? cancelling;
 }

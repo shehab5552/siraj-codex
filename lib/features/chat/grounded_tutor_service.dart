@@ -37,8 +37,18 @@ class GroundedTutorService implements TutorPort {
         input: context.prompt,
       );
       final running = generation;
-      cancellation.onCancel = () => unawaited(running.cancel());
-      if (cancellation.isCancelled) await generation.cancel();
+      Future<void> requestCancellation() async {
+        try {
+          await running.cancel();
+        } on AiRuntimeFailure {
+          // The user abandoned this turn; Native still owns the request until
+          // its terminal callback. Never expose text or invent cancellation
+          // confirmation, and never leak a failing Future from the void hook.
+        }
+      }
+
+      cancellation.onCancel = () => unawaited(requestCancellation());
+      if (cancellation.isCancelled) await requestCancellation();
       final text = StringBuffer();
       bool completed = false;
       await for (final event in generation.events) {

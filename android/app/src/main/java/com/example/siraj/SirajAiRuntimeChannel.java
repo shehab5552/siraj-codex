@@ -46,7 +46,7 @@ public final class SirajAiRuntimeChannel implements EventChannel.StreamHandler {
           complete(CompletableFuture.supplyAsync(()-> {
             RuntimeLibraryProbe.Status s=probe.load(Build.SUPPORTED_ABIS);
             Map<String,Object> out=new HashMap<>();out.put("declaredRuntimeVersion",s.declaredVersion);out.put("abi",s.abi);out.put("jniLoaded",s.jniLoaded);
-            out.put("llmInitialized",runtime.llmLoaded());out.put("embeddingInitialized",runtime.embeddingLoaded());out.put("productionResourcesApproved",false);out.put("nativeHeapAllocatedBytes",android.os.Debug.getNativeHeapAllocatedSize());out.put("sampledPssKb",android.os.Debug.getPss());return out;
+            out.put("llmInitialized",runtime.llmLoaded());out.put("embeddingInitialized",runtime.embeddingLoaded());out.put("embeddingQuarantined",runtime.embeddingQuarantined());out.put("productionResourcesApproved",false);out.put("nativeHeapAllocatedBytes",android.os.Debug.getNativeHeapAllocatedSize());out.put("sampledPssKb",android.os.Debug.getPss());return out;
           },probeWorker),result);break;
         case "initializeLlm":case "initializeEmbedding":
           complete(runtime.initialize(text(call,"resourceId"),call.method.equals("initializeEmbedding")).thenApply(v-> {

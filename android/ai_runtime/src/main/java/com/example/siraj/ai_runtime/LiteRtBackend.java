@@ -3,6 +3,7 @@ package com.example.siraj.ai_runtime;
 import com.google.ai.edge.litertlm.*;
 import java.io.File;
 import java.util.Collections;
+import java.util.concurrent.CancellationException;
 
 /** Real SDK0.19.0 adapter. No scientific defaults or fake answers. */
 public final class LiteRtBackend implements RuntimeBackend {
@@ -45,7 +46,12 @@ public final class LiteRtBackend implements RuntimeBackend {
                 if(text.length()>0)callback.chunk(text.toString());
               }
               public void onDone() { if(rejected!=null)callback.failed(rejected);else callback.done(); }
-              public void onError(Throwable ignored) { callback.failed(rejected!=null?rejected:RuntimeFailure.Code.generationFailed); }
+              public void onError(Throwable error) {
+                // SDK Conversation.kt maps native status1 to this JVM type.
+                // A successful cancelProcess() call alone is never terminal.
+                callback.failed(rejected!=null?rejected:error instanceof CancellationException
+                    ?RuntimeFailure.Code.cancelled:RuntimeFailure.Code.generationFailed);
+              }
             },Collections.emptyMap(),null,null,null,256);
           }
           public void cancel() { c.cancelProcess(); }
