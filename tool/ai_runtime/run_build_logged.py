@@ -13,7 +13,11 @@ with log.open('w') as output:
     result=subprocess.run(sys.argv[2:],stdout=output,stderr=subprocess.STDOUT)
 if result.returncode:
     lines=log.read_text(errors='replace').splitlines()
-    selected=[line for line in lines if re.search(r'(?i)(error|exception|failed|failure|could not|incompatible|what went wrong|^e:)',line)]
+    indices=set()
+    for index,line in enumerate(lines):
+        if re.search(r'(?i)(error|exception|failed|failure|could not|incompatible|what went wrong|missing|^e:)',line):
+            indices.update(range(max(0,index-1),min(len(lines),index+5)))
+    selected=[lines[index] for index in sorted(indices)]
     message='\n'.join(selected[-30:] or lines[-20:])[-10000:]
     # Fixed public build repositories use no signed URLs, but strip every URL
     # query anyway; never reveal redirected credential strings in annotations.

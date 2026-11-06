@@ -65,10 +65,13 @@ val generateRuntimeNotices by tasks.registering {
         val output = noticesDirectory.get().dir("licenses/litertlm-android-0.19.0").asFile
         check(output.mkdirs() || output.isDirectory)
         ZipFile(runtimeIdentity.singleFile).use { archive ->
-            for (name in listOf("LICENSE", "THIRD_PARTY_NOTICE")) {
-                val entry = checkNotNull(archive.getEntry(name)) { "Runtime notice missing" }
+            for ((name, destination) in mapOf(
+                "LICENSE" to "LICENSE.txt",
+                "THIRD_PARTY_NOTICE.txt" to "THIRD_PARTY_NOTICE.txt",
+            )) {
+                val entry = checkNotNull(archive.getEntry(name)) { "Runtime notice missing: $name" }
                 archive.getInputStream(entry).use { input ->
-                    output.resolve("$name.txt").outputStream().use { input.copyTo(it) }
+                    output.resolve(destination).outputStream().use { input.copyTo(it) }
                 }
             }
         }
