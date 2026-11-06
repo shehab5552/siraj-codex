@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:siraj/features/ai_runtime/ai_runtime_client.dart';
 import 'package:siraj/features/ai_runtime/method_channel_ai_runtime_client.dart';
+import '../test/support/native_terminal_watch.dart';
 
 /// Licensed, owner-pinned files are prepared in the DEBUG private fixture root.
 /// No fixture answer is provided. No prompt, generated text or vector is logged.
@@ -21,7 +22,11 @@ void main() {
     'B08 genuine local embedding and LLM, cancel, reload, offline',
     (tester) async {
       final passed = await tester.runAsync(() async {
-        final client = MethodChannelAiRuntimeClient(events: bus);
+        var requestSerial = 0;
+        final client = MethodChannelAiRuntimeClient(
+          events: bus,
+          newId: () => 'b08-model-request-${requestSerial++}',
+        );
         final metrics = <String, Object?>{
           'scope': 'X86_64_EMULATOR_ENGINEERING_ONLY',
           'g2': 'BLOCKED',
@@ -148,37 +153,54 @@ void main() {
             });
           }
           metrics['llmGenerations'] = generations;
-          final cancelling = await client.generate(
-            systemInstruction: 'Runtime cancellation test. Output a long list.',
-            input: 'List every integer from 1 to 100, one per line. /no_think',
-          );
-          final nativeTerminal = bus.firstWhere(
-            (e) =>
-                e is Map &&
-                e['requestId'] == cancelling.requestId &&
-                [
-                  'generationCancelled',
-                  'generationFailed',
-                  'generationCompleted',
-                ].contains(e['type']),
-          );
           watch = Stopwatch()..start();
-          bool requested = false;
-          await for (final event in cancelling.events.timeout(
-            const Duration(minutes: 3),
-          )) {
-            if (event.type == AiGenerationEventType.chunk && !requested) {
-              requested = true;
-              await cancelling.cancel();
+          String? cancellationTerminal;
+          var cancellationAttempts = 0;
+          for (; cancellationAttempts < 3; cancellationAttempts++) {
+            final expectedId = 'b08-model-request-$requestSerial';
+            final nativeTerminal = observeNativeTerminal(bus, expectedId);
+            final cancelling = await client.generate(
+              systemInstruction:
+                  'Runtime cancellation test. Output a long list.',
+              input:
+                  'List every integer from 1 to 100, one per line. /no_think',
+            );
+            expect(cancelling.requestId, expectedId);
+            bool requested = false;
+            Stopwatch? cancelLatency;
+            await for (final event in cancelling.events.timeout(
+              const Duration(minutes: 3),
+            )) {
+              if (event.type == AiGenerationEventType.chunk && !requested) {
+                requested = true;
+                cancelLatency = Stopwatch()..start();
+                await cancelling.cancel();
+              }
             }
+            final actualTerminal = await nativeTerminal.timeout(
+              const Duration(minutes: 1),
+            );
+            cancellationTerminal = actualTerminal['type'] as String;
+            if (requested && cancellationTerminal == 'generationCancelled') {
+              metrics['nativeCancellationDrainMs'] =
+                  cancelLatency!.elapsedMilliseconds;
+              break;
+            }
+            if (cancellationTerminal == 'generationFailed') {
+              throw const AiRuntimeFailure(AiRuntimeErrorCode.generationFailed);
+            }
+            // A correctly completed request cannot be cancelled retroactively.
+            // Retry a bounded probe; never count a completion as cancellation.
           }
-          expect(requested, isTrue);
-          final actualTerminal =
-              await nativeTerminal.timeout(const Duration(minutes: 1)) as Map;
-          expect(actualTerminal['type'], 'generationCancelled');
+          if (cancellationTerminal != 'generationCancelled') {
+            debugPrint('SIRAJ_B08_MODEL_FAILURE cancellationNotDemonstrated');
+            throw const AiRuntimeFailure(AiRuntimeErrorCode.generationFailed);
+          }
           await client.closeLlm().timeout(const Duration(minutes: 1));
-          metrics['cancelAndNativeCloseAckMs'] = watch.elapsedMilliseconds;
-          metrics['nativeCancellationTerminal'] = actualTerminal['type'];
+          metrics['cancellationProbeAndCloseTotalMs'] =
+              watch.elapsedMilliseconds;
+          metrics['nativeCancellationTerminal'] = cancellationTerminal;
+          metrics['cancellationAttempts'] = cancellationAttempts + 1;
           expect((await client.status()).llmLoaded, isFalse);
           watch = Stopwatch()..start();
           await client
@@ -206,7 +228,9 @@ void main() {
             'status': 'PASS',
             'modelInferenceExecuted': true,
             'failureCount': 0,
-            'completeGenerationCount': 4,
+            'assertedNonemptyCompletionCount': 4,
+            'generationAttemptCount': 4 + cancellationAttempts + 1,
+            'cancelProbeNormalCompletions': cancellationAttempts,
             'embeddingQueryCount': 3,
             'memorySamples': samples,
             'sampledPeakPssKb': sampledPeakPssKb,

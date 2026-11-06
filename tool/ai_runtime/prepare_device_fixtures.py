@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import re
+import time
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from resource_intake.common import verify_file
 from resource_intake.manifest import PINS
@@ -33,11 +35,20 @@ def main():
         adb('shell','run-as',PACKAGE,'chmod','400','files/ai-runtime-fixtures/'+name)
     # Disable emulator data and WiFi before inference; host ADB remains available.
     adb('shell','svc','wifi','disable');adb('shell','svc','data','disable')
-    wifi=adb('shell','settings','get','global','wifi_on').stdout.decode().strip()
-    data=adb('shell','settings','get','global','mobile_data').stdout.decode().strip()
-    assert wifi=='0' and data=='0','Offline preparation not confirmed'
+    deadline=time.monotonic()+15
+    while True:
+        wifi=adb('shell','settings','get','global','wifi_on').stdout.decode().strip()
+        data=adb('shell','settings','get','global','mobile_data').stdout.decode().strip()
+        connectivity=adb('shell','dumpsys','connectivity').stdout.decode()
+        match=re.search(r'Active default network:\s*(\S+)',connectivity)
+        active_default=match.group(1) if match else 'unknown'
+        routes=adb('shell','ip','route','show','table','all').stdout.decode()+adb('shell','ip','-6','route','show','table','all').stdout.decode()
+        default_count=sum(1 for line in routes.splitlines() if line.strip().startswith('default '))
+        if wifi=='0' and data=='0' and active_default in ('none','null') and default_count==0:break
+        if time.monotonic()>=deadline:raise AssertionError('Device offline condition not established')
+        time.sleep(0.25)
     report=dict(status='PASS',scope='DEBUG_ENGINEERING_FIXTURE_ONLY',model_bytes_verified=True,
-                wifi_setting=wifi,mobile_data_setting=data,activation_performed=False)
+                wifi_setting=wifi,mobile_data_setting=data,active_default_network=active_default,default_route_count=default_count,activation_performed=False)
     (args.directory/'device-preparation.json').write_text(json.dumps(report,indent=2)+'\n')
     print('::notice title=B08 offline device preparation::'+json.dumps(report,separators=(',',':')))
 

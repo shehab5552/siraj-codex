@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:siraj/features/ai_runtime/ai_runtime_client.dart';
 import 'package:siraj/features/ai_runtime/method_channel_ai_runtime_client.dart';
+import 'support/native_terminal_watch.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -191,6 +192,29 @@ void main() {
     );
     await Future<void>.delayed(Duration.zero);
     expect(methods, contains('cancelGeneration'));
+  });
+  test('chunks and terminal before method reply remain observable', () async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          methods.add(call.method);
+          if (call.method == 'generate') {
+            final id = (call.arguments as Map)['requestId'] as String;
+            event(id, 'generationStarted', 0);
+            event(id, 'generationChunk', 1, 'test-only native delta');
+            event(id, 'generationCompleted', 2);
+          }
+          return {'accepted': true};
+        });
+    final terminal = observeNativeTerminal(events.stream, 'request-0');
+    final run = await client.generate(
+      systemInstruction: 'system',
+      input: 'input',
+    );
+    expect((await terminal)['type'], 'generationCompleted');
+    final received = await run.events.toList();
+    expect(received.last.type, AiGenerationEventType.completed);
+    await run.cancel();
+    expect(methods.where((method) => method == 'cancelGeneration'), isEmpty);
   });
   test('disposed client rejects new work', () async {
     await client.dispose();

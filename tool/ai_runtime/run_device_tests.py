@@ -17,15 +17,22 @@ def main():
     for target in targets:
         # Run each target independently: Flutter native app is restarted, while
         # private fixtures persist through same-signature debug installation.
-        process=subprocess.run(['flutter','test','integration_test/'+target+'.dart','--no-pub','-d','emulator-5554','--reporter','expanded'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
+        process=subprocess.run(['flutter','test','integration_test/'+target+'.dart','--no-pub','-d','emulator-5554','--machine'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
         output=process.stdout
-        metrics=[]
+        metrics=[];passed=failed=skipped=0
         for line in output.splitlines():
-            if 'SIRAJ_B08_MODEL_METRICS ' in line:
-                metrics.append(json.loads(line.split('SIRAJ_B08_MODEL_METRICS ',1)[1]))
+            try:event=json.loads(line)
+            except ValueError:continue
+            if event.get('type')=='testDone' and not event.get('hidden'):
+                if event.get('skipped'):skipped+=1
+                elif event.get('result')=='success':passed+=1
+                else:failed+=1
+            message=event.get('message','') if event.get('type')=='print' else ''
+            if 'SIRAJ_B08_MODEL_METRICS ' in message:
+                metrics.append(json.loads(message.split('SIRAJ_B08_MODEL_METRICS ',1)[1]))
         failures=re.findall(r'SIRAJ_B08_MODEL_FAILURE ([A-Za-z]+)',output)
         result=dict(target=target,status='PASS' if process.returncode==0 else 'FAIL',exit_code=process.returncode,
-                    errors=failures,metrics=metrics)
+                    errors=failures,metrics=metrics,flutter_reported_cases=dict(passed=passed,failed=failed,skipped=skipped))
         reports.append(result)
         # Fixed-name test targets contain no user data; arbitrary exception
         # messages are intentionally never reflected in this report.
