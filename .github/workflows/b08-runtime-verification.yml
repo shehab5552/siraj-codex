@@ -1,0 +1,186 @@
+name: B08 LiteRT runtime verification
+
+on:
+  push:
+    branches: [codex/b08-litertlm-android-runtime-01]
+    # Reports capture an already-verified source revision; updating evidence
+    # must not recursively rebuild different APK hashes. Program inputs such as
+    # model-license-review.json are deliberately NOT excluded.
+    paths-ignore:
+      - 'docs/reports/**'
+      - 'docs/qa/b08-runtime/android-build-history.json'
+      - 'docs/qa/b08-runtime/android-final-results.json'
+      - 'docs/qa/b08-runtime/local-final-results.json'
+      - 'docs/qa/b08-runtime/review.md'
+      - 'docs/qa/b08-runtime/files-changed.txt'
+  pull_request:
+    types: [opened, reopened]
+    branches: [codex/b07-independent-download-01, main]
+    paths:
+      - 'android/**'
+      - 'lib/**'
+      - 'test/**'
+      - 'integration_test/b08_*'
+      - 'tool/ai_runtime/**'
+      - '.github/workflows/b08-runtime-verification.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: b08-runtime-${{ github.head_ref || github.ref_name }}-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  model-license-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python fixture and evidence regression tests
+        run: python3 -m unittest discover -s tool/tests
+      - name: Public license provenance for exact pinned weights (no inference)
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py "$RUNNER_TEMP/b08-licenses"
+      - name: Review Qwen3 model_card_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" Qwen3 model_card_text
+      - name: Review Qwen3 license_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" Qwen3 license_text
+      - name: Review EmbeddingGemma model_card_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" EmbeddingGemma model_card_text
+      - name: Review EmbeddingGemma license_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" EmbeddingGemma license_text
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-model-license-evidence
+          retention-days: 14
+          path: ${{ runner.temp }}/b08-licenses/*.json
+
+  compatibility-investigation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14'
+      - name: Actual fixed Maven POM and AAR identity
+        run: python3 -B tool/ai_runtime/audit_maven.py "$RUNNER_TEMP/b08-maven"
+      - name: Resolve actual dependency graph with Gradle8.14
+        run: |
+          mkdir -p "$RUNNER_TEMP/b08-graph"
+          cat > "$RUNNER_TEMP/b08-graph/settings.gradle" <<'GRADLE'
+          rootProject.name = 'siraj-b08-dependency-audit'
+          GRADLE
+          cat > "$RUNNER_TEMP/b08-graph/build.gradle" <<'GRADLE'
+          plugins { id 'java' }
+          repositories { google(); mavenCentral() }
+          dependencies { implementation 'com.google.ai.edge.litertlm:litertlm-android:0.19.0' }
+          tasks.register('auditGraph') {
+            doLast {
+              def result = configurations.runtimeClasspath.resolvedConfiguration.resolvedArtifacts.collect {
+                [coordinate: it.moduleVersion.id.toString(), extension: it.extension]
+              }.sort { it.coordinate }
+              def json = groovy.json.JsonOutput.toJson(result)
+              new File(projectDir, 'resolved-graph.json').text = json
+              println '::notice title=B08 resolved graph::' + json
+            }
+          }
+          GRADLE
+          if gradle -p "$RUNNER_TEMP/b08-graph" dependencies auditGraph --no-daemon > "$RUNNER_TEMP/b08-maven/dependency-graph.log" 2>&1; then
+            true
+          else
+            tail -40 "$RUNNER_TEMP/b08-maven/dependency-graph.log"
+            exit 1
+          fi
+          sed -n '/::notice title=B08 resolved graph::/p' "$RUNNER_TEMP/b08-maven/dependency-graph.log"
+          cp "$RUNNER_TEMP/b08-graph/resolved-graph.json" "$RUNNER_TEMP/b08-maven/"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-dependency-investigation
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/b08-maven/*.json
+            ${{ runner.temp }}/b08-maven/*.pom
+            ${{ runner.temp }}/b08-maven/*.log
+          if-no-files-found: warn
+
+  android-build-and-jni:
+    needs: compatibility-investigation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: stable
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test/b08_runtime_library_test.dart integration_test/b08_real_models_test.dart integration_test/b08_android_acceptance_test.dart
+      - run: flutter analyze --no-pub
+      - run: flutter test --no-pub --machine > "$RUNNER_TEMP/b08-flutter-tests.jsonl"
+      - run: bash tool/ai_runtime/run_core_tests.sh
+      - name: Actual Flutter Debug and Release APK (D8 and R8)
+        run: |
+          python3 tool/ai_runtime/run_build_logged.py "$RUNNER_TEMP/b08-debug-build.log" flutter build apk --debug
+          python3 tool/ai_runtime/run_build_logged.py "$RUNNER_TEMP/b08-release-build.log" flutter build apk --release
+          python3 tool/ai_runtime/run_build_logged.py "$RUNNER_TEMP/b08-gradle-build.log" gradle -p android :app:dependencies :app:assembleDebug :app:assembleRelease --no-daemon
+      - name: Inspect actual APKs and native ELF ABIs
+        run: |
+          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-debug.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --report "$RUNNER_TEMP/b08-debug-inspection.json"
+          python3 tool/ai_runtime/inspect_apk.py build/app/outputs/flutter-apk/app-release.apk --apkanalyzer "$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer" --mapping build/app/outputs/mapping/release/mapping.txt --report "$RUNNER_TEMP/b08-release-inspection.json"
+          gradle --stop
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-app-apks-and-build-evidence
+          retention-days: 14
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/flutter-apk/app-release.apk
+            ${{ runner.temp }}/b08-*-inspection.json
+            ${{ runner.temp }}/b08-flutter-tests.jsonl
+            ${{ runner.temp }}/b08-gradle-build.log
+            ${{ runner.temp }}/b08-debug-build.log
+            ${{ runner.temp }}/b08-release-build.log
+          if-no-files-found: warn
+      - name: Approved licensed engineering model fixture preparation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -B tool/ai_runtime/download_fixture_models.py "$RUNNER_TEMP/b08-models"
+          dart run tool/ai_runtime/litertlm_format_probe.dart "$RUNNER_TEMP/b08-models" "$RUNNER_TEMP/b08-models/container-results.json"
+      - run: sudo chmod 666 /dev/kvm
+      - name: Actual Android regression, JNI and licensed offline inference
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 4096
+          script: |
+            python3 -B tool/ai_runtime/prepare_device_fixtures.py "$RUNNER_TEMP/b08-models" --apk build/app/outputs/flutter-apk/app-debug.apk
+            python3 -B tool/ai_runtime/run_device_tests.py "$RUNNER_TEMP/b08-device"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b08-android-and-model-results
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/b08-device/*.json
+            ${{ runner.temp }}/b08-models/*.json
+          if-no-files-found: warn

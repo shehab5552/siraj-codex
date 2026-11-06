@@ -44,7 +44,7 @@ class ResourceFormatPreflight {
       remaining.remove(ResourceValidationCheck.sha256Matched);
     }
     final (status, version) = switch (artifact.kind) {
-      ResourceContractKind.llm => _gguf(artifact.prefix),
+      ResourceContractKind.llm => _model(artifact.prefix),
       ResourceContractKind.pdf => _pdf(artifact.prefix),
       ResourceContractKind.ragPack || ResourceContractKind.ragEmbedding => (
         FormatHeaderStatus.specializedValidatorRequired,
@@ -56,6 +56,17 @@ class ResourceFormatPreflight {
       version: version,
       remainingChecks: remaining,
     );
+  }
+
+  static (FormatHeaderStatus, String?) _model(List<int> prefix) {
+    if (prefix.length >= 8 &&
+        ascii.decode(prefix.take(8).toList(), allowInvalid: true) ==
+            'LITERTLM') {
+      // Routing only. The specialized validator must read the bounded full
+      // container under the same staging lease before accepting this download.
+      return (FormatHeaderStatus.specializedValidatorRequired, null);
+    }
+    return _gguf(prefix);
   }
 
   static (FormatHeaderStatus, String?) _gguf(List<int> prefix) {

@@ -1,0 +1,38 @@
+[
+  {
+    "file": "Qwen3-0.6B.litertlm",
+    "integrity": "PASS",
+    "structure": "PASS",
+    "container_version": "1.7.0",
+    "section_count": 3,
+    "minimum_runtime_declared": null,
+    "remaining_checks": [
+      "deviceCompatible",
+      "modelLoadProven",
+      "runtimeCompatible",
+      "supportedModelFormat",
+      "transferComplete"
+    ],
+    "model_execution": "NOT RUN",
+    "activation_performed": false
+  },
+  {
+    "file": "embeddinggemma-2-text-270m.litertlm",
+    "integrity": "PASS",
+    "structure": "PASS",
+    "container_version": "1.7.0",
+    "section_count": 6,
+    "minimum_runtime_declared": null,
+    "remaining_checks": [
+      "androidSampleQueryPassed",
+      "embeddingModelCompatible",
+      "normalizationCompatible",
+      "poolingCompatible",
+      "tokenizerCompatible",
+      "transferComplete",
+      "vectorDimensionsCompatible"
+    ],
+    "model_execution": "NOT RUN",
+    "activation_performed": false
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "original_commit": "33c335485b959a394130f92940027ccaa9045729",
+  "source_commit": "4951875ae5ce09ff5ff396fca827428ab4f58de8",
+  "baseline": {
+    "flutter": {
+      "passed": 250,
+      "failed": 0,
+      "skipped": 0,
+      "machine_success": true
+    },
+    "java_passed": 35,
+    "python_passed": 36
+  },
+  "flutter": {
+    "version": "3.38.5",
+    "dart": "3.10.4",
+    "passed": 263,
+    "failed": 0,
+    "skipped": 0,
+    "machine_success": true
+  },
+  "targeted_flutter": {
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "machine_success": true
+  },
+  "java": {
+    "passed": 57,
+    "failed": 0,
+    "parts": {
+      "library": 7,
+      "manager": 17,
+      "resolver": 6,
+      "ownership": 5,
+      "lifecycle": 22
+    },
+    "inference_proven": false
+  },
+  "python": {
+    "passed": 36,
+    "failed": 0
+  },
+  "analyze": "PASS: No issues found",
+  "format": {
+    "status": "PASS",
+    "files": 73,
+    "changed": 0
+  },
+  "locked_pub": "PASS: enforce-lockfile",
+  "sdk_compile": {
+    "status": "PASS",
+    "version": "0.19.0",
+    "target": 17,
+    "warning": "system modules path not set in conjunction with -source 17 (local stripped JDK)"
+  },
+  "red_before_green": [
+    {
+      "log": "red-java.log",
+      "sha256": "5f1d3867ddb595138da95475194f51f1a5359cedc36fb50d23216fbf71571ac7",
+      "failure_reproduced": "cancel followed by normal completion was mislabelled cancelled",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-embedding.log",
+      "sha256": "865663374aec042e12fca859d54144c9be974268a4af5ee31bf2f09902997fee",
+      "failure_reproduced": "close failure lost ownership/typed failure",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-dart.log",
+      "sha256": "3de03c6800f39be1d48f9b1c375062663d83d88f60a9f4c04bcbe150b9dc9620",
+      "failure_reproduced": "local cancel admitted new generation before Native terminal",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-tutor.log",
+      "sha256": "d3c78b05c036d27b4b206f63f32fcc89bfaf07558a5f3a443908ec68f6fd01f6",
+      "failure_reproduced": "void cancellation hook leaked a failing Future",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-postcancel-text.log",
+      "sha256": "5aec8e4c8d31c9d4b47c207eb7ed2d568bb51cfd1666d7fa575d4d1a04baa463",
+      "failure_reproduced": "post-cancel normal completion omitted suffix",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-activity-replacement.log",
+      "sha256": "11103aca3f2cce864b9e8b4a860d8e4b7537c0f66e48a4ef2478c31e8c05d689",
+      "failure_reproduced": "new manager bypassed unresolved Native owner",
+      "raw_log": "private cloud execution evidence; no prompts/native traces uploaded"
+    },
+    {
+      "log": "red-tutor-terminal.jsonl",
+      "sha256": "c4c931dd61a02e378157efe5aa7c15bdedf184ed9a146e478192056b671556ab",
+      "failure_reproduced": "Tutor finalized cancelled on a late chunk; coordinator overwrote operational failure",
+      "raw_log": "private cloud execution evidence"
+    }
+  ]
+}

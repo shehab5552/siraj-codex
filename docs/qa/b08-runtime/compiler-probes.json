@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "direct Kotlin",
+    "compiler": "2.2.20",
+    "exit": 1,
+    "metadata_error": true
+  },
+  {
+    "kind": "direct Kotlin",
+    "compiler": "2.3.0",
+    "exit": 0,
+    "metadata_error": false
+  },
+  {
+    "kind": "Java21 facade + Kotlin2.2.20 consumer",
+    "exit": 0,
+    "facade_java_major": 61,
+    "aar_on_consumer_classpath": false
+  }
+]

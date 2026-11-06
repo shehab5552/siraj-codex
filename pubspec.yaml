@@ -39,6 +39,7 @@ dependencies:
   cryptography: ^2.9.0
   uuid: ^4.6.0
   cryptography_flutter: 2.3.4
+  flat_buffers: 25.9.23
 
 dev_dependencies:
   flutter_test:

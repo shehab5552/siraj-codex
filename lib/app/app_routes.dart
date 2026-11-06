@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../features/auth/auth_models.dart';
 import '../features/chat/chat_page.dart';
+import '../features/chat/chat_turn_coordinator.dart';
 import '../features/chat/conversation_draft_controller.dart';
 
 /// Authenticated chat navigation must carry a verified session plus a
@@ -12,10 +13,12 @@ class AuthenticatedChatRoute {
   const AuthenticatedChatRoute({
     required this.session,
     required this.draftController,
+    this.turns,
   });
 
   final AuthSession session;
   final ConversationDraftController draftController;
+  final ChatTurnCoordinator? turns;
 }
 
 abstract final class AppRoutes {
@@ -31,6 +34,7 @@ abstract final class AppRoutes {
             builder: (_) => ChatPage(
               draftController: arguments.draftController,
               session: arguments.session,
+              turns: arguments.turns,
             ),
           );
         }

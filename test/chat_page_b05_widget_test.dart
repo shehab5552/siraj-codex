@@ -107,6 +107,28 @@ void main() {
       expect(rows.single.read<String>('role'), 'USER');
     });
 
+    testWidgets(
+      'logout after precheck presents an error instead of uncaught StateError',
+      (tester) async {
+        draft = ConversationDraftController(
+          conversations: conversations,
+          guard: _InvalidateAfterCheckGuard(users),
+          newId: () => 'race-${serial++}',
+        );
+        await render(tester);
+        await tester.enterText(
+          find.byKey(const Key('chat-question-input')),
+          'question',
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('chat-send-enabled')));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const Key('chat-save-error')), findsOneWidget);
+        expect(await savedCount(), 0);
+      },
+    );
+
     testWidgets('preview without supplied session cannot persist', (
       tester,
     ) async {
@@ -139,4 +161,20 @@ void main() {
       expect(draft.isTemporary, isTrue);
     });
   });
+}
+
+/// Test-only deterministic race at the existing SessionGuard boundary.
+class _InvalidateAfterCheckGuard extends SessionGuard {
+  _InvalidateAfterCheckGuard(this.users) : super(users);
+  final UserRepository users;
+  @override
+  Future<bool> isCurrent(AuthSession session) async {
+    final valid = await super.isCurrent(session);
+    await users.invalidateNonce(
+      userId: session.userId,
+      accountEpoch: session.accountEpoch,
+      nowUtc: '2026-11-06T00:00:00Z',
+    );
+    return valid;
+  }
 }

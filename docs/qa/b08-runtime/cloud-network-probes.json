@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://maven.google.com/com/google/ai/edge/litertlm/litertlm-android/0.19.0/litertlm-android-0.19.0.pom",
+    "hostname": "maven.google.com",
+    "proxy_connect_status": 403,
+    "origin_status": null,
+    "cause": "Proxy CONNECT rejected"
+  },
+  {
+    "url": "https://dl.google.com/dl/android/maven2/com/google/ai/edge/litertlm/litertlm-android/0.19.0/litertlm-android-0.19.0.pom",
+    "hostname": "dl.google.com",
+    "proxy_connect_status": 403,
+    "origin_status": null,
+    "cause": "Proxy CONNECT rejected"
+  },
+  {
+    "url": "https://huggingface.co/api/models/litert-community/embeddinggemma-2-text-270m-litert-lm",
+    "hostname": "huggingface.co",
+    "proxy_connect_status": 403,
+    "origin_status": null,
+    "cause": "Proxy CONNECT rejected"
+  }
+]
