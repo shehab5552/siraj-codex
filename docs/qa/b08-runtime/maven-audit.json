@@ -1,0 +1,50 @@
+{
+  "coordinate": "com.google.ai.edge.litertlm:litertlm-android:0.19.0",
+  "accepted": true,
+  "pom": {
+    "url": "https://dl.google.com/dl/android/maven2/com/google/ai/edge/litertlm/litertlm-android/0.19.0/litertlm-android-0.19.0.pom",
+    "http_status": 200,
+    "size": 1543,
+    "sha256": "9f4e78a67f31a7f94c9527b623f21a7810fac286270e09b2fb78acfab35a5b06"
+  },
+  "aar": {
+    "url": "https://dl.google.com/dl/android/maven2/com/google/ai/edge/litertlm/litertlm-android/0.19.0/litertlm-android-0.19.0.aar",
+    "http_status": 200,
+    "size": 21197249,
+    "sha256": "e5c7a86048225efba8ab6d35fcd91f5870c86c65ca2538c07c3c1f63d02efa2b"
+  },
+  "pom_identity": {
+    "groupId": "com.google.ai.edge.litertlm",
+    "artifactId": "litertlm-android",
+    "version": "0.19.0",
+    "packaging": "aar"
+  },
+  "direct_dependencies": [
+    {
+      "groupId": "com.google.code.gson",
+      "artifactId": "gson",
+      "version": "2.14.0",
+      "scope": "compile"
+    },
+    {
+      "groupId": "org.jetbrains.kotlin",
+      "artifactId": "kotlin-reflect",
+      "version": "2.4.0",
+      "scope": "compile"
+    },
+    {
+      "groupId": "org.jetbrains.kotlinx",
+      "artifactId": "kotlinx-coroutines-android",
+      "version": "1.11.0",
+      "scope": "compile"
+    }
+  ],
+  "licenses": [
+    {
+      "name": "The Apache Software License, Version 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+    }
+  ],
+  "owner_pin_matched": true,
+  "version_matched": true
+}

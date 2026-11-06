@@ -28,15 +28,25 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // The verified LiteRT-LM0.19.0 AAR contains these two64-bit ABIs.
+        ndk.abiFilters += listOf("arm64-v8a", "x86_64")
     }
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+}
+
+dependencies {
+    // Java facade hides implementation-only Kotlin2.4 metadata from app KGP2.2.
+    implementation(project(":ai_runtime"))
 }
 
 flutter {

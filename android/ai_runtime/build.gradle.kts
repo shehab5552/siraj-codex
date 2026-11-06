@@ -1,0 +1,78 @@
+import java.security.MessageDigest
+import java.util.zip.ZipFile
+
+plugins { id("com.android.library") }
+
+android {
+    namespace = "com.example.siraj.ai_runtime"
+    // Matches the pinned Flutter3.38.5 Android SDK values; no toolchain upgrade.
+    compileSdk = 36
+    defaultConfig {
+        minSdk = 24
+        consumerProguardFiles("consumer-rules.pro")
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+val runtimeCoordinate = "com.google.ai.edge.litertlm:litertlm-android:0.19.0"
+val runtimeIdentity by configurations.creating {
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
+dependencies {
+    // Deliberately implementation, never api: only plain Java facade types
+    // cross this module boundary. The real Maven POM supplies runtime deps.
+    implementation(runtimeCoordinate)
+    runtimeIdentity("$runtimeCoordinate@aar")
+}
+
+val verifyRuntimeIdentity by tasks.registering {
+    inputs.files(runtimeIdentity)
+    doLast {
+        val artifact = runtimeIdentity.singleFile
+        val digest = MessageDigest.getInstance("SHA-256")
+        artifact.inputStream().use { input ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        val sha256 = digest.digest().joinToString("") { "%02x".format(it) }
+        check(artifact.length() == 21197249L &&
+            sha256 == "e5c7a86048225efba8ab6d35fcd91f5870c86c65ca2538c07c3c1f63d02efa2b") {
+            "LiteRT-LM0.19.0 artifact identity mismatch"
+        }
+    }
+}
+
+tasks.named("preBuild").configure { dependsOn(verifyRuntimeIdentity) }
+
+// Preserve the verified SDK's redistribution notices in the resulting APK.
+// These generated text assets never enter Git and contain no model weights.
+val noticesDirectory = layout.buildDirectory.dir("generated/runtime-notices")
+android.sourceSets.getByName("main").assets.srcDir(noticesDirectory)
+val generateRuntimeNotices by tasks.registering {
+    dependsOn(verifyRuntimeIdentity)
+    inputs.files(runtimeIdentity)
+    outputs.dir(noticesDirectory)
+    doLast {
+        val output = noticesDirectory.get().dir("licenses/litertlm-android-0.19.0").asFile
+        check(output.mkdirs() || output.isDirectory)
+        ZipFile(runtimeIdentity.singleFile).use { archive ->
+            for (name in listOf("LICENSE", "THIRD_PARTY_NOTICE")) {
+                val entry = checkNotNull(archive.getEntry(name)) { "Runtime notice missing" }
+                archive.getInputStream(entry).use { input ->
+                    output.resolve("$name.txt").outputStream().use { input.copyTo(it) }
+                }
+            }
+        }
+    }
+}
+tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }
+    .configureEach { dependsOn(generateRuntimeNotices) }
