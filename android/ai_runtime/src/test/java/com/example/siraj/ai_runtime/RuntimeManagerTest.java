@@ -8,7 +8,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class RuntimeManagerTest {
   static final class Fake implements RuntimeBackend {
     volatile Callback callback;
-    volatile boolean cancelled;
+    volatile boolean cancelled, throwCancel;
+    final CountDownLatch cancelEntered=new CountDownLatch(1);
     volatile int closed, conversations;
     volatile float[] vector = vector();
     public Llm loadLlm(File path) { return new Llm() {
@@ -16,7 +17,7 @@ public final class RuntimeManagerTest {
         conversations++;
         return new Conversation() {
           public void start(String input, Callback cb) { callback=cb; }
-          public void cancel() { cancelled=true; }
+          public void cancel() { cancelled=true;cancelEntered.countDown();if(throwCancel)throw new IllegalStateException("test cancel error"); }
           public void close() { closed++; }
         };
       }
@@ -58,6 +59,12 @@ public final class RuntimeManagerTest {
     b.vector=new float[768];failure(m.embed("input"),RuntimeFailure.Code.zeroEmbedding);passed.incrementAndGet();
     await(m.close(true));await(m.initialize("llm",false));await(m.generate("r5","system","input"));CompletableFuture<Void> disposing=m.dispose();
     b.callback.done();await(disposing);failure(m.initialize("llm",false),RuntimeFailure.Code.disposed);check(!m.llmLoaded());passed.incrementAndGet();
+    Fake throwing=new Fake();throwing.throwCancel=true;RuntimeManager guarded=create(throwing,new CopyOnWriteArrayList<>());
+    await(guarded.initialize("llm",false));await(guarded.generate("throw-cancel","system","input"));
+    CompletableFuture<Void> pending=guarded.dispose();check(throwing.cancelEntered.await(2,TimeUnit.SECONDS));
+    try { pending.get(50,TimeUnit.MILLISECONDS);throw new AssertionError("must drain native first"); }
+    catch(TimeoutException expected) { /* Quarantined until actual terminal. */ }
+    throwing.callback.done();failure(pending,RuntimeFailure.Code.generationFailed);check(!guarded.llmLoaded());check(throwing.closed==2);passed.incrementAndGet();
     System.out.println("RuntimeManagerTest: "+passed+" passed (fake contracts, not inference)");
   }
 }

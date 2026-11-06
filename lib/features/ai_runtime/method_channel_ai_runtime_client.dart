@@ -23,6 +23,7 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
   StreamSubscription<Object?>? _subscription;
   _Run? _active;
   bool _disposed = false;
+  bool _eventsLost = false;
   Future<void>? _disposing;
   void _check() {
     if (_disposed) throw const AiRuntimeFailure(AiRuntimeErrorCode.disposed);
@@ -87,6 +88,9 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
     required String input,
   }) async {
     _check();
+    if (_eventsLost) {
+      throw const AiRuntimeFailure(AiRuntimeErrorCode.channelUnavailable);
+    }
     if (_active != null) throw const AiRuntimeFailure(AiRuntimeErrorCode.busy);
     if (input.trim().isEmpty ||
         systemInstruction.trim().isEmpty ||
@@ -96,30 +100,8 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
     }
     _subscription ??= _events.listen(
       _event,
-      onError: (Object error, StackTrace stack) {
-        final run = _active;
-        if (run != null) {
-          _terminate(
-            run,
-            const AiGenerationEvent(
-              AiGenerationEventType.failed,
-              error: AiRuntimeErrorCode.channelUnavailable,
-            ),
-          );
-        }
-      },
-      onDone: () {
-        final run = _active;
-        if (run != null) {
-          _terminate(
-            run,
-            const AiGenerationEvent(
-              AiGenerationEventType.failed,
-              error: AiRuntimeErrorCode.channelUnavailable,
-            ),
-          );
-        }
-      },
+      onError: (Object error, StackTrace stack) => _loseEvents(),
+      onDone: _loseEvents,
     );
     final run = _Run(_newId());
     _active = run;
@@ -138,6 +120,23 @@ class MethodChannelAiRuntimeClient implements AiRuntimeClient {
       rethrow;
     }
     return AiGeneration(run.id, run.controller.stream, () => _cancel(run));
+  }
+
+  void _loseEvents() {
+    _eventsLost = true;
+    final run = _active;
+    if (run != null) {
+      _terminate(
+        run,
+        const AiGenerationEvent(
+          AiGenerationEventType.failed,
+          error: AiRuntimeErrorCode.channelUnavailable,
+        ),
+      );
+      unawaited(_cancelNative(run.id));
+    }
+    // A dead platform transport requires owner disposal and a new client.
+    // Never silently accept work on a permanently ended subscription.
   }
 
   void _event(Object? raw) {

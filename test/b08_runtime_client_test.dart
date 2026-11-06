@@ -157,6 +157,41 @@ void main() {
       throwsA(failure(AiRuntimeErrorCode.zeroEmbedding)),
     );
   });
+  test(
+    'closed event stream cancels native and fails future calls promptly',
+    () async {
+      final run = await client.generate(
+        systemInstruction: 'system',
+        input: 'input',
+      );
+      final received = run.events.toList();
+      await events.close();
+      expect(
+        (await received).single.error,
+        AiRuntimeErrorCode.channelUnavailable,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(methods, contains('cancelGeneration'));
+      await expectLater(
+        client.generate(systemInstruction: 'system', input: 'next'),
+        throwsA(failure(AiRuntimeErrorCode.channelUnavailable)),
+      );
+    },
+  );
+  test('event channel error cancels abandoned native request', () async {
+    final run = await client.generate(
+      systemInstruction: 'system',
+      input: 'input',
+    );
+    final received = run.events.toList();
+    events.addError(StateError('private native details'));
+    expect(
+      (await received).single.error,
+      AiRuntimeErrorCode.channelUnavailable,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(methods, contains('cancelGeneration'));
+  });
   test('disposed client rejects new work', () async {
     await client.dispose();
     await expectLater(

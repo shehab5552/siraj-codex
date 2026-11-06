@@ -20,14 +20,14 @@ public final class SirajAiRuntimeChannel implements EventChannel.StreamHandler {
   private EventChannel.EventSink sink;
   private boolean disposed;
   private volatile long listenerEpoch;
-  private final Map<String,Long> requestListeners=new ConcurrentHashMap<>();
+  private final RequestOwnership requestListeners=new RequestOwnership();
   public SirajAiRuntimeChannel(Context context,BinaryMessenger messenger) {
     runtime=new RuntimeManager(new LiteRtBackend(),AiResourceCatalog.create(context.getFilesDir()),(id,type,seq,text,code)-> {
       Map<String,Object> data=new HashMap<>();data.put("requestId",id);data.put("type",type);data.put("sequence",seq);
       if(text!=null)data.put("text",text);if(code!=null)data.put("code",code);
-      Long epoch=requestListeners.get(id);
-      if(type.equals("generationCompleted") || type.equals("generationFailed") || type.equals("generationCancelled"))requestListeners.remove(id);
-      main.post(()-> { if(!disposed && sink!=null && epoch!=null && epoch==listenerEpoch)sink.success(data); });
+      RequestOwnership.Lease lease=requestListeners.current(id);
+      if(type.equals("generationCompleted") || type.equals("generationFailed") || type.equals("generationCancelled"))requestListeners.release(id,lease);
+      main.post(()-> { if(!disposed && sink!=null && lease!=null && lease.listenerEpoch==listenerEpoch)sink.success(data); });
     });
     methods=new MethodChannel(messenger,"siraj/ai_runtime/methods_v1");
     events=new EventChannel(messenger,"siraj/ai_runtime/events_v1");
@@ -54,8 +54,9 @@ public final class SirajAiRuntimeChannel implements EventChannel.StreamHandler {
         case "generate":
           if(sink==null)throw new RuntimeFailure(RuntimeFailure.Code.invalidRequest);
           String requestId=text(call,"requestId");
-          requestListeners.put(requestId,listenerEpoch);
-          complete(runtime.generate(requestId,text(call,"systemInstruction"),text(call,"input")).whenComplete((v,e)-> { if(e!=null)requestListeners.remove(requestId); }).thenApply(v->Collections.singletonMap("accepted",true)),result);break;
+          String system=text(call,"systemInstruction"), input=text(call,"input");
+          RequestOwnership.Lease owned=requestListeners.claim(requestId,listenerEpoch);
+          complete(runtime.generate(requestId,system,input).whenComplete((v,e)-> { if(e!=null)requestListeners.release(requestId,owned); }).thenApply(v->Collections.singletonMap("accepted",true)),result);break;
         case "cancelGeneration":complete(runtime.cancel(text(call,"requestId")),result);break;
         case "closeLlm":complete(runtime.close(false),result);break;
         case "closeEmbedding":complete(runtime.close(true),result);break;

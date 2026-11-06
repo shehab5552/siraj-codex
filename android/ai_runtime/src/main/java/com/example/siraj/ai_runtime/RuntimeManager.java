@@ -22,6 +22,7 @@ public final class RuntimeManager {
   private volatile boolean disposed;
   private Request active;
   private CompletableFuture<Void> closingLlm;
+  private RuntimeFailure.Code closeFailure;
   private CompletableFuture<Void> disposal;
   private static final class Request {
     final String id; final AtomicBoolean terminal=new AtomicBoolean();
@@ -116,7 +117,7 @@ public final class RuntimeManager {
     else emit(r,"generationCompleted",null,null);
     if(closingLlm!=null) {
       CompletableFuture<Void> f=closingLlm;closingLlm=null;
-      try { closeIdleLlm();f.complete(null); }catch(Throwable e) { f.completeExceptionally(sanitized(e,RuntimeFailure.Code.generationFailed)); }
+      try { closeIdleLlm();if(closeFailure!=null)f.completeExceptionally(new RuntimeFailure(closeFailure));else f.complete(null);closeFailure=null; }catch(Throwable e) { f.completeExceptionally(sanitized(e,RuntimeFailure.Code.generationFailed)); }
     }
   }
   public CompletableFuture<Void> cancel(String id) {
@@ -142,11 +143,17 @@ public final class RuntimeManager {
     }
     if(closingLlm!=null)return closingLlm;
     if(active!=null) {
-      closingLlm=new CompletableFuture<>();cancelActive();return closingLlm;
+      closingLlm=new CompletableFuture<>();
+      try { cancelActive(); } catch(Throwable error) {
+        // Cancellation failed, but the native call may still be running. Keep
+        // worker/ownership alive until its terminal callback, then report error.
+        closeFailure=sanitized(error,RuntimeFailure.Code.generationFailed).code;
+      }
+      return closingLlm;
     }
     closeIdleLlm();return CompletableFuture.completedFuture(null);
   }
-  private void closeIdleLlm() { RuntimeBackend.Llm old=llm;llm=null;if(old!=null)old.close(); }
+  private void closeIdleLlm() { RuntimeBackend.Llm old=llm;if(old!=null)old.close();llm=null; }
   private void closeIdle() { closeIdleLlm();RuntimeBackend.Embedding old=embedding;embedding=null;if(old!=null)old.close(); }
   public CompletableFuture<float[]> embed(String input) {
     return submit(()-> {

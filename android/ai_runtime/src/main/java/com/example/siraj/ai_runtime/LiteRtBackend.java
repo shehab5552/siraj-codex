@@ -14,7 +14,11 @@ public final class LiteRtBackend implements RuntimeBackend {
   @Override public Llm loadLlm(File path) {
     privateLogging();
     Engine engine=new Engine(new EngineConfig(path.getAbsolutePath(),new Backend.CPU()));
-    engine.initialize();
+    try { engine.initialize(); }
+    catch(Throwable error) {
+      if(engine.isInitialized()) {try {engine.close();}catch(Throwable ignored) {}}
+      throw RuntimeManager.sanitized(error,RuntimeFailure.Code.initializationFailed);
+    }
     return new Llm() {
       public RuntimeBackend.Conversation conversation(String system) {
         com.google.ai.edge.litertlm.Conversation c=engine.createConversation(
@@ -49,7 +53,11 @@ public final class LiteRtBackend implements RuntimeBackend {
   @Override public Embedding loadEmbedding(File path) {
     privateLogging();
     EmbeddingEngine engine=new EmbeddingEngine(new EmbeddingEngineConfig(path.getAbsolutePath(),new Backend.CPU()));
-    engine.initialize();
+    try { engine.initialize(); }
+    catch(Throwable error) {
+      if(engine.isInitialized()) {try {engine.close();}catch(Throwable ignored) {}}
+      throw RuntimeManager.sanitized(error,RuntimeFailure.Code.initializationFailed);
+    }
     return new Embedding() {
       public float[] embed(String input) {
         // Nullable SDK defaults are only engineering defaults. They do not
