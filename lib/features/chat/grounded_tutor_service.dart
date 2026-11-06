@@ -37,15 +37,17 @@ class GroundedTutorService implements TutorPort {
         input: context.prompt,
       );
       final running = generation;
-      Future<void> requestCancellation() async {
+      Future<void>? cancellationRequest;
+      AiRuntimeFailure? cancellationFailure;
+      Future<void> requestCancellation() => cancellationRequest ??= () async {
         try {
           await running.cancel();
-        } on AiRuntimeFailure {
-          // The user abandoned this turn; Native still owns the request until
-          // its terminal callback. Never expose text or invent cancellation
-          // confirmation, and never leak a failing Future from the void hook.
+        } on AiRuntimeFailure catch (error) {
+          // Keep consuming to the real terminal, retaining the sanitized failure
+          // even if the callback arrived synchronously during the cancel call.
+          cancellationFailure = error;
         }
-      }
+      }();
 
       cancellation.onCancel = () => unawaited(requestCancellation());
       if (cancellation.isCancelled) await requestCancellation();
@@ -53,7 +55,17 @@ class GroundedTutorService implements TutorPort {
       bool completed = false;
       await for (final event in generation.events) {
         if (cancellation.isCancelled) {
-          return TutorResult.error(TutorReason.cancelled);
+          if (event.type == AiGenerationEventType.started ||
+              event.type == AiGenerationEventType.chunk) {
+            continue;
+          }
+          await requestCancellation();
+          return TutorResult.error(
+            cancellationFailure != null ||
+                    event.type == AiGenerationEventType.failed
+                ? TutorReason.generationFailed
+                : TutorReason.cancelled,
+          );
         }
         switch (event.type) {
           case AiGenerationEventType.chunk:

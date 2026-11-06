@@ -133,6 +133,24 @@ void main() {
     expect((await f).result.reason, TutorReason.cancelled);
     expect(await count(), 1);
   });
+  test(
+    'cancellation waits and preserves operational failure without assistant write',
+    () async {
+      var completed = false;
+      final result = send().then((value) {
+        completed = true;
+        return value;
+      });
+      await waitTutor();
+      turns.cancel();
+      await Future<void>.delayed(Duration.zero);
+      expect(completed, isFalse);
+      await expectLater(send('turn2'), throwsStateError);
+      tutor.result.complete(TutorResult.error(TutorReason.generationFailed));
+      expect((await result).result.reason, TutorReason.generationFailed);
+      expect(await count(), 1);
+    },
+  );
   test('concurrent send rejected and Tutor failure preserves USER', () async {
     final f = send();
     await waitTutor();

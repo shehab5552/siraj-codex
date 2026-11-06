@@ -8,6 +8,8 @@ class TestRuntime implements AiRuntimeClient {
   final output = StreamController<AiGenerationEvent>();
   int calls = 0, cancels = 0;
   bool throwCancel = false;
+  bool emitCancellationTerminal = true;
+  bool terminalBeforeCancelFailure = false;
   @override
   Future<AiGeneration> generate({
     required String systemInstruction,
@@ -16,10 +18,15 @@ class TestRuntime implements AiRuntimeClient {
     calls++;
     return AiGeneration('test', output.stream, () async {
       cancels++;
+      if (terminalBeforeCancelFailure) {
+        output.add(const AiGenerationEvent(AiGenerationEventType.cancelled));
+      }
       if (throwCancel) {
         throw const AiRuntimeFailure(AiRuntimeErrorCode.cancelFailed);
       }
-      output.add(const AiGenerationEvent(AiGenerationEventType.cancelled));
+      if (emitCancellationTerminal && !terminalBeforeCancelFailure) {
+        output.add(const AiGenerationEvent(AiGenerationEventType.cancelled));
+      }
     });
   }
 
@@ -186,10 +193,73 @@ void main() {
           error: AiRuntimeErrorCode.cancelFailed,
         ),
       );
-      expect((await result).reason, TutorReason.cancelled);
+      expect((await result).reason, TutorReason.generationFailed);
       expect(runtime.cancels, 1);
     },
   );
+  test(
+    'terminal before rejected cancel reply remains an operational failure',
+    () async {
+      runtime.throwCancel = true;
+      runtime.terminalBeforeCancelFailure = true;
+      final token = TutorCancellation();
+      final result = GroundedTutorService(
+        runtime: runtime,
+        evidence: evidence,
+      ).ask('question', token);
+      await flush();
+      token.cancel();
+      expect((await result).reason, TutorReason.generationFailed);
+    },
+  );
+  for (final terminal in [
+    AiGenerationEventType.completed,
+    AiGenerationEventType.failed,
+  ]) {
+    test(
+      'abandoned tutor ignores late chunks and waits for $terminal',
+      () async {
+        runtime.emitCancellationTerminal = false;
+        final token = TutorCancellation();
+        var completed = false;
+        final result =
+            GroundedTutorService(
+              runtime: runtime,
+              evidence: evidence,
+            ).ask('question', token).then((value) {
+              completed = true;
+              return value;
+            });
+        await flush();
+        token.cancel();
+        runtime.output.add(
+          const AiGenerationEvent(
+            AiGenerationEventType.chunk,
+            text: 'late unverified text',
+          ),
+        );
+        await flush();
+        expect(completed, isFalse);
+        runtime.output.add(
+          AiGenerationEvent(
+            terminal,
+            error: terminal == AiGenerationEventType.failed
+                ? AiRuntimeErrorCode.generationFailed
+                : null,
+          ),
+        );
+        final value = await result;
+        expect(
+          value.reason,
+          terminal == AiGenerationEventType.failed
+              ? TutorReason.generationFailed
+              : TutorReason.cancelled,
+        );
+        expect(value.status, TutorStatus.error);
+        expect(value.sources, isEmpty);
+      },
+    );
+  }
   test('reference shape and mixed revisions rejected', () {
     expect(
       () => SourceReference(packId: '', chunkId: 'c', datasetRevision: 'r'),

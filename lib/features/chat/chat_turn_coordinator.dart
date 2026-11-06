@@ -99,6 +99,12 @@ class ChatTurnCoordinator {
         return outcome(TutorResult.error(TutorReason.generationFailed));
       }
       if (token.isCancelled || _disposed) {
+        // A failed Native cancellation/generation is operational failure, not a
+        // successful cancellation. Never write an abandoned answer in either case.
+        if (result.status == TutorStatus.error &&
+            result.reason != TutorReason.cancelled) {
+          return outcome(result);
+        }
         return outcome(TutorResult.error(TutorReason.cancelled));
       }
       if (!await guard.isCurrent(session)) {
