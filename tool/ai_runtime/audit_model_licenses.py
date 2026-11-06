@@ -98,13 +98,24 @@ def main():
     for report in reports:
         summary={k:v for k,v in report.items() if k not in ('license_text','model_card_text')}
         print('::notice title=B08 model license '+report['label']+'::'+json.dumps(summary,separators=(',',':')).replace('%','%25'))
-        # Checks annotations truncate a single message at4096 characters. Keep
-        # bounded, numbered public-license evidence segments independently valid.
-        for field in ['model_card_text','license_text']:
-            text=report.get(field,'');parts=[text[i:i+1800] for i in range(0,len(text),1800)]
-            for index,part in enumerate(parts):
-                value=dict(label=report['label'],field=field,index=index,total=len(parts),text=part)
-                print('::notice title=B08 license document::'+json.dumps(value,separators=(',',':')).replace('%','%25'))
 
 
-if __name__=='__main__':main()
+
+def emit_document(directory,label,field):
+    reports=json.loads((Path(directory)/'model-license-audit.json').read_text())
+    report=next(r for r in reports if r['label']==label)
+    text=report.get(field,'')
+    if field=='model_card_text':
+        # Remove decorative SVG paths for the human-readable annotation only.
+        # The original full card remains in the audit JSON artifact.
+        text=re.sub(r'<svg\b.*?</svg>','[decorative SVG omitted]',text,flags=re.S|re.I)
+    parts=[text[i:i+2600] for i in range(0,len(text),2600)]
+    if len(parts)>9:raise ValueError('public license document exceeds step annotation budget')
+    for index,part in enumerate(parts):
+        value=dict(label=label,field=field,index=index,total=len(parts),text=part)
+        print('::notice title=B08 license document::'+json.dumps(value,separators=(',',':')).replace('%','%25'))
+
+
+if __name__=='__main__':
+    if len(sys.argv)==5 and sys.argv[1]=='--emit':emit_document(sys.argv[2],sys.argv[3],sys.argv[4])
+    else:main()

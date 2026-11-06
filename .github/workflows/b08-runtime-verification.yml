@@ -4,6 +4,7 @@ on:
   push:
     branches: [codex/b08-litertlm-android-runtime-01]
   pull_request:
+    types: [opened, reopened]
     branches: [codex/b07-independent-download-01, main]
     paths:
       - 'android/**'
@@ -28,6 +29,14 @@ jobs:
       - uses: actions/checkout@v4
       - name: Public license provenance for exact pinned weights (no inference)
         run: python3 -B tool/ai_runtime/audit_model_licenses.py "$RUNNER_TEMP/b08-licenses"
+      - name: Review Qwen3 model_card_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" Qwen3 model_card_text
+      - name: Review Qwen3 license_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" Qwen3 license_text
+      - name: Review EmbeddingGemma model_card_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" EmbeddingGemma model_card_text
+      - name: Review EmbeddingGemma license_text
+        run: python3 -B tool/ai_runtime/audit_model_licenses.py --emit "$RUNNER_TEMP/b08-licenses" EmbeddingGemma license_text
       - uses: actions/upload-artifact@v4
         if: always()
         with:
