@@ -1,0 +1,40 @@
+{
+  "app_source_verified_by_android_ci": "0c9212cd8ae81d798b0ef7a4fd5f52e5877fcf4b",
+  "local_context": "Delivery source0c9212c verified; subsequent commit contains reports/results only",
+  "flutter": {
+    "version": "3.38.5",
+    "dart_version": "3.10.4",
+    "passed": 250,
+    "failed": 0,
+    "skipped": 0,
+    "machine_success": true
+  },
+  "analyze": "PASS: No issues found",
+  "format": "PASS",
+  "pub_lock": "PASS: enforce-lockfile",
+  "java_contracts": {
+    "passed": 35,
+    "failed": 0,
+    "inference_proof": false,
+    "parts": {
+      "library": 7,
+      "manager": 17,
+      "resolver": 6,
+      "ownership": 5
+    }
+  },
+  "python": {
+    "passed": 36,
+    "failed": 0
+  },
+  "android": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "source_run": 42291190266
+  },
+  "files_changed": 83,
+  "g2": "BLOCKED",
+  "g3": "BLOCKED",
+  "physical_samsung": "PENDING DEVICE TEST"
+}

@@ -1,0 +1,224 @@
+{
+  "source_commit": "0c9212cd8ae81d798b0ef7a4fd5f52e5877fcf4b",
+  "run_id": 42291190266,
+  "ci_url": "https://github.com/shehab5552/siraj-codex/actions/runs/42291190266",
+  "conclusion": "success",
+  "apks": [
+    {
+      "apk": "app-release.apk",
+      "size_bytes": 104731977,
+      "sha256": "9bda26e7bc43a8be6cfaded7b393bca92a0783a46e3e6f5ff6253cb1cfa7609f",
+      "classes_verified": [
+        "com.google.ai.edge.litertlm.Engine",
+        "com.google.ai.edge.litertlm.EmbeddingEngine"
+      ],
+      "native": [
+        {
+          "abi": "arm64-v8a",
+          "machine": 183,
+          "size_bytes": 22692848,
+          "sha256": "dfa2ce1c9d13ec0bcc71d40937a26d0c9850715dca3339107cec35167286af2d",
+          "readelf_passed": true
+        },
+        {
+          "abi": "x86_64",
+          "machine": 62,
+          "size_bytes": 26847192,
+          "sha256": "687ad50b6d0baca890e4a957cf8706958f5bf037fed0928a6ecdc5a169f4dfb1",
+          "readelf_passed": true
+        }
+      ],
+      "r8_mapping_verified": true,
+      "model_execution": "NOT RUN",
+      "g2": "NOT RUN",
+      "g3": "NOT RUN"
+    },
+    {
+      "apk": "app-debug.apk",
+      "size_bytes": 206695244,
+      "sha256": "294b9c66ede6c1bc126a6ad6be3d2534977b44897eb2e7c5be0022f9bb9d8a49",
+      "classes_verified": [
+        "com.google.ai.edge.litertlm.Engine",
+        "com.google.ai.edge.litertlm.EmbeddingEngine"
+      ],
+      "native": [
+        {
+          "abi": "arm64-v8a",
+          "machine": 183,
+          "size_bytes": 22692848,
+          "sha256": "dfa2ce1c9d13ec0bcc71d40937a26d0c9850715dca3339107cec35167286af2d",
+          "readelf_passed": true
+        },
+        {
+          "abi": "x86_64",
+          "machine": 62,
+          "size_bytes": 26847192,
+          "sha256": "687ad50b6d0baca890e4a957cf8706958f5bf037fed0928a6ecdc5a169f4dfb1",
+          "readelf_passed": true
+        }
+      ],
+      "r8_mapping_verified": false,
+      "model_execution": "NOT RUN",
+      "g2": "NOT RUN",
+      "g3": "NOT RUN"
+    }
+  ],
+  "android": {
+    "target": "b08_android_acceptance_test",
+    "status": "PASS",
+    "exit_code": 0,
+    "evidence_complete": true,
+    "errors": [],
+    "metrics": [
+      {
+        "scope": "X86_64_EMULATOR_ENGINEERING_ONLY",
+        "g2": "BLOCKED",
+        "g3": "BLOCKED",
+        "productionResourcesApproved": false,
+        "benchmarkPolicy": "SDK experimental counters enabled in Debug only; absent/invalid counters remain unmeasured",
+        "applicationNetworkProbe": "api.github.com:443 connection unavailable",
+        "embeddingInitializeMs": 1168,
+        "embeddingQueries": [
+          {
+            "dimensions": 768,
+            "l2Norm": 1.0000002301778477,
+            "elapsedMs": 685.168191,
+            "finite": true,
+            "zero": false
+          },
+          {
+            "dimensions": 768,
+            "l2Norm": 1.0000001706119175,
+            "elapsedMs": 716.091185,
+            "finite": true,
+            "zero": false
+          },
+          {
+            "dimensions": 768,
+            "l2Norm": 1.000000020491526,
+            "elapsedMs": 644.478709,
+            "finite": true,
+            "zero": false
+          }
+        ],
+        "embeddingOptions": "nullable SDK defaults; no adopted Dataset parity policy",
+        "llmInitializeMs": 4177,
+        "llmGenerations": [
+          {
+            "firstTextChunkMs": 6549,
+            "totalMs": 10876,
+            "chunks": 3,
+            "characters": 7,
+            "terminalCount": 1,
+            "sdkBenchmark": {
+              "initializeSeconds": 5.628393226,
+              "firstTokenSeconds": 5.2463614309999995,
+              "prefillTokens": 5,
+              "decodeTokens": 7,
+              "prefillTokensPerSecond": 1.3417487352446311,
+              "decodeTokensPerSecond": 3.2165630854241023
+            },
+            "sdkBenchmarkStatus": "MEASURED"
+          },
+          {
+            "firstTextChunkMs": 4953,
+            "totalMs": 9733,
+            "chunks": 5,
+            "characters": 9,
+            "terminalCount": 1,
+            "sdkBenchmark": {
+              "initializeSeconds": 5.628371693999999,
+              "firstTokenSeconds": 3.9600174535,
+              "prefillTokens": 7,
+              "decodeTokens": 9,
+              "prefillTokensPerSecond": 1.87717287486719,
+              "decodeTokensPerSecond": 3.926469915808074
+            },
+            "sdkBenchmarkStatus": "MEASURED"
+          },
+          {
+            "firstTextChunkMs": 4902,
+            "totalMs": 9348,
+            "chunks": 4,
+            "characters": 7,
+            "terminalCount": 1,
+            "sdkBenchmark": {
+              "initializeSeconds": 5.628365745999999,
+              "firstTokenSeconds": 3.85415094075,
+              "prefillTokens": 6,
+              "decodeTokens": 8,
+              "prefillTokensPerSecond": 1.6531875425593503,
+              "decodeTokensPerSecond": 3.7798243865808288
+            },
+            "sdkBenchmarkStatus": "MEASURED"
+          }
+        ],
+        "nativeCancellationDrainMs": 4,
+        "cancellationProbeAndCloseTotalMs": 5121,
+        "nativeCancellationTerminal": "generationCancelled",
+        "cancellationAttempts": 1,
+        "llmReloadMs": 3234,
+        "status": "PASS",
+        "modelInferenceExecuted": true,
+        "failureCount": 0,
+        "assertedNonemptyCompletionCount": 4,
+        "generationAttemptCount": 5,
+        "cancelProbeNormalCompletions": 0,
+        "embeddingQueryCount": 3,
+        "memorySamples": 231,
+        "sampledPeakPssKb": 2045675,
+        "sampledPeakNativeHeapBytes": 1261598208,
+        "memorySamplePeriodMs": 250,
+        "memoryCaveat": "sampled app process peaks, not guaranteed absolute peaks or co-residency approval"
+      }
+    ],
+    "flutter_reported_cases": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "offline": {
+    "status": "PASS",
+    "scope": "DEBUG_ENGINEERING_FIXTURE_ONLY",
+    "model_bytes_verified": true,
+    "device_model_sha256_verified": true,
+    "controls": [
+      {
+        "command": "cmd connectivity airplane-mode enable",
+        "exit_code": 0
+      }
+    ],
+    "wifi_setting": "0",
+    "mobile_data_setting": "0",
+    "active_default_network": "none",
+    "default_route_count": 3,
+    "activation_performed": false
+  },
+  "artifacts": [
+    {
+      "name": "b08-model-license-evidence",
+      "id": 13540515159,
+      "size_bytes": 14884,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42291190266/artifacts/13540515159"
+    },
+    {
+      "name": "b08-app-apks-and-build-evidence",
+      "id": 13540267633,
+      "size_bytes": 148996388,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42291190266/artifacts/13540267633"
+    },
+    {
+      "name": "b08-dependency-investigation",
+      "id": 13539832329,
+      "size_bytes": 3287,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42291190266/artifacts/13539832329"
+    },
+    {
+      "name": "b08-android-and-model-results",
+      "id": 13539604755,
+      "size_bytes": 2702,
+      "url": "https://github.com/shehab5552/siraj-codex/actions/runs/42291190266/artifacts/13539604755"
+    }
+  ]
+}
