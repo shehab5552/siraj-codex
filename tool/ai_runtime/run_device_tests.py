@@ -13,10 +13,10 @@ import sys
 def main():
     directory=Path(sys.argv[1]);directory.mkdir(parents=True,exist_ok=True)
     reports=[]
-    targets=['b03_android_database_test','b04_android_secure_session_test','b07_download_storage_test','b08_runtime_library_test','b08_real_models_test']
+    targets=['b08_android_acceptance_test']
     for target in targets:
-        # Run each target independently: Flutter native app is restarted, while
-        # private fixtures persist through same-signature debug installation.
+        # A single invocation keeps app-private fixtures alive across all cases.
+        # Flutter uninstalls the integration app on invocation teardown.
         process=subprocess.run(['flutter','test','integration_test/'+target+'.dart','--no-pub','-d','emulator-5554','--machine'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True)
         output=process.stdout
         metrics=[];passed=failed=skipped=0

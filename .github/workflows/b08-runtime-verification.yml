@@ -117,7 +117,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
-      - run: dart format --output=none --set-exit-if-changed lib test integration_test/b08_runtime_library_test.dart integration_test/b08_real_models_test.dart
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test/b08_runtime_library_test.dart integration_test/b08_real_models_test.dart integration_test/b08_android_acceptance_test.dart
       - run: flutter analyze --no-pub
       - run: flutter test --no-pub --machine > "$RUNNER_TEMP/b08-flutter-tests.jsonl"
       - run: bash tool/ai_runtime/run_core_tests.sh

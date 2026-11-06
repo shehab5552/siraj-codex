@@ -92,7 +92,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(
         () => _error = 'انتهت الجلسة أو لم تعد صالحة. سجّل الدخول مرة أخرى.',
       );
-    } on Exception {
+    } catch (_) {
       if (!mounted) return;
       setState(
         () => _error =

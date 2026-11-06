@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -63,6 +64,25 @@ void main() {
           (_) => unawaited(sample()),
         );
         try {
+          var connectionFailed = false;
+          try {
+            final socket = await Socket.connect(
+              'api.github.com',
+              443,
+              timeout: const Duration(seconds: 3),
+            );
+            socket.destroy();
+          } on SocketException {
+            connectionFailed = true;
+          }
+          expect(
+            connectionFailed,
+            isTrue,
+            reason:
+                'Offline inference requires no application network connection',
+          );
+          metrics['applicationNetworkProbe'] =
+              'api.github.com:443 connection unavailable';
           final status = await client.status();
           expect(status.jniLoaded, isTrue);
           expect(status.abi, 'x86_64');
